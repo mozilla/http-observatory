@@ -1,0 +1,94 @@
+from urllib.parse import urlparse
+
+import requests
+import subprocess
+
+
+# Create a session, returning the session and the HTTP response in a dictionary
+def __create_session(url: str) -> dict:
+    s = requests.Session()
+    r = s.get(url)
+
+    # Store the domain and scheme in the session
+    s.url = urlparse(r.url)
+
+    return {'session': s, 'response': r}
+
+
+def __get(session, relative_path='/'):
+    try:
+        return session.get(session.url.scheme + '://' + session.url.netloc + relative_path)
+    except:
+        return None
+
+
+def __get_page_text(response: requests.Response) -> str:
+    if response.status_code == 200:
+        return response.text
+    else:
+        return None
+
+
+def __get_tlsobs_result(hostname: str):
+    return subprocess.check_output(['tlsobs', hostname]).decode('utf-8')
+
+
+def retrieve_all(hostname: str, headers=None) -> dict:
+    retrievals = {
+        'hostname': hostname,
+        'resources': {
+        },
+        'responses': {
+            'auto': None,  # whichever of 'http' or 'https' actually works, with 'https' as higher priority
+            'http': None,
+            'https': None,
+            'tlsobs': None
+        },
+        'session': None,
+    }
+
+    # The list of resources to get
+    resources = (
+        '/clientaccesspolicy.xml',
+        '/contribute.json',
+        '/crossorigin.xml',
+        '/robots.txt'
+    )
+
+    # HTTP headers stuff (avoiding mutable arguments)
+    # TODO: pull private / public headers from database
+    if not headers:
+        headers = {}
+
+    # Create some reusable sessions, one for HTTP and one for HTTPS
+    http_session = __create_session('http://' + hostname + '/')
+    https_session = __create_session('https://' + hostname + '/')
+
+    # If neither one works, then the site just can't be loaded
+    if not http_session['session'] and not https_session['session']:
+        return retrievals
+
+    else:
+        # Store the HTTP only and HTTPS only responses (some things can only be retrieved over one or the other)
+        retrievals['responses']['http'] = http_session['response']
+        retrievals['responses']['https'] = https_session['response']
+
+        if https_session['session']:
+            retrievals['responses']['auto'] = https_session['response']
+            retrievals['session'] = https_session['session']
+        else:
+            retrievals['responses']['auto'] = http_session['response']
+            retrievals['session'] = http_session['session']
+
+        # Store the contents of the base page
+        retrievals['resources']['/'] = __get_page_text(retrievals['responses']['auto'])
+
+        # Store all the files we retrieve
+        for resource in resources:
+            resp = __get(retrievals['session'], resource)
+            retrievals['resources'][resource] = __get_page_text(resp)
+
+        # Store the TLS Observatory response
+        retrievals['responses']['tlsobs'] = __get_tlsobs_result(hostname)
+
+    return retrievals
