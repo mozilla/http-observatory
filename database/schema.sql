@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS tests (
   output                              JSONB   NOT NULL
 );
 
-CREATE INDEX sites_domain_idx ON sites ((lower(domain)));
+CREATE INDEX sites_domain_idx ON sites (domain);
 CREATE INDEX tests_name_idx   ON tests (name);
 
 CREATE ROLE httpobsscanner;
