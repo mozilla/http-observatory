@@ -32,8 +32,8 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe
 
         # Decompose the CSP; could probably do this in one step, but it's complicated enough
         try:
-            csp = [ directive.strip().split(' ', 1) for directive in output['data'].split(';')]
-            csp = { directive[0].lower(): (directive[1] if len(directive) > 1 else '') for directive in csp }
+            csp = [directive.strip().split(' ', 1) for directive in output['data'].split(';')]
+            csp = {directive[0].lower(): (directive[1] if len(directive) > 1 else '') for directive in csp}
         except:
             output['result'] = 'csp-header-invalid-header'
             return output
@@ -60,6 +60,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe
         output['pass'] = True
 
     return output
+
 
 def cookies(reqs: dict, expectation='secure-cookies-with-httponly-sessions') -> dict:
     """
@@ -99,14 +100,15 @@ def cookies(reqs: dict, expectation='secure-cookies-with-httponly-sessions') -> 
                     cookie.httponly = False
 
             # Add it to the jar
-            jar[cookie.name] = {i: getattr(cookie, i, None) for i in ['domain', 'expires', 'httponly', 'max-age', 'path', 'port', 'secure']}
+            jar[cookie.name] = {i: getattr(cookie, i, None) for i in ['domain', 'expires', 'httponly',
+                                                                      'max-age', 'path', 'port', 'secure']}
 
             # All cookies must be set with the secure flag, but httponly not being set overrides it
             if not cookie.secure and not output['result']:
                 output['result'] = 'insecure-cookie-set'
 
             # Login and session cookies should be set with HttpOnly
-            if any(i in cookie.name.lower() for i in ['login', 'sess']) and cookie.httponly == False:
+            if any(i in cookie.name.lower() for i in ['login', 'sess']) and cookie.httponly is False:
                 output['result'] = 'httponly-flag-not-set-on-session-cookies'
 
         # Save the cookie jar
@@ -116,7 +118,6 @@ def cookies(reqs: dict, expectation='secure-cookies-with-httponly-sessions') -> 
         if not output['result']:
             output['result'] = 'secure-cookies-with-httponly-sessions'
 
-
     # Check to see if the test passed or failed
     if not session.cookies:
         output['pass'] = True
@@ -124,6 +125,7 @@ def cookies(reqs: dict, expectation='secure-cookies-with-httponly-sessions') -> 
         output['pass'] = True
 
     return output
+
 
 def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-at-least-six-months') -> dict:
     """
@@ -153,7 +155,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     }
     response = reqs['responses']['https']
 
-    if response == None:
+    if response is None:
         return output
 
     if 'Strict-Transport-Security' in response.headers:
@@ -171,7 +173,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                     output['preload'] = True
 
             if output['max-age']:
-                if output['max-age'] < SIX_MONTHS: # must be at least six months
+                if output['max-age'] < SIX_MONTHS:  # must be at least six months
                     output['result'] = 'hsts-implemented-max-age-less-than-six-months'
                 else:
                     output['result'] = 'hsts-implemented-max-age-at-least-six-months'
@@ -196,6 +198,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         output['pass'] = True
 
     return output
+
 
 def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosniff') -> dict:
     """

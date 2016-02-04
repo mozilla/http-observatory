@@ -5,6 +5,7 @@ from website.backend import api
 
 app = Flask('http-observatory')
 
+
 @app.route('/')
 @add_response_headers()
 def main() -> str:
