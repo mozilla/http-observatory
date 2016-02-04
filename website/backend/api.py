@@ -1,6 +1,7 @@
 from scanner import STATE_FINISHED
 from scanner.grader import grade
 from scanner.tasks import scan
+from website import add_response_headers
 
 from flask import Blueprint, abort, jsonify
 
@@ -14,6 +15,7 @@ api = Blueprint('api', __name__)
 #     abort(403)
 
 @api.route('/api/v1/scan/<hostname>', methods=['GET', 'POST'])
+@add_response_headers()
 def api_post_scan_hostname(hostname: str):
     hostname = hostname.lower()
 
@@ -45,6 +47,7 @@ def api_post_scan_hostname(hostname: str):
 
 
 @api.route('/api/v1/results/<scan_id>', methods=['GET'])
+@add_response_headers()
 def api_get_test_results(scan_id: int):
     try:
         scan_id = int(scan_id)
