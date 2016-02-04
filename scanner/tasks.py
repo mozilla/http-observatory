@@ -1,4 +1,4 @@
-from database import get_cursor, insert_test_result
+from database import get_cursor, insert_test_result, update_scan_state
 from scanner import STATE_FAILED
 from scanner.retriever import retrieve_all
 
@@ -20,13 +20,9 @@ def scan(hostname: str, site_id: int, scan_id: int):
         # TODO: have more specific error messages
         e = sys.exc_info()[1]  # get the error message
 
-        # If we are unsuccessful in close out the scan in the database if it failed
+        # If we are unsuccessful, close out the scan in the database
         with get_cursor() as cur:
-            cur.execute("""UPDATE scans
-                             SET (status, end_time, error) = (%s, NOW(), %s)
-                             WHERE id = %s
-                             RETURNING *""",
-                        (STATE_FAILED, repr(e), scan_id))
+            update_scan_state(scan_id, STATE_FAILED, error=repr(e))
             return
 
     # Get all the tests
