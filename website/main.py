@@ -1,7 +1,7 @@
 from flask import Flask
 from website.backend import api
 
-app = Flask(__name__)
+app = Flask('http-observatory')
 
 
 @app.route('/')
