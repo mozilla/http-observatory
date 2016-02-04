@@ -1,6 +1,6 @@
 from .content import contribute, subresource_integrity
-from .headers import content_security_policy, cookies, strict_transport_security,\
-    x_content_type_options, x_xss_protection, x_frame_options
+from .headers import (content_security_policy, cookies, strict_transport_security,
+                      x_content_type_options, x_xss_protection, x_frame_options)
 from .misc import cross_origin_resource_sharing, redirection, tls_configuration
 
 __all__ = [
