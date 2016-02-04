@@ -147,3 +147,23 @@ def select_test_results(scan_id: int) -> dict:
                 }
 
     return tests
+
+
+def update_scan_state(scan_id, state: str, error=None) -> psycopg2.extras.DictRow:
+    if error:
+        with get_cursor() as cur:
+            cur.execute("""UPDATE scans
+                             SET (state, end_time, error) = (%s, NOW(), %s)
+                             WHERE id = %s
+                             RETURNING *""",
+                        (state, error, scan_id))
+
+    else:
+        with get_cursor() as cur:
+            cur.execute("""UPDATE scans
+                             SET (state) = (%s)
+                             WHERE id = %s
+                             RETURNING *""",
+                        (state, scan_id))
+
+    return cur.fetchone()
