@@ -25,6 +25,9 @@ setup(
     include_package_data=True,
     install_requires=[
         'beautifulsoup4',
+        'celery',
+        'flask',
+        'psycopg2',
         'requests',
         'tld',
     ],
