@@ -1,7 +1,5 @@
 from urllib.parse import urlparse
 
-import requests
-
 
 def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe-allowed-in-style-src-only') -> dict:
     """
