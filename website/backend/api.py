@@ -14,6 +14,7 @@ api = Blueprint('api', __name__)
 # def get_scan_hostname(hostname):
 #     abort(403)
 
+
 @api.route('/api/v1/scan/<hostname>', methods=['GET', 'POST'])
 @add_response_headers()
 def api_post_scan_hostname(hostname: str):
@@ -27,7 +28,7 @@ def api_post_scan_hostname(hostname: str):
 
     # If there was a recent scan, just return it
     if recent_scan_row:
-        if recent_scan_row['state'] == STATE_FINISHED and recent_scan_row['grade'] == None:
+        if recent_scan_row['state'] == STATE_FINISHED and recent_scan_row['grade'] is None:
             recent_scan_row = grade(recent_scan_row['id'])
 
         # TODO: clean this up
