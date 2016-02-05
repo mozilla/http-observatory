@@ -8,10 +8,11 @@ from os import environ
 import httpobs.scanner.analyzer
 import sys
 
-app = Celery('httpobs.scanner.tasks', broker=environ['BROKER_URL'])
+celery = Celery('httpobs.scanner.tasks', broker=environ['BROKER_URL'])
 
 
-# TODO: make this into a Celery task
+# TODO: get a callback to handle Celery errors
+@celery.task(ignore_result=True)
 def scan(hostname: str, site_id: int, scan_id: int):
     # Attempt to retrieve all the resources
     try:
