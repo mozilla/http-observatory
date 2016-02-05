@@ -1,14 +1,14 @@
-from database import get_cursor, insert_test_result, update_scan_state
-from scanner import STATE_FAILED
-from scanner.retriever import retrieve_all
+from httpobs.database import get_cursor, insert_test_result, update_scan_state
+from httpobs.scanner import STATE_FAILED
+from httpobs.scanner.retriever import retrieve_all
 
 from celery import Celery
 from os import environ
 
-import scanner.analyzer
+import httpobs.scanner.analyzer
 import sys
 
-app = Celery('http_observatory_scanner', broker=environ['BROKER_URL'])
+app = Celery('httpobs.scanner.tasks', broker=environ['BROKER_URL'])
 
 
 # TODO: make this into a Celery task
@@ -26,7 +26,7 @@ def scan(hostname: str, site_id: int, scan_id: int):
             return
 
     # Get all the tests
-    tests = [f for _, f in scanner.analyzer.__dict__.items() if callable(f)]
+    tests = [f for _, f in httpobs.scanner.analyzer.__dict__.items() if callable(f)]
 
     for test in tests:
         # TODO: Get overridden expectation

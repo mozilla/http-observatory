@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import os
 
 from setuptools import setup, find_packages
@@ -10,9 +12,10 @@ with open(os.path.join(__dirname, 'README.md')) as readme:
 
 
 setup(
-    name='http-observatory',
+    name='httpobs',
     version='0.1.0',
-    description='A set of tests and tools to scan your website for basic web hygeine.',
+    description='HTTP Observatory: a set of tests and tools to scan your website for basic web hygeine.',
+    url='https://github.com/mozilla/http-observatory',
     long_description=README,
     classifiers=[
         "Programming Language :: Python",

@@ -1,7 +1,5 @@
 from urllib.parse import urlparse
 
-import requests
-
 
 def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource-sharing-not-implemented') -> dict:
     """
