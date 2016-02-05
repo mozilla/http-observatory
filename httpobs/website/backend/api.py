@@ -1,11 +1,11 @@
-from scanner import STATE_FINISHED
-from scanner.grader import grade
-from scanner.tasks import scan
-from website import add_response_headers
+from httpobs.scanner import STATE_FINISHED
+from httpobs.scanner.grader import grade
+from httpobs.scanner.tasks import scan
+from httpobs.website import add_response_headers
 
 from flask import Blueprint, abort, jsonify
 
-import database
+import httpobs.database as database
 
 api = Blueprint('api', __name__)
 

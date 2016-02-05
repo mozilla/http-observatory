@@ -1,4 +1,5 @@
-import database
+import httpobs.database as database
+
 
 grade_order = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'F']
 output = {

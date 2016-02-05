@@ -1,7 +1,7 @@
 from flask import Flask
 
-from website import add_response_headers
-from website.backend import api
+from httpobs.website import add_response_headers
+from httpobs.website.backend import api
 
 app = Flask('http-observatory')
 

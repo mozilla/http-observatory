@@ -1,13 +1,12 @@
 from contextlib import contextmanager
 from json import dumps
 
-from scanner import STATE_FINISHED, STATE_RUNNING, STATE_STARTED
+from httpobs.scanner import STATE_FINISHED, STATE_RUNNING, STATE_STARTED
 
 import psycopg2
 import psycopg2.extras
 import psycopg2.pool
 
-import scanner.analyzer
 
 # Create a psycopg2 connection pool
 # TODO: pull credentials from environmental variable
