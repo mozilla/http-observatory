@@ -31,7 +31,7 @@ def __get_page_text(response: requests.Response) -> str:
 
 def __get_tlsobs_result(hostname: str) -> dict:
     TLSOBS_SCAN_URI = 'https://tls-observatory.services.mozilla.com/api/v1/scan?target={hostname}'
-    TLSOBS_RESULT_URI = 'https://tls-observatory.services.mozilla.com/api/v1/results?id={id}'
+    TLSOBS_RESULT_URI = 'https://tls-observatory.services.mozilla.com/api/v1/results?id={scan_id}'
 
     s = requests.Session()
 
@@ -44,7 +44,7 @@ def __get_tlsobs_result(hostname: str) -> dict:
         count = 0
 
         while True:
-            r = s.get(TLSOBS_RESULT_URI.format(id=scan_id))
+            r = s.get(TLSOBS_RESULT_URI.format(scan_id=scan_id))
 
             # Keep scanning until the completion percentage is at 100%
             if r.json()['completion_perc'] == 100:
