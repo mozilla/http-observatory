@@ -40,7 +40,7 @@ def api_post_scan_hostname(hostname: str):
         scan_id = row['id']
 
     # Begin the dispatch process
-    scan(hostname, site_id, scan_id)
+    scan.delay(hostname, site_id, scan_id)
 
     # And return the scan data
     # TODO: clean this up
