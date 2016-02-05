@@ -30,7 +30,7 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
     if 'Access-Control-Allow-Origin' in acao.headers:
         output['data']['acao'] = acao.headers['Access-Control-Allow-Origin']
 
-        if '*' in output['acao']:
+        if '*' in output['data']['acao']:
             output['result'] = 'cross-origin-resource-sharing-implemented'
 
     # TODO: check to see if it's a limited clientaccesspolicy.xml file
