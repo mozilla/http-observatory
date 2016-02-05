@@ -1,7 +1,7 @@
+from time import sleep
 from urllib.parse import urlparse
 
 import requests
-import subprocess
 
 
 # Create a session, returning the session and the HTTP response in a dictionary
@@ -29,8 +29,34 @@ def __get_page_text(response: requests.Response) -> str:
         return None
 
 
-def __get_tlsobs_result(hostname: str):
-    return subprocess.check_output(['tlsobs', hostname]).decode('utf-8')
+def __get_tlsobs_result(hostname: str) -> dict:
+    TLSOBS_SCAN_URI = 'https://tls-observatory.services.mozilla.com/api/v1/scan?target={hostname}'
+    TLSOBS_RESULT_URI = 'https://tls-observatory.services.mozilla.com/api/v1/results?id={scan_id}'
+
+    s = requests.Session()
+
+    try:
+        # First, make a POST to the TLS observatory API to initiate a scan
+        r = s.post(TLSOBS_SCAN_URI.format(hostname=hostname))
+        scan_id = str(r.json()['scan_id'])
+
+        # Then, let's just keep polling until we get the completion percentage to 100
+        count = 0
+
+        while True:
+            r = s.get(TLSOBS_RESULT_URI.format(scan_id=scan_id))
+
+            # Keep scanning until the completion percentage is at 100%
+            if r.json()['completion_perc'] == 100:
+                return r.json()
+            else:
+                # Keep contacting the observatory every 1-5 seconds, and go for 5 minutes max
+                count += 1
+                if count >= 156:  # 5 minutes
+                    break
+                sleep(1) if count <= 120 else sleep(5)
+    except:
+        pass
 
 
 def retrieve_all(hostname: str, headers=None) -> dict:

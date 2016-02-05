@@ -14,6 +14,8 @@ celery = Celery('httpobs.scanner.tasks', broker=environ['BROKER_URL'])
 # TODO: get a callback to handle Celery errors
 @celery.task(ignore_result=True)
 def scan(hostname: str, site_id: int, scan_id: int):
+    # TODO: Set scan to STARTING here
+
     # Attempt to retrieve all the resources
     try:
         reqs = retrieve_all(hostname)

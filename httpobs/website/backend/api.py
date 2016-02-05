@@ -18,6 +18,7 @@ api = Blueprint('api', __name__)
 @api.route('/api/v1/scan/<hostname>', methods=['GET', 'POST'])
 @add_response_headers()
 def api_post_scan_hostname(hostname: str):
+    # TODO: verify that it's a real hostname with DNS lookup first
     hostname = hostname.lower()
 
     # Get the site's id number

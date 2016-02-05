@@ -39,6 +39,7 @@ def insert_scan_grade(scan_id, grade):
 
 
 def insert_scan(site_id) -> psycopg2.extras.DictRow:
+    # TODO: change this to actual set to PENDING, until scan() gets called
     with get_cursor() as cur:
         cur.execute("""INSERT INTO scans (site_id, state, start_time, tests_quantity)
                          VALUES (%s, %s, NOW(), %s)

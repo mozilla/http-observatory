@@ -143,9 +143,6 @@ def tls_configuration(reqs: dict, expectation='intermediate-or-modern-tls-config
         tls_observatory_scan_id: TLS observatory scan id, for result lookups
     """
 
-    EVALUATION_HEADER = '* Mozilla evaluation: '
-    SCANNING_HEADER = 'Scanning '
-
     output = {
         'expectation': expectation,
         'pass': False,
@@ -158,16 +155,12 @@ def tls_configuration(reqs: dict, expectation='intermediate-or-modern-tls-config
         output['result'] = 'tls-observatory-scan-failed'
 
     else:
-        for line in tlsobs.split('\n'):
-            if line.startswith(SCANNING_HEADER):
-                output['tls_observatory_scan_id'] = int(line.split(' ')[-1][:-1])
+        output['tls_observatory_scan_id'] = tlsobs['id']
+        level = tlsobs['analysis'][0]['result']['level']
+        output['result'] = level + '-tls-configuration'  # intermediate-tls-configuration
 
-            elif line.startswith(EVALUATION_HEADER):
-                level = line.split(EVALUATION_HEADER)[-1]
-                output['result'] = level + '-tls-configuration'  # intermediate-tls-configuration
-
-                # Quick shortcut to see if the test passed or failed
-                if level in expectation:
-                    output['pass'] = True
+        # Quick shortcut to see if the test passed or failed
+        if level in expectation:
+            output['pass'] = True
 
     return output
