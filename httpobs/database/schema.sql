@@ -49,3 +49,5 @@ GRANT SELECT ON expectations, scans, tests to httpobsapi;
 GRANT SELECT (id, domain, public_headers) ON sites TO httpobsapi;
 GRANT INSERT, UPDATE ON sites, expectations to httpobsapi;
 GRANT INSERT, UPDATE (private_headers) ON sites to httpobsapi;
+
+SET MAX_CONNECTIONS TO 256;

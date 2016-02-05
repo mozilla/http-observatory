@@ -7,10 +7,12 @@ import psycopg2
 import psycopg2.extras
 import psycopg2.pool
 
+import httpobs.scanner.analyzer
+
 
 # Create a psycopg2 connection pool
 # TODO: pull credentials from environmental variable
-pool = psycopg2.pool.SimpleConnectionPool(1, 32, database='http_observatory')
+pool = psycopg2.pool.SimpleConnectionPool(1, 224, database='http_observatory', user='april')
 
 
 @contextmanager
@@ -41,7 +43,7 @@ def insert_scan(site_id) -> psycopg2.extras.DictRow:
         cur.execute("""INSERT INTO scans (site_id, state, start_time, tests_quantity)
                          VALUES (%s, %s, NOW(), %s)
                          RETURNING *""",
-                    (site_id, STATE_STARTED, len(scanner.analyzer.__all__)))
+                    (site_id, STATE_STARTED, len(httpobs.scanner.analyzer.__all__)))
 
     return cur.fetchone()
 
