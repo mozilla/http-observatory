@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS tests (
   scan_id                             INTEGER REFERENCES scans (id),
   name                                VARCHAR NOT NULL,
   expectation                         VARCHAR NOT NULL,
+  result                              VARCHAR NOT NULL,
+  pass                                BOOL    NOT NULL,
   output                              JSONB   NOT NULL
 );
 

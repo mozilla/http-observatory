@@ -9,11 +9,13 @@ import httpobs.database as database
 
 api = Blueprint('api', __name__)
 
-# TODO Implement GET, which just returns scan status?
+# TODO: Implement GET, which just returns scan status?
 # @api.route('/api/v1/scan/<hostname>', methods=['GET'])
 # def get_scan_hostname(hostname):
 #     abort(403)
 
+
+# TODO: Implement API to write public and private headers to the database
 
 @api.route('/api/v1/scan/<hostname>', methods=['GET', 'POST'])
 @add_response_headers()

@@ -1,7 +1,9 @@
 from contextlib import contextmanager
 from json import dumps
+from os import environ
+from sys import exit
 
-from httpobs.scanner import STATE_FINISHED, STATE_RUNNING, STATE_STARTED
+from httpobs.scanner import STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
 
 import psycopg2
 import psycopg2.extras
@@ -11,8 +13,11 @@ import httpobs.scanner.analyzer
 
 
 # Create a psycopg2 connection pool
-# TODO: pull credentials from environmental variable
-pool = psycopg2.pool.SimpleConnectionPool(1, 224, database='http_observatory', user='april')
+try:
+    pool = psycopg2.pool.SimpleConnectionPool(1, 224, environ['HTTPOBS_DATABASE_URL'])
+except KeyError:
+    print('Cannot find environmental variable $HTTPOBS_DATABASE_URL. Exiting.')
+    exit(1)
 
 
 @contextmanager
@@ -39,18 +44,20 @@ def insert_scan_grade(scan_id, grade):
 
 
 def insert_scan(site_id) -> psycopg2.extras.DictRow:
-    # TODO: change this to actual set to PENDING, until scan() gets called
     with get_cursor() as cur:
         cur.execute("""INSERT INTO scans (site_id, state, start_time, tests_quantity)
                          VALUES (%s, %s, NOW(), %s)
                          RETURNING *""",
-                    (site_id, STATE_STARTED, len(httpobs.scanner.analyzer.__all__)))
+                    (site_id, STATE_PENDING, len(httpobs.scanner.analyzer.__all__)))
 
     return cur.fetchone()
 
 
 def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> psycopg2.extras.DictRow:
+    # Pull the expectation, result, and pass result from the output
     expectation = output.pop('expectation')
+    result = output.pop('result')
+    passed = output.pop('pass')
 
     with get_cursor() as cur:
         # First, let's get the scan from the scans table
@@ -72,8 +79,8 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> p
             end_time = 'NOW()'
 
         # Increment the tests passed/failed column
-        tests_passed = row['tests_passed'] + 1 if output['pass'] == True else row['tests_passed']
-        tests_failed = row['tests_failed'] + 1 if output['pass'] == False else row['tests_failed']
+        tests_passed = row['tests_passed'] + 1 if passed is True else row['tests_passed']
+        tests_failed = row['tests_failed'] + 1 if passed is False else row['tests_failed']
 
         # Update the scans table
         cur.execute("""UPDATE scans
@@ -83,10 +90,10 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> p
                     (tests_completed, tests_failed, tests_passed, state, scan_id))
 
         # Add the test result to the database
-        cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, output)
-                         VALUES (%s, %s, %s, %s, %s)
+        cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, pass, output)
+                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                          RETURNING *""",
-                    (site_id, scan_id, name, expectation, dumps(output, indent=4, sort_keys=True)))
+                    (site_id, scan_id, name, expectation, result, passed, dumps(output)))
 
     return cur.fetchone()
 
@@ -105,6 +112,29 @@ def select_scan_recent_scan(site_id: int) -> psycopg2.extras.DictRow:
             return cur.fetchone()
 
     return {}
+
+
+def select_site_headers(hostname: str) -> dict:
+    # Return the site's headers
+    with get_cursor() as cur:
+        cur.execute("""SELECT public_headers, private_headers FROM sites
+                         WHERE domain=(%s)
+                         ORDER BY creation_time DESC
+                         LIMIT 1""",
+                    (hostname,))
+
+        # If it has headers, merge the public and private headers together
+        if cur.rowcount > 0:
+            row = cur.fetchone()
+            headers = {}
+
+            headers = {} if row.get('public_headers') is None else row.get('public_headers')
+            private_headers = {} if row.get('private_headers') is None else row.get('private_headers')
+            headers.update(private_headers)
+
+            return headers
+        else:
+            return {}
 
 
 def select_site_id(hostname: str) -> int:
@@ -138,8 +168,8 @@ def select_test_results(scan_id: int) -> dict:
         if cur.rowcount > 1:
             for test in cur:
                 expectation = test['expectation']
-                passed = test['output'].pop('pass')
-                result = test['output'].pop('result')
+                result = test['result']
+                passed = test['pass']
 
                 tests[test['name']] = {
                     'expectation': expectation,

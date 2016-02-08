@@ -13,6 +13,7 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
         pass: whether the site's configuration met its expectation
         result: short string describing the result of the test
     """
+    # TODO: only store part of the xml files, in case they're huge?
 
     output = {
         'data': {
