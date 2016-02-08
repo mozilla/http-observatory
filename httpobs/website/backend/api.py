@@ -1,6 +1,7 @@
 from httpobs.scanner import STATE_FINISHED
 from httpobs.scanner.grader import grade
 from httpobs.scanner.tasks import scan
+from httpobs.scanner.utils import is_valid_hostname
 from httpobs.website import add_response_headers
 
 from flask import Blueprint, abort, jsonify
@@ -20,8 +21,11 @@ api = Blueprint('api', __name__)
 @api.route('/api/v1/scan/<hostname>', methods=['GET', 'POST'])
 @add_response_headers()
 def api_post_scan_hostname(hostname: str):
-    # TODO: verify that it's a real hostname with DNS lookup first
     hostname = hostname.lower()
+
+    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)  # TODO: move to frontend?
+    if not is_valid_hostname(hostname):
+        return jsonify({'error': 'invalid-hostname'})
 
     # Get the site's id number
     site_id = database.select_site_id(hostname)
@@ -30,6 +34,7 @@ def api_post_scan_hostname(hostname: str):
     recent_scan_row = database.select_scan_recent_scan(site_id)
 
     # If there was a recent scan, just return it
+    # TODO: allow something to force a rescan
     if recent_scan_row:
         if recent_scan_row['state'] == STATE_FINISHED and recent_scan_row['grade'] is None:
             recent_scan_row = grade(recent_scan_row['id'])
