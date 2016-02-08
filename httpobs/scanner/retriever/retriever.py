@@ -1,12 +1,19 @@
 from time import sleep
 from urllib.parse import urlparse
 
+from httpobs.database import select_site_headers
+
 import requests
 
 
 # Create a session, returning the session and the HTTP response in a dictionary
-def __create_session(url: str) -> dict:
+def __create_session(url: str, headers=None) -> dict:
     s = requests.Session()
+
+    # Add the headers to the session
+    if headers:
+        s.headers.update(headers)
+
     r = s.get(url)
 
     # Store the domain and scheme in the session
@@ -81,14 +88,12 @@ def retrieve_all(hostname: str, headers=None) -> dict:
         '/robots.txt'
     )
 
-    # HTTP headers stuff (avoiding mutable arguments)
-    # TODO: pull private / public headers from database
-    if not headers:
-        headers = {}
+    # Get the headers from the database
+    headers = select_site_headers(hostname)
 
     # Create some reusable sessions, one for HTTP and one for HTTPS
-    http_session = __create_session('http://' + hostname + '/')
-    https_session = __create_session('https://' + hostname + '/')
+    http_session = __create_session('http://' + hostname + '/', headers=headers)
+    https_session = __create_session('https://' + hostname + '/', headers=headers)
 
     # If neither one works, then the site just can't be loaded
     if not http_session['session'] and not https_session['session']:
