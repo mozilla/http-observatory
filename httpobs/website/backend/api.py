@@ -21,10 +21,9 @@ api = Blueprint('api', __name__)
 @api.route('/api/v1/scan/<hostname>', methods=['GET', 'POST'])
 @add_response_headers()
 def api_post_scan_hostname(hostname: str):
-    # TODO: verify that it's a real hostname with DNS lookup first
     hostname = hostname.lower()
 
-    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
+    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)  # TODO: move to frontend?
     if not is_valid_hostname(hostname):
         return jsonify({'error': 'invalid-hostname'})
 
