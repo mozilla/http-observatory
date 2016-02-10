@@ -38,3 +38,24 @@ def is_valid_hostname(hostname: str) -> bool:
 
     # If we've made it this far, then everything is good to go!  Woohoo!
     return True
+
+
+def sanitize(output: dict):
+    SCAN_VALID_KEYS = ('end_time', 'error', 'grade', 'grade_reasons', 'result_id', 'start_time', 'state',
+                       'tests_completed', 'tests_failed', 'tests_passed', 'tests_quantity')
+
+    # Convert it to a dict (in case it's a DictRow)
+    output = dict(output)
+
+    if 'tests_quantity' in output:  # autodetect that it's a scan
+        # Rename 'id' to 'result_id':
+        output['result_id'] = output.pop('id')
+
+        # Remove 'error' if it's null
+        if output['error'] == None:
+            del(output['error'])
+
+        # Delete any other things that might have made their way into the results
+        output = {k: output[k] for k in SCAN_VALID_KEYS if k in output}
+
+    return output

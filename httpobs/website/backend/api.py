@@ -1,7 +1,7 @@
 from httpobs.scanner import STATE_FINISHED
 from httpobs.scanner.grader import grade
 from httpobs.scanner.tasks import scan
-from httpobs.scanner.utils import is_valid_hostname
+from httpobs.scanner.utils import is_valid_hostname, sanitize
 from httpobs.website import add_response_headers
 
 from flask import Blueprint, abort, jsonify
@@ -31,31 +31,28 @@ def api_post_scan_hostname(hostname: str):
     site_id = database.select_site_id(hostname)
 
     # Next, let's see if there's a recent scan
-    recent_scan_row = database.select_scan_recent_scan(site_id)
+    row = database.select_scan_recent_scan(site_id)
 
     # If there was a recent scan, just return it
     # TODO: allow something to force a rescan
-    if recent_scan_row:
-        if recent_scan_row['state'] == STATE_FINISHED and recent_scan_row['grade'] is None:
-            recent_scan_row = grade(recent_scan_row['id'])
-
-        # TODO: clean this up
-        return jsonify(recent_scan_row)
+    if row:
+        # If it's finished but not graded, let's grade it and then return the results with that grade
+        if row['state'] == STATE_FINISHED and row['grade'] is None:
+            row = grade(row['id'])
 
     # Otherwise, let's start up a scan
     else:
         row = database.insert_scan(site_id)
         scan_id = row['id']
 
-    # Begin the dispatch process
-    scan.delay(hostname, site_id, scan_id)
+        # Begin the dispatch process
+        scan.delay(hostname, site_id, scan_id)
 
-    # And return the scan data
-    # TODO: clean this up
-    return jsonify(row)
+    # Return the scan row
+    return jsonify(sanitize(row))
 
 
-@api.route('/api/v1/results/<scan_id>', methods=['GET'])
+@api.route('/api/v1/result/<scan_id>', methods=['GET'])
 @add_response_headers()
 def api_get_test_results(scan_id: int):
     try:
