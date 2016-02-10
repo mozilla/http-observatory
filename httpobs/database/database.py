@@ -79,7 +79,7 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> p
             end_time = 'NOW()'
 
         # Increment the tests passed/failed column
-        tests_passed = row['tests_passed'] + 1 if passed is True else row['tests_passed']
+        tests_passed = row['tests_passed'] + 1 if passed in (True, None) else row['tests_passed']
         tests_failed = row['tests_failed'] + 1 if passed is False else row['tests_failed']
 
         # Update the scans table

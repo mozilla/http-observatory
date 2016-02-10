@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS tests (
   name                                VARCHAR NOT NULL,
   expectation                         VARCHAR NOT NULL,
   result                              VARCHAR NOT NULL,
-  pass                                BOOL    NOT NULL,
+  pass                                BOOL    NULL,
   output                              JSONB   NOT NULL
 );
 
