@@ -3,13 +3,12 @@ from json import dumps
 from os import environ
 from sys import exit
 
-from httpobs.scanner import STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
+from httpobs.scanner import NUM_TESTS, STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
+from httpobs.scanner.grader import grade
 
 import psycopg2
 import psycopg2.extras
 import psycopg2.pool
-
-import httpobs.scanner.analyzer
 
 
 # Create a psycopg2 connection pool
@@ -31,35 +30,36 @@ def get_cursor():
         pool.putconn(conn)
 
 
-def insert_scan_grade(scan_id, grade):
-    with get_cursor() as cur:
-        cur.execute("""UPDATE scans
-                         SET (grade, grade_reasons) =
-                         (%s, %s)
-                         WHERE id = %s
-                         RETURNING *""",
-                    (grade['grade'], dumps(grade['grade_reasons']), scan_id))
-
-    return cur.fetchone()
-
-
 def insert_scan(site_id) -> psycopg2.extras.DictRow:
     with get_cursor() as cur:
         cur.execute("""INSERT INTO scans (site_id, state, start_time, tests_quantity)
                          VALUES (%s, %s, NOW(), %s)
                          RETURNING *""",
-                    (site_id, STATE_PENDING, len(httpobs.scanner.analyzer.__all__)))
+                    (site_id, STATE_PENDING, NUM_TESTS))
+
+    return cur.fetchone()
+
+
+def insert_scan_grade(scan_id, scan_grade):
+    with get_cursor() as cur:
+        cur.execute("""UPDATE scans
+                         SET (grade) =
+                         (%s)
+                         WHERE id = %s
+                         RETURNING *""",
+                    (scan_grade, scan_id))
 
     return cur.fetchone()
 
 
 def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> psycopg2.extras.DictRow:
-    # Pull the expectation, result, and pass result from the output
-    expectation = output.pop('expectation')
-    result = output.pop('result')
-    passed = output.pop('pass')
-
     with get_cursor() as cur:
+        # Pull the expectation, result, and pass result from the output
+        expectation = output.pop('expectation')
+        max_grade = output.pop('grade')
+        passed = output.pop('pass')
+        result = output.pop('result')
+
         # First, let's get the scan from the scans table
         cur.execute("""SELECT tests_completed, tests_passed, tests_failed, tests_quantity, state FROM scans
                          WHERE id=%s""", (scan_id,))
@@ -90,10 +90,15 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> p
                     (tests_completed, tests_failed, tests_passed, state, scan_id))
 
         # Add the test result to the database
-        cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, pass, output)
-                         VALUES (%s, %s, %s, %s, %s, %s, %s)
+        cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, max_grade, pass, output)
+                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                          RETURNING *""",
-                    (site_id, scan_id, name, expectation, result, passed, dumps(output)))
+                    (site_id, scan_id, name, expectation, result, max_grade, passed, dumps(output)))
+
+    # If the state was finished, let's trigger a grading call
+    if state == STATE_FINISHED:
+        # Get the test results from the database, get the worst grade, and put it into the database
+        insert_scan_grade(scan_id, grade(select_test_results(scan_id)))
 
     return cur.fetchone()
 
@@ -126,7 +131,6 @@ def select_site_headers(hostname: str) -> dict:
         # If it has headers, merge the public and private headers together
         if cur.rowcount > 0:
             row = cur.fetchone()
-            headers = {}
 
             headers = {} if row.get('public_headers') is None else row.get('public_headers')
             private_headers = {} if row.get('private_headers') is None else row.get('private_headers')
@@ -167,16 +171,7 @@ def select_test_results(scan_id: int) -> dict:
         # Grab every test and stuff it into the tests dictionary
         if cur.rowcount > 1:
             for test in cur:
-                expectation = test['expectation']
-                result = test['result']
-                passed = test['pass']
-
-                tests[test['name']] = {
-                    'expectation': expectation,
-                    'output': test['output'],
-                    'passed': passed,
-                    'result': result,
-                }
+                tests[test['name']] = dict(test)
 
     return tests
 
