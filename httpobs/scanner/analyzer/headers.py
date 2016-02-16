@@ -1,6 +1,9 @@
 from urllib.parse import urlparse
 
+from httpobs.scanner.analyzer.decorators import graded_test
 
+
+@graded_test
 def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe-allowed-in-style-src-only') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -9,6 +12,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe
         csp-implemented-with-unsafe-allowed-in-style-src-only: Allow the 'unsafe' keyword in style-src only [default]
         csp-implemented-with-unsafe: CSP implemented with using either unsafe-eval or unsafe-inline
         csp-implemented-with-insecure-scheme: CSP implemented with having sources over http:
+        csp-invalid-header: Invalid CSP header
         csp-not-implemented: CSP not implemented
     :return: dictionary with:
         data: the raw CSP header
@@ -35,7 +39,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe
             csp = [directive.strip().split(' ', 1) for directive in output['data'].split(';')]
             csp = {directive[0].lower(): (directive[1] if len(directive) > 1 else '') for directive in csp}
         except:
-            output['result'] = 'csp-header-invalid-header'
+            output['result'] = 'csp-invalid-header'
             return output
 
         for directive, value in csp.items():
@@ -62,13 +66,16 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe
     return output
 
 
-def cookies(reqs: dict, expectation='secure-cookies-with-httponly-sessions') -> dict:
+@graded_test
+def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
-        secure-cookies-with-httponly-sessions: All cookies have secure flag set, all session cookies are HttpOnly
-        insecure-cookie-set: Allowed to set cookies without the secure flag
-        httponly-flag-not-set-on-session-cookies: Allowed to have session cookies without the HttpOnly flag
+        cookies-secure-with-httponly-sessions: All cookies have secure flag set, all session cookies are HttpOnly
+        cookies-without-secure-flag: Cookies set without secure flag
+        cookies-session-without-secure-flag: Session cookies lack the Secure flag
+        cookies-session-without-httponly-flag: Session cookies lack the HttpOnly flag
+        cookies-not-found: No cookies found in HTTP requests
     :return: dictionary with:
         data: the cookie jar
         expectation: test expectation
@@ -86,7 +93,7 @@ def cookies(reqs: dict, expectation='secure-cookies-with-httponly-sessions') -> 
 
     # If there are no cookies
     if not session.cookies:
-        output['result'] = 'no-cookies-found'
+        output['result'] = 'cookies-not-found'
 
     else:
         jar = {}
@@ -104,19 +111,25 @@ def cookies(reqs: dict, expectation='secure-cookies-with-httponly-sessions') -> 
                                                                       'max-age', 'path', 'port', 'secure']}
 
             # All cookies must be set with the secure flag, but httponly not being set overrides it
+            # TODO: Check to see if it was set over http, where Secure wouldn't work
             if not cookie.secure and not output['result']:
-                output['result'] = 'insecure-cookie-set'
+                output['result'] = 'cookies-without-secure-flag'
+
+            # Login and session cookies should be set with Secure
+            # TODO: See if they're saved by HSTS?
+            elif any(i in cookie.name.lower() for i in ['login', 'sess']) and not cookie.secure:
+                output['result'] = 'cookies-session-without-secure-flag'
 
             # Login and session cookies should be set with HttpOnly
-            if any(i in cookie.name.lower() for i in ['login', 'sess']) and cookie.httponly is False:
-                output['result'] = 'httponly-flag-not-set-on-session-cookies'
+            elif any(i in cookie.name.lower() for i in ['login', 'sess']) and not cookie.httponly:
+                output['result'] = 'cookies-session-without-httponly-flag'
 
         # Save the cookie jar
         output['data'] = jar
 
         # Got through the cookie check properly
         if not output['result']:
-            output['result'] = 'secure-cookies-with-httponly-sessions'
+            output['result'] = 'cookies-secure-with-httponly-sessions'
 
     # Check to see if the test passed or failed
     if not session.cookies:
@@ -127,13 +140,15 @@ def cookies(reqs: dict, expectation='secure-cookies-with-httponly-sessions') -> 
     return output
 
 
+@graded_test
 def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-at-least-six-months') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
-        hsts-implemented-max-age-least-six-months: HSTS implemented with a max age of at least six months (15768000)
-        hsts-implemented-max-age-less-than-six-months: CSP implemented with using either unsafe-eval or unsafe-inline
-        hsts-not-implemented: CSP not implemented
+        hsts-implemented-max-age-at-least-six-months: HSTS implemented with a max age of at least six months (15768000)
+        hsts-implemented-max-age-less-than-six-months: HSTS implemented with a max age of less than six months
+        hsts-not-implemented-no-https: HSTS can't be implemented on http only sites
+        hsts-not-implemented: HSTS not implemented
     :return: dictionary with:
         data: the raw HSTS header
         expectation: test expectation
@@ -155,10 +170,11 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     }
     response = reqs['responses']['https']
 
+    # If there's no HTTPS, we can't have HSTS
     if response is None:
-        return output
+        output['result'] = 'hsts-not-implemented-no-https'
 
-    if 'Strict-Transport-Security' in response.headers:
+    elif 'Strict-Transport-Security' in response.headers:
         output['data'] = response.headers['Strict-Transport-Security']
 
         try:
@@ -200,12 +216,14 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     return output
 
 
+@graded_test
 def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosniff') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
         x-content-type-options-nosniff: X-Content-Type-Options set to "nosniff" [default]
         x-content-type-options-not-implemented: X-Content-Type-Options header missing
+        x-content-type-options-header-invalid
     :return: dictionary with:
         data: the raw X-Content-Type-Options header
         expectation: test expectation
@@ -227,7 +245,7 @@ def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosni
         if output['data'].lower() == 'nosniff':
             output['result'] = 'x-content-type-options-nosniff'
         else:
-            output['result'] = 'x-content-type-options-invalid-header'
+            output['result'] = 'x-content-type-options-header-invalid'
     else:
         output['result'] = 'x-content-type-options-not-implemented'
 
@@ -238,6 +256,7 @@ def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosni
     return output
 
 
+@graded_test
 def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -245,6 +264,7 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
         x-frame-options-sameorigin-or-deny: X-Frame-Options set to "sameorigin" or "deny" [default]
         x-frame-options-allow-from-origin: X-Frame-Options set to ALLOW-FROM uri
         x-frame-options-not-implemented: X-Frame-Options header missing
+        x-frame-options-header-invalid: Invalid X-Frame-Options header
     :return: dictionary with:
         data: the raw X-Content-Type-Options header
         expectation: test expectation
@@ -268,7 +288,7 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
         elif 'allow-from ' in output['data'].lower():
             output['result'] = 'x-frame-options-allow-from-origin'
         else:
-            output['result'] = 'x-frame-options-invalid-header'
+            output['result'] = 'x-frame-options-header-invalid'
     else:
         output['result'] = 'x-frame-options-not-implemented'
 
@@ -279,6 +299,7 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
     return output
 
 
+@graded_test
 def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -286,6 +307,7 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
         x-xss-protection-1-mode-block: X-XSS-Protection set to "1; block" [default]
         x-xss-protection-0: X-XSS-Protection set to "0" (disabled)
         x-xss-protection-not-implemented: X-XSS-Protection header missing
+        x-xss-protection-header-invalid
     :return: dictionary with:
         data: the raw X-XSS-Protection header
         expectation: test expectation
@@ -306,10 +328,10 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
 
         if output['data'].lower().replace(' ', '').strip() == '1;mode=block':
             output['result'] = 'x-xss-protection-1-mode-block'
-        elif output['data'].strip() == '0':
+        elif output['data'].strip().startswith('0'):
             output['result'] = 'x-xss-protection-0'
         else:
-            output['result'] = 'x-xss-protection-invalid-header'
+            output['result'] = 'x-xss-protection-header-invalid'
     else:
         output['result'] = 'x-xss-protection-not-implemented'
 

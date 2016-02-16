@@ -1,3 +1,6 @@
+# The number of tests in the scanner
+NUM_TESTS = 11
+
 # The various statuses
 STATE_ABORTED = 'ABORTED'
 STATE_FAILED = 'FAILED'
@@ -8,6 +11,7 @@ STATE_STARTED = 'STARTED'
 STATE_STOPPED = 'STOPPED'
 
 __all__ = [
+    'NUM_TESTS',
     'STATE_ABORTED',
     'STATE_FAILED',
     'STATE_FINISHED',

@@ -23,20 +23,20 @@ CREATE TABLE IF NOT EXISTS scans (
   tests_failed                        SMALLINT   NOT NULL DEFAULT 0,
   tests_passed                        SMALLINT   NOT NULL DEFAULT 0,
   tests_quantity                      SMALLINT   NOT NULL,
-  error                               VARCHAR    NULL,
-  grade                               VARCHAR(2) NULL,
-  grade_reasons                       JSONB      NULL
+  grade                               SMALLINT   NULL,
+  error                               VARCHAR    NULL
 );
 
 CREATE TABLE IF NOT EXISTS tests (
   id                                  BIGSERIAL PRIMARY KEY,
   site_id                             INTEGER REFERENCES sites (id),
   scan_id                             INTEGER REFERENCES scans (id),
-  name                                VARCHAR NOT NULL,
-  expectation                         VARCHAR NOT NULL,
-  result                              VARCHAR NOT NULL,
-  pass                                BOOL    NULL,
-  output                              JSONB   NOT NULL
+  name                                VARCHAR  NOT NULL,
+  expectation                         VARCHAR  NOT NULL,
+  result                              VARCHAR  NOT NULL,
+  max_grade                           SMALLINT NOT NULL,
+  pass                                BOOL     NULL,
+  output                              JSONB    NOT NULL
 );
 
 CREATE INDEX sites_domain_idx ON sites (domain);

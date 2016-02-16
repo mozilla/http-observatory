@@ -14,10 +14,14 @@ def __create_session(url: str, headers=None) -> dict:
     if headers:
         s.headers.update(headers)
 
-    r = s.get(url)
+    try:
+        r = s.get(url)
 
-    # Store the domain and scheme in the session
-    s.url = urlparse(r.url)
+        # Store the domain and scheme in the session
+        s.url = urlparse(r.url)
+    except:
+        r = None
+        s = None
 
     return {'session': s, 'response': r}
 
@@ -66,7 +70,7 @@ def __get_tlsobs_result(hostname: str) -> dict:
         pass
 
 
-def retrieve_all(hostname: str, headers=None) -> dict:
+def retrieve_all(hostname: str) -> dict:
     retrievals = {
         'hostname': hostname,
         'resources': {
@@ -89,6 +93,7 @@ def retrieve_all(hostname: str, headers=None) -> dict:
     )
 
     # Get the headers from the database
+    # TODO: Allow headers to be overridden on a per-scan basis?
     headers = select_site_headers(hostname)
 
     # Create some reusable sessions, one for HTTP and one for HTTPS
@@ -97,7 +102,7 @@ def retrieve_all(hostname: str, headers=None) -> dict:
 
     # If neither one works, then the site just can't be loaded
     if not http_session['session'] and not https_session['session']:
-        return retrievals
+        return retrievals  # TODO: Mark scan as completely failed
 
     else:
         # Store the HTTP only and HTTPS only responses (some things can only be retrieved over one or the other)
