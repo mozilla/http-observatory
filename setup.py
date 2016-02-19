@@ -34,5 +34,6 @@ setup(
         'requests',
         'tld',
     ],
+    scripts=['scripts/httpobs.py'],
     zip_safe=False,
 )

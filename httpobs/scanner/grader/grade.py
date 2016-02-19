@@ -26,8 +26,8 @@ SCORE_TABLE = {
     # contribute.json
     'contribute-json-with-required-keys': 0,
     'contribute-json-only-required-on-mozilla-properties': 0,
-    'contribute-json-missing-required-keys': -15,
-    'contribute-json-not-implemented': -20,
+    'contribute-json-missing-required-keys': -5,
+    'contribute-json-not-implemented': -15,
 
     # CSP
     'csp-implemented-with-no-unsafe': 0,
@@ -122,7 +122,7 @@ def grade(scan_id) -> tuple:
     # Insert the test score
     insert_scan_grade(scan_id, GRADE_CHART[score], score)
 
-    return (score, grade)
+    return score, grade
 
 
 def get_test_score_modifier(result) -> int:

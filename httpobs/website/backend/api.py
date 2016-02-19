@@ -2,7 +2,7 @@ from httpobs.scanner.tasks import scan
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
 
-from flask import Blueprint, abort, jsonify
+from flask import Blueprint, abort, request
 
 import httpobs.database as database
 
@@ -16,11 +16,12 @@ api = Blueprint('api', __name__)
 
 # TODO: Implement API to write public and private headers to the database
 
-@api.route('/api/v1/scan/<hostname>', methods=['GET', 'POST'])
+@api.route('/api/v1/analyze', methods=['GET', 'POST'])
 @add_response_headers()
 @sanitized_api_response
-def api_post_scan_hostname(hostname: str):
-    hostname = hostname.lower()
+def api_post_scan_hostname():
+    # Get the hostname
+    hostname = request.args.get('host', '').lower()
 
     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)  # TODO: move to frontend?
     if not valid_hostname(hostname):
@@ -39,20 +40,23 @@ def api_post_scan_hostname(hostname: str):
         row = database.insert_scan(site_id)
         scan_id = row['id']
 
-        # Begin the dispatch process
-        scan.delay(hostname, site_id, scan_id)
+        # Begin the dispatch process if it was a POST
+        if request.method == 'POST':
+            scan.delay(hostname, site_id, scan_id)
+        else:
+            return {'error': 'recent-scan-not-found'}
 
     # Return the scan row
     return row
 
 
-@api.route('/api/v1/result/<scan_id>', methods=['GET'])
+@api.route('/api/v1/getScanResults', methods=['GET'])
 @add_response_headers()
 @sanitized_api_response
-def api_get_test_results(scan_id: int):
-    try:
-        scan_id = int(scan_id)
-    except ValueError:
+def api_get_test_results():
+    scan_id = request.args.get('scan')
+
+    if not scan_id:
         abort(403)
 
     # Get all the test results for the given scan id and return it

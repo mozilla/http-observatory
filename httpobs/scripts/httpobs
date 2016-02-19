@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import json
+import optparse
+import requests
+import sys
+import time
+
+
+# TODO: Update to HTTPS once real site is live
+HTTP_OBS_URL = 'http://http-observatory.services.mozilla.com:5000/api/v1'
+
+
+def analyze(host):
+    # Keep polling the HTTP Observatory for the scan to finish
+    try:
+        result = poll(HTTP_OBS_URL + '/analyze?host={host}'.format(host=host),
+                      key='state',
+                      values=['FINISHED'],
+                      method='POST')
+    except:
+        print('\nUnable to get result from the HTTP Observatory.')
+        raise
+        sys.exit(1)
+
+    # Print out the scan result
+    print('\nScan:')
+    print(json.dumps(result, indent=4, sort_keys=True) + '\n')
+
+    # Get the test results
+    result = poll(HTTP_OBS_URL + '/getScanResults?scan={scan}'.format(scan=result['scan_id']),
+                  key='x-frame-options')
+    print('\n\nResult:')
+    print(json.dumps(result, indent=4, sort_keys=True))
+
+
+def poll(url, key, values=None, method='GET', timeout=300):
+    # Create requests session
+    headers = {
+        'Content-Type': 'application/json',
+    }
+    s = requests.Session()
+    s.headers.update(headers)
+
+    # Set the start time, since we don't want to go longer than timeout seconds
+    start_time = time.time()
+
+    print('Retrieving: {url}'.format(url=url), end='')
+    sys.stdout.flush()
+
+    while True:
+        # Retrieve the URL
+        if method == 'POST':
+            r = s.post(url).json()
+        else:
+            r = s.get(url).json()
+
+        # See if the key is one of the pollable values
+        if values:
+            if r[key] in values:
+                return r
+        else:
+            if key in r:
+                return r
+
+        # Let's error out if it has taken too long
+        if time.time() - start_time > timeout:
+            raise requests.Timeout
+
+        # If not, let's sleep and try again
+        print('.', end='')
+        sys.stdout.flush()
+        time.sleep(3)
+
+
+def usage(cmd):
+    print('Usage: {0} <hostname>'.format(cmd))
+    sys.exit(1)
+
+
+if __name__ == "__main__":
+    # Parse the command line
+    parser = optparse.OptionParser(usage="Usage: %prog [options] host")
+    (options, args) = parser.parse_args()
+
+    # Must have host option
+    if len(args) != 1:
+        parser.print_usage()
+        sys.exit(1)
+
+    # Go out and scan!
+    analyze(args[0])
