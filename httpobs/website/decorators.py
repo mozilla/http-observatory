@@ -39,7 +39,7 @@ def sanitized_api_response(fn):
     def wrapper(*args, **kwargs):
         output = fn(*args, **kwargs)
 
-        SCAN_VALID_KEYS = ('end_time', 'error', 'result_id', 'grade', 'score', 'start_time', 'state',
+        SCAN_VALID_KEYS = ('end_time', 'error', 'scan_id', 'grade', 'score', 'start_time', 'state',
                            'tests_completed', 'tests_failed', 'tests_passed', 'tests_quantity')
         TEST_RESULT_VALID_KEYS = ('expectation', 'name', 'output', 'pass', 'result', 'score_modifier')
 
@@ -48,7 +48,7 @@ def sanitized_api_response(fn):
 
         if 'tests_quantity' in output:  # autodetect that it's a scan
             # Rename 'id' to 'result_id':
-            output['result_id'] = output.pop('id')
+            output['scan_id'] = output.pop('id')
 
             # Remove 'error' if it's null
             if output['error'] is None:
