@@ -1,15 +1,15 @@
 from urllib.parse import urlparse
 
-from httpobs.scanner.analyzer.decorators import graded_test
+from httpobs.scanner.analyzer.decorators import scored_test
 
 
-@graded_test
-def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe-allowed-in-style-src-only') -> dict:
+@scored_test
+def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-unsafe') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
-        csp-implemented-with-no-unsafe: CSP implemented with no unsafe inline keywords
-        csp-implemented-with-unsafe-allowed-in-style-src-only: Allow the 'unsafe' keyword in style-src only [default]
+        csp-implemented-with-no-unsafe: CSP implemented with no unsafe inline keywords [default]
+        csp-implemented-with-unsafe-allowed-in-style-src-only: Allow the 'unsafe' keyword in style-src only
         csp-implemented-with-unsafe: CSP implemented with using either unsafe-eval or unsafe-inline
         csp-implemented-with-insecure-scheme: CSP implemented with having sources over http:
         csp-invalid-header: Invalid CSP header
@@ -59,14 +59,11 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-unsafe
     # Check to see if the test passed or failed
     if expectation == output['result']:
         output['pass'] = True
-    elif expectation == ('csp-implemented-with-unsafe-allowed-in-style-src-only' and
-                         output['result'] == 'csp-implemented-with-no-unsafe'):
-        output['pass'] = True
 
     return output
 
 
-@graded_test
+@scored_test
 def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -140,7 +137,10 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     return output
 
 
-@graded_test
+# TODO: def public_key_pinning()
+
+
+@scored_test
 def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-at-least-six-months') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -216,7 +216,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     return output
 
 
-@graded_test
+@scored_test
 def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosniff') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -256,7 +256,7 @@ def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosni
     return output
 
 
-@graded_test
+@scored_test
 def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -299,7 +299,7 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
     return output
 
 
-@graded_test
+@scored_test
 def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects

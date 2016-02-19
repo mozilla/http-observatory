@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS scans (
   tests_failed                        SMALLINT   NOT NULL DEFAULT 0,
   tests_passed                        SMALLINT   NOT NULL DEFAULT 0,
   tests_quantity                      SMALLINT   NOT NULL,
-  grade                               SMALLINT   NULL,
+  grade                               VARCHAR(2) NULL,
+  score                               SMALLINT   NULL,
   error                               VARCHAR    NULL
 );
 
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS tests (
   name                                VARCHAR  NOT NULL,
   expectation                         VARCHAR  NOT NULL,
   result                              VARCHAR  NOT NULL,
-  max_grade                           SMALLINT NOT NULL,
+  score_modifier                      SMALLINT NOT NULL,
   pass                                BOOL     NULL,
   output                              JSONB    NOT NULL
 );

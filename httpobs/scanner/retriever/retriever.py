@@ -28,6 +28,8 @@ def __create_session(url: str, headers=None) -> dict:
 
 def __get(session, relative_path='/'):
     try:
+        # TODO: limit the maximum size of the response, to keep malicious site operators from killing us
+        # TODO: Perhaps we can naively do it for now by simply setting a timeout?
         return session.get(session.url.scheme + '://' + session.url.netloc + relative_path)
     except:
         return None
