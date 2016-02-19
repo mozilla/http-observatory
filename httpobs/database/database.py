@@ -40,14 +40,14 @@ def insert_scan(site_id) -> psycopg2.extras.DictRow:
     return cur.fetchone()
 
 
-def insert_scan_grade(scan_id, scan_grade):
+def insert_scan_grade(scan_id, scan_grade, scan_score) -> psycopg2.extras.DictRow:
     with get_cursor() as cur:
         cur.execute("""UPDATE scans
-                         SET (grade) =
-                         (%s)
+                         SET (grade, score) =
+                         (%s, %s)
                          WHERE id = %s
                          RETURNING *""",
-                    (scan_grade, scan_id))
+                    (scan_grade, scan_score, scan_id))
 
     return cur.fetchone()
 
@@ -56,9 +56,9 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> p
     with get_cursor() as cur:
         # Pull the expectation, result, and pass result from the output
         expectation = output.pop('expectation')
-        max_grade = output.pop('grade')
         passed = output.pop('pass')
         result = output.pop('result')
+        score_modifier = output.pop('score_modifier')
 
         # First, let's get the scan from the scans table
         cur.execute("""SELECT tests_completed, tests_passed, tests_failed, tests_quantity, state FROM scans
@@ -90,15 +90,14 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> p
                     (tests_completed, tests_failed, tests_passed, state, scan_id))
 
         # Add the test result to the database
-        cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, max_grade, pass, output)
+        cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, pass, output, score_modifier)
                          VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                          RETURNING *""",
-                    (site_id, scan_id, name, expectation, result, max_grade, passed, dumps(output)))
+                    (site_id, scan_id, name, expectation, result, passed, dumps(output), score_modifier))
 
     # If the state was finished, let's trigger a grading call
     if state == STATE_FINISHED:
-        # Get the test results from the database, get the worst grade, and put it into the database
-        insert_scan_grade(scan_id, grade(select_test_results(scan_id)))
+        grade(scan_id)
 
     return cur.fetchone()
 

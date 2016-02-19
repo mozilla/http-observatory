@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup as bs
 from urllib.parse import urlparse
 
-from httpobs.scanner.analyzer.decorators import graded_test
+from httpobs.scanner.analyzer.decorators import scored_test
 
 import json
 import tld
@@ -9,7 +9,7 @@ import tld
 MOZILLA_DOMAINS = ('mozilla', 'allizom', 'webmaker')
 
 
-@graded_test
+@scored_test
 def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -65,7 +65,7 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
     return output
 
 
-@graded_test
+@scored_test
 def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-scripts-loaded-securely') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -73,7 +73,8 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
         sri-implemented-and-external-scripts-loaded-securely: integrity attribute exists on all external scripts,
           and scripts loaded [default for HTML]
         sri-implemented-but-external-scripts-not-loaded-securely: SRI implemented, but with scripts loaded over HTTP
-        sri-not-implemented-but-scripts-loaded-securely: SRI isn't implemented, but all scripts are loaded over HTTPS
+        sri-not-implemented-but-external-scripts-loaded-securely: SRI isn't implemented,
+          but all scripts are loaded over HTTPS
         sri-not-implemented-and-scripts-loaded-insecurely: SRI isn't implemented, and scripts are downloaded over HTTP
         sri-not-implemented-but-all-scripts-loaded-from-secure-origin: SRI isn't implemented,
           but all scripts come from secure origins (self)
@@ -98,7 +99,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
     def only_if_worse(result: str) -> str:
         goodness = ['sri-implemented-and-external-scripts-loaded-securely',
                     'sri-implemented-but-external-scripts-not-loaded-securely',
-                    'sri-not-implemented-but-scripts-loaded-securely',
+                    'sri-not-implemented-but-external-scripts-loaded-securely',
                     'sri-not-implemented-and-scripts-loaded-insecurely',
                     'sri-not-implemented-response-not-html']
 
@@ -166,7 +167,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                     if integrity and not securescheme:
                         output['result'] = only_if_worse('sri-implemented-but-external-scripts-not-loaded-securely')
                     elif not integrity and securescheme:
-                        output['result'] = only_if_worse('sri-not-implemented-but-scripts-loaded-securely')
+                        output['result'] = only_if_worse('sri-not-implemented-but-external-scripts-loaded-securely')
                     elif not integrity and not securescheme:
                         output['result'] = only_if_worse('sri-not-implemented-and-scripts-loaded-insecurely')
 

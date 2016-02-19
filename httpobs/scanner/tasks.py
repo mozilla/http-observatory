@@ -38,5 +38,5 @@ def scan(hostname: str, site_id: int, scan_id: int):
 
     # Execute each test, replacing the underscores in the function name with dashes in the test name
     for test in httpobs.scanner.analyzer.tests:
-        # TODO: Get overridden expectation
+        # TODO: Get overridden expectations
         insert_test_result(site_id, scan_id, test.__name__.replace('_', '-'), test(reqs))

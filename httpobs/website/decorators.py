@@ -1,8 +1,6 @@
 from flask import jsonify, make_response
 from functools import wraps
 
-from httpobs.scanner.grader.utils import GRADES
-
 
 def add_response_headers(headers=None, default_headers=None):
     """
@@ -41,9 +39,9 @@ def sanitized_api_response(fn):
     def wrapper(*args, **kwargs):
         output = fn(*args, **kwargs)
 
-        SCAN_VALID_KEYS = ('end_time', 'error', 'grade', 'grade_reasons', 'result_id', 'start_time', 'state',
+        SCAN_VALID_KEYS = ('end_time', 'error', 'result_id', 'grade', 'score', 'start_time', 'state',
                            'tests_completed', 'tests_failed', 'tests_passed', 'tests_quantity')
-        TEST_RESULT_VALID_KEYS = ('expectation', 'max_grade', 'name', 'output', 'pass', 'result')
+        TEST_RESULT_VALID_KEYS = ('expectation', 'name', 'output', 'pass', 'result', 'score_modifier')
 
         # Convert it to a dict (in case it's a DictRow)
         output = dict(output)
@@ -51,10 +49,6 @@ def sanitized_api_response(fn):
         if 'tests_quantity' in output:  # autodetect that it's a scan
             # Rename 'id' to 'result_id':
             output['result_id'] = output.pop('id')
-
-            # Transform the grade from a number to a letter
-            if output['grade']:
-                output['grade'] = GRADES[output['grade']]
 
             # Remove 'error' if it's null
             if output['error'] is None:
@@ -67,9 +61,6 @@ def sanitized_api_response(fn):
             for test in output:
                 # Delete unnecessary keys
                 output[test] = {k: output[test][k] for k in output[test] if k in TEST_RESULT_VALID_KEYS}
-
-                # Transform the grade from a letter to a number
-                output[test]['max_grade'] = GRADES[output[test]['max_grade']]
 
         return jsonify(output)
     return wrapper

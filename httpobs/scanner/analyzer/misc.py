@@ -1,9 +1,9 @@
 from urllib.parse import urlparse
 
-from httpobs.scanner.analyzer.decorators import graded_test
+from httpobs.scanner.analyzer.decorators import scored_test
 
 
-@graded_test
+@scored_test
 def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource-sharing-not-implemented') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -57,7 +57,7 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
     return output
 
 
-@graded_test
+@scored_test
 def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -135,7 +135,7 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
     return output
 
 
-@graded_test
+@scored_test
 def tls_configuration(reqs: dict, expectation='tls-configuration-intermediate-or-modern') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
@@ -170,18 +170,22 @@ def tls_configuration(reqs: dict, expectation='tls-configuration-intermediate-or
     else:
         output['tls_observatory_scan_id'] = tlsobs['id']
         level = tlsobs['analysis'][0]['result']['level']
-        output['result'] = 'tls-configuration-' + level  # tls-configuration-intermediate
 
-        # Check to see if the only thing holding it back was a weak DHE (this is too common to fail every site)
+        # Some things trigger 'bad' when they shouldn't-ish
         if level == 'bad':
-            bad = False
-            for consideration in tlsobs['analysis'][0]['result']['failures']['intermediate']:
-                if 'consider ' not in consideration and 'use DHE of at least 2048bits' not in consideration:
-                    print(consideration)
-                    bad = True
+            failures = tlsobs['analysis'][0]['result']['failures']
 
-            if not bad:
-                output['result'] = 'tls-configuration-weak-dhe'
+            # Check to see if the only thing holding us back was a weak DHE (this is too common to fail every site)
+            if all('consider ' in _ or 'use DHE of at least 2048bits' in _ for _ in failures['intermediate']):
+                level = 'weak-dhe'
+
+            # Also check to see if it's 'bad' but the only thing keeping it from old is a SHA-256 cert; this can be
+            # a sign that cert switching is in use.  TODO: fix this once TLS Observatory is fixed
+            # See also: https://github.com/mozilla/tls-observatory/issues/103
+            elif all('consider ' in _ or 'use sha1WithRSAEncryption' in _ for _ in failures['old']):
+                level = 'old'
+
+        output['result'] = 'tls-configuration-' + level  # tls-configuration-intermediate
 
         # Quick shortcut to see if the test passed or failed (tls-configuration-intermediate is in default expectation)
         if level in expectation:
