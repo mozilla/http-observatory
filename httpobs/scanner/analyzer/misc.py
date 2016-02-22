@@ -80,13 +80,13 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
 
     response = reqs['responses']['http']
     output = {
-        'destination': response.url,
+        'destination': response.url if response else None,
         'expectation': expectation,
         'pass': False,
         'redirects': True,
         'result': None,
         'route': [],
-        'status_code': response.status_code,
+        'status_code': response.status_code if response else None,
     }
 
     if not response:
@@ -125,8 +125,9 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
         output['result'] = 'redirection-missing'
         output['redirects'] = False
 
-    # Append the final location to the path
-    output['route'].append(response.url)
+    # Append the final location to the route (redirection or not)
+    if response:
+        output['route'].append(response.url)
 
     # Check to see if the test passed or failed
     if expectation == output['result'] or output['result'] == 'redirection-not-needed-no-http':
