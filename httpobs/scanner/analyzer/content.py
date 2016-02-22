@@ -115,9 +115,8 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
         output['result'] = 'request-did-not-return-status-code-200'
 
     # If the content isn't HTML, there's no scripts to load; this is okay
-    elif response.headers.get('Content-Type', '').split(';')[0] != 'text/html':
-        output['expectation'] = 'sri-not-implemented-response-not-html'
-        output['result'] = 'sri-not-needed-response-not-html'
+    elif response.headers.get('Content-Type', '').split(';')[0] not in ('text/html', 'application/xhtml+xml'):
+        output['result'] = 'sri-not-implemented-response-not-html'
 
     else:
         # Try to parse the HTML
@@ -159,7 +158,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                                                     }
 
                     # See if it's a secure scheme
-                    if src.scheme and src.scheme == 'https':
+                    if src.scheme == 'https' or (src.scheme == '' and urlparse(response.url).scheme == 'https'):
                         securescheme = True
                     else:
                         securescheme = False

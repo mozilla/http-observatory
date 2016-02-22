@@ -41,7 +41,8 @@ def sanitized_api_response(fn):
 
         SCAN_VALID_KEYS = ('end_time', 'error', 'scan_id', 'grade', 'score', 'start_time', 'state',
                            'tests_completed', 'tests_failed', 'tests_passed', 'tests_quantity')
-        TEST_RESULT_VALID_KEYS = ('expectation', 'name', 'output', 'pass', 'result', 'score_modifier')
+        TEST_RESULT_VALID_KEYS = ('expectation', 'name', 'output', 'pass', 'result',
+                                  'score_description', 'score_modifier')
 
         # Convert it to a dict (in case it's a DictRow)
         output = dict(output)
