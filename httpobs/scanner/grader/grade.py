@@ -258,6 +258,10 @@ SCORE_TABLE = {
         'description': 'Claims to be html, but cannot be parsed',
         'modifier': -20,  # can't run an SRI check if the HTML isn't parsable
     },
+    'request-did-not-return-status-code-200': {
+        'description': '/ did not return a status code of 200',
+        'modifier': -5,  # can't run an SRI check on pages that don't return a 200
+    }
 }
 
 

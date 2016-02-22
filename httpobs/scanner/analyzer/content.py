@@ -80,6 +80,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
           but all scripts come from secure origins (self)
         sri-not-implemented-but-no-scripts-loaded: SRI isn't implemented, because the page doesn't load any scripts
         sri-not-implemented-response-not-html: SRI isn't needed, because the page isn't HTML [default for non-HTML]
+        request-did-not-return-status-code-200: Let's only look for SRI on pages that returned 200, not things like 404s
         html-not-parsable: Can't parse the page's content
     :return: dictionary with:
         data: all external scripts and their integrity / crossorigin attributes
