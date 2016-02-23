@@ -6,6 +6,13 @@ from httpobs.database import select_site_headers
 import requests
 
 
+# Maximum timeout for requests for all GET requests for anything but the TLS Observatory
+# The default ConnectionTimeout is something like 75 seconds, which means that things like
+# tiles can take ~600s to timeout, since they have 8 DNS entries.  Setting it to lower
+# should hopefully keep requests from taking forever
+TIMEOUT = (6.05, 30)  # connect, read
+
+
 # Create a session, returning the session and the HTTP response in a dictionary
 def __create_session(url: str, headers=None) -> dict:
     s = requests.Session()
@@ -30,7 +37,7 @@ def __get(session, relative_path='/'):
     try:
         # TODO: limit the maximum size of the response, to keep malicious site operators from killing us
         # TODO: Perhaps we can naively do it for now by simply setting a timeout?
-        return session.get(session.url.scheme + '://' + session.url.netloc + relative_path)
+        return session.get(session.url.scheme + '://' + session.url.netloc + relative_path, timeout=TIMEOUT)
     except:
         return None
 
