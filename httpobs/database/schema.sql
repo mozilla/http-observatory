@@ -40,8 +40,16 @@ CREATE TABLE IF NOT EXISTS tests (
   output                              JSONB    NOT NULL
 );
 
-CREATE INDEX sites_domain_idx ON sites (domain);
-CREATE INDEX tests_name_idx   ON tests (name);
+CREATE INDEX sites_domain_idx     ON sites (domain);
+
+CREATE INDEX scans_start_time_idx ON scans (start_time);
+CREATE INDEX scans_end_time_idx   ON scans (end_time);
+CREATE INDEX scans_grade_idx      ON scans (grade);
+CREATE INDEX scans_score_idx      ON scans (score);
+
+CREATE INDEX tests_name_idx       ON tests (name);
+CREATE INDEX tests_result_idx     ON tests (result);
+CREATE INDEX tests_pass_idx       ON tests (pass);
 
 CREATE ROLE httpobsscanner;
 GRANT SELECT, INSERT ON sites, expectations, scans, tests TO httpobsscanner;
@@ -53,4 +61,5 @@ GRANT SELECT (id, domain, public_headers) ON sites TO httpobsapi;
 GRANT INSERT, UPDATE ON sites, expectations to httpobsapi;
 GRANT INSERT, UPDATE (private_headers) ON sites to httpobsapi;
 
-SET MAX_CONNECTIONS TO 256;
+CREATE VIEW latest_scans AS SELECT latest_scans.* FROM sites s, LATERAL ( SELECT id AS scan_id, site_id, end_time FROM scans WHERE site_id = s.id AND state = 'FINISHED' ORDER BY end_time DESC LIMIT 1 ) latest_scans;
+CREATE VIEW latest_tests AS SELECT tests.site_id, tests.scan_id, name, result, pass, output FROM tests INNER JOIN latest_scans ON (latest_scans.scan_id = tests.scan_id);
