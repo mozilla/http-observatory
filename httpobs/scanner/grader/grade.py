@@ -228,11 +228,11 @@ SCORE_TABLE = {
     },
     'x-frame-options-not-implemented': {
         'description': 'X-Frame-Options (XFO) header not implemented',
-        'modifier': -40,
+        'modifier': -25,
     },
     'x-frame-options-header-invalid': {
         'description': 'X-Frame-Options (XFO) header cannot be recognized',
-        'modifier': -40,
+        'modifier': -25,
     },
 
     # X-XSS-Protection
