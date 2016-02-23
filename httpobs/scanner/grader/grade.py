@@ -228,11 +228,11 @@ SCORE_TABLE = {
     },
     'x-frame-options-not-implemented': {
         'description': 'X-Frame-Options (XFO) header not implemented',
-        'modifier': -40,
+        'modifier': -25,
     },
     'x-frame-options-header-invalid': {
         'description': 'X-Frame-Options (XFO) header cannot be recognized',
-        'modifier': -40,
+        'modifier': -25,
     },
 
     # X-XSS-Protection
@@ -258,6 +258,10 @@ SCORE_TABLE = {
         'description': 'Claims to be html, but cannot be parsed',
         'modifier': -20,  # can't run an SRI check if the HTML isn't parsable
     },
+    'request-did-not-return-status-code-200': {
+        'description': '/ did not return a status code of 200',
+        'modifier': -5,  # can't run an SRI check on pages that don't return a 200
+    }
 }
 
 

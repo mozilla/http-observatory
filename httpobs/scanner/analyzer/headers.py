@@ -157,7 +157,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         preload: whether the preload flag is set
         result: short string describing the result of the test
     """
-    SIX_MONTHS = 15768000
+    SIX_MONTHS = 15552000  # 15768000 is six months, but a lot of sites use 15552000, so a white lie is in order
 
     output = {
         'data': None,

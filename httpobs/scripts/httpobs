@@ -25,6 +25,8 @@ def analyze(host):
                     method='POST')
         grade = scan['grade']
         score = scan['score']
+    except SystemExit:
+        raise
     except:
         print('\nUnable to get result from the HTTP Observatory.')
         sys.exit(1)
@@ -74,6 +76,11 @@ def poll(url, key, values=None, method='GET', timeout=300):
         else:
             r = s.get(url).json()
 
+        # See if error is in there; if so, we just abort the whole thing
+        if 'error' in r:
+            print('\nUnable to get result from the HTTP Observatory. Error: {error}.'.format(error=r['error']))
+            sys.exit(1)
+
         # See if the key is one of the pollable values
         if values:
             if r[key] in values:
@@ -85,6 +92,7 @@ def poll(url, key, values=None, method='GET', timeout=300):
                 if args.verbose:
                     print()
                 return r
+
 
         # Let's error out if it has taken too long
         if time.time() - start_time > timeout:
