@@ -26,10 +26,13 @@ def api_post_scan_hostname():
 
     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)  # TODO: move to frontend?
     if not valid_hostname(hostname):
-        return {'error': 'invalid-hostname'}
+        return {'error': '{hostname} is an invalid hostname'.format(hostname=hostname)}
 
     # Get the site's id number
-    site_id = database.select_site_id(hostname)
+    try:
+        site_id = database.select_site_id(hostname)
+    except IOError:
+        return {'error': 'Unable to connect to database'}
 
     # Next, let's see if there's a recent scan; if there was a recent scan, let's just return it
     row = database.select_scan_recent_scan(site_id)

@@ -11,36 +11,64 @@ import psycopg2.extras
 import psycopg2.pool
 
 
+# TODO: Try to fix connection pooling someday, ugh
 # Create a psycopg2 connection pool
+# try:
+#     pool = psycopg2.pool.ThreadedConnectionPool(1, 224, environ['HTTPOBS_DATABASE_URL'])
+# except KeyError:
+#     print('Cannot find environmental variable $HTTPOBS_DATABASE_URL. Exiting.')
+#     exit(1)
+# except psycopg2.OperationalError:
+#     print('Cannot connect to PostgreSQL. Exiting.')
+#     exit(1)
+#
+# @contextmanager
+# def get_cursor():
+#     conn = pool.getconn()
+#
+#     try:
+#         yield conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+#         conn.commit()
+#     except:
+#         conn.rollback()
+#     finally:
+#         pool.putconn(conn)
+
+# Try to connect to PostgreSQL on startup:
 try:
-    pool = psycopg2.pool.SimpleConnectionPool(1, 224, environ['HTTPOBS_DATABASE_URL'])
-except KeyError:
-    print('Cannot find environmental variable $HTTPOBS_DATABASE_URL. Exiting.')
+    conn = psycopg2.connect(environ['HTTPOBS_DATABASE_URL'])
+except:
+    print('Unable to connect to PostgreSQL. Exiting.')
     exit(1)
 
 
 @contextmanager
 def get_cursor():
-    conn = pool.getconn()
-
     try:
-        yield conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        conn.commit()
-    finally:
-        pool.putconn(conn)
+        conn = psycopg2.connect(environ['HTTPOBS_DATABASE_URL'])
+
+        try:
+            yield conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            conn.commit()
+        except:
+            conn.rollback()
+    except:
+        print('Unable to connect to PostgreSQL.')
+        raise IOError
+        # TODO: Lets fail gracefully by catching these exceptions
 
 
-def insert_scan(site_id) -> psycopg2.extras.DictRow:
+def insert_scan(site_id) -> dict:
     with get_cursor() as cur:
         cur.execute("""INSERT INTO scans (site_id, state, start_time, tests_quantity)
                          VALUES (%s, %s, NOW(), %s)
                          RETURNING *""",
                     (site_id, STATE_PENDING, NUM_TESTS))
 
-    return cur.fetchone()
+        return dict(cur.fetchone())
 
 
-def insert_scan_grade(scan_id, scan_grade, scan_score) -> psycopg2.extras.DictRow:
+def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
     with get_cursor() as cur:
         cur.execute("""UPDATE scans
                          SET (grade, score) =
@@ -49,10 +77,10 @@ def insert_scan_grade(scan_id, scan_grade, scan_score) -> psycopg2.extras.DictRo
                          RETURNING *""",
                     (scan_grade, scan_score, scan_id))
 
-    return cur.fetchone()
+        return dict(cur.fetchone())
 
 
-def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> psycopg2.extras.DictRow:
+def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> dict:
     with get_cursor() as cur:
         # Pull the expectation, result, and pass result from the output
         expectation = output.pop('expectation')
@@ -95,15 +123,21 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> p
                          RETURNING *""",
                     (site_id, scan_id, name, expectation, result, passed, dumps(output), score_modifier))
 
-    # If the state was finished, let's trigger a grading call
-    if state == STATE_FINISHED:
-        grade(scan_id)
+        row = dict(cur.fetchone())
 
-    return cur.fetchone()
+
+    # If the state was finished, let's trigger a grading call
+    try:
+        if state == STATE_FINISHED:
+            grade(scan_id)
+    except:
+        pass
+
+    return row
 
 
 # TODO: Only look for successful scans?
-def select_scan_recent_scan(site_id: int) -> psycopg2.extras.DictRow:
+def select_scan_recent_scan(site_id: int) -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT * FROM scans
                          WHERE start_time >= NOW() - INTERVAL '1 day'
@@ -113,7 +147,7 @@ def select_scan_recent_scan(site_id: int) -> psycopg2.extras.DictRow:
                     (site_id,))
 
         if cur.rowcount > 0:
-            return cur.fetchone()
+            return dict(cur.fetchone())
 
     return {}
 
@@ -175,7 +209,7 @@ def select_test_results(scan_id: int) -> dict:
     return tests
 
 
-def update_scan_state(scan_id, state: str, error=None) -> psycopg2.extras.DictRow:
+def update_scan_state(scan_id, state: str, error=None) -> dict:
     if error:
         with get_cursor() as cur:
             cur.execute("""UPDATE scans
@@ -192,4 +226,4 @@ def update_scan_state(scan_id, state: str, error=None) -> psycopg2.extras.DictRo
                              RETURNING *""",
                         (state, scan_id))
 
-    return cur.fetchone()
+    return dict(cur.fetchone())
