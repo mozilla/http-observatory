@@ -4,6 +4,7 @@ from __future__ import print_function
 from celery.task.control import inspect
 
 import requests
+import sys
 import time
 
 
@@ -11,9 +12,8 @@ import time
 HTTP_OBS_URL = 'http://http-observatory.services.mozilla.com:5000/api/v1'
 ALEXA_FILE = sys.argv[1]
 
-# Get the queue key
+# Get the queue inspector
 queue = inspect(timeout=15)
-queue_key = list(queue.active())[0]
 
 if __name__ == '__main__':
     start_time = time.time()
