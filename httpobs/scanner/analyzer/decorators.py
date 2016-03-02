@@ -8,6 +8,7 @@ def scored_test(func):
     def wrapper(*args, **kwargs):
         test_result = func(*args, **kwargs)
         test_result['score_modifier'] = get_test_score_modifier(test_result['result'])
+
         return test_result
 
     return wrapper
