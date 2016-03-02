@@ -36,8 +36,6 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
         pass: whether the site's configuration met its expectation
         result: short string describing the result of the test
     """
-    # TODO: only store part of the xml files, in case they're huge?
-
     output = {
         'data': {
             'acao': None,
@@ -53,9 +51,9 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
 
     if acao:
         if 'Access-Control-Allow-Origin' in acao.headers:
-            output['data']['acao'] = acao.headers['Access-Control-Allow-Origin']
+            output['data']['acao'] = acao.headers['Access-Control-Allow-Origin'].strip()
 
-            if output['data']['acao'].strip() == '*':
+            if output['data']['acao'] == '*':
                 output['result'] = 'cross-origin-resource-sharing-implemented-with-public-access'
             elif (acao.request.headers.get('Origin') == acao.headers['Access-Control-Allow-Origin'] and
                   acao.headers.get('Access-Control-Allow-Credentials', '').lower().strip() == 'true'):
@@ -70,23 +68,29 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
 
         # Get the domains from each
         try:
-            domains = (__parse_acao_xml_get_domains(reqs['resources']['/crossdomain.xml'], 'crossdomain') +
-                       __parse_acao_xml_get_domains(reqs['resources']['/clientaccesspolicy.xml'], 'clientaccesspolicy'))
+            cd = __parse_acao_xml_get_domains(reqs['resources']['/crossdomain.xml'], 'crossdomain')
+            cl = __parse_acao_xml_get_domains(reqs['resources']['/clientaccesspolicy.xml'], 'clientaccesspolicy')
+            domains = cd + cl
+
+            # Code defensively against infinitely sized xml files when storing their contents
+            if len(domains) < 256 and len(str(domains)) < 65536:
+                output['data']['clientaccesspolicy'] = cl if cl else None
+                output['data']['crossdomain'] = cd if cd else None
         except KeyError:
             domains = []
-            output['result'] = 'xml-not-parsable'
+            output['result'] = 'xml-not-parsable'  # If we can't parse either of those xml files
 
-        # If we can't parse either of those xml files
         if '*' in domains:
             output['result'] = 'cross-origin-resource-sharing-implemented-with-universal-access'
-        else:
+
+        # No downgrades from the ACAO result
+        elif domains and output['result'] != 'cross-origin-resource-sharing-implemented-with-universal-access':
             output['result'] = 'cross-origin-resource-sharing-implemented-with-restricted-access'
 
     # Check to see if the test passed or failed
-    if expectation == output['result']:
-        output['pass'] = True
-    elif output['result'] in ('cross-origin-resource-sharing-implemented-with-public-access',
-                              'cross-origin-resource-sharing-implemented-with-restricted-access'):
+    if output['result'] in ('cross-origin-resource-sharing-implemented-with-public-access',
+                            'cross-origin-resource-sharing-implemented-with-restricted-access',
+                            expectation):
         output['pass'] = True
 
     return output
@@ -157,64 +161,5 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
     # Check to see if the test passed or failed
     if expectation == output['result'] or output['result'] == 'redirection-not-needed-no-http':
         output['pass'] = True
-
-    return output
-
-
-@scored_test
-def tls_configuration(reqs: dict, expectation='tls-configuration-intermediate-or-modern') -> dict:
-    """
-    :param reqs: dictionary containing all the request and response objects
-    :param expectation: test expectation
-        tls-configuration-intermediate-or-modern: intermediate or modern TLS configuration [default]
-        tls-configuration-modern: modern TLS configuration only
-        tls-configuration-intermediate: intermediate TLS configuration only
-        tls-configuration-old: old TLS configuration only
-        tls-configuration-bad: known bad TLS configuration
-        tls-configuration-weak-dhe: intermediate, but the only known problem is a weak DHE
-        tls-observatory-scan-failed-no-https: site lacks HTTPS/TLS
-        tls-observatory-scan-failed: TLS Observatory scan failed
-    :return: dictionary with:
-        expectation: test expectation
-        pass: whether the site's configuration met its expectation
-        result: short string describing the result of the test
-        tls_observatory_scan_id: TLS observatory scan id, for result lookups
-    """
-
-    output = {
-        'expectation': expectation,
-        'pass': False,
-        'result': None,
-        'tls_observatory_scan_id': None,
-    }
-    tlsobs = reqs['responses']['tlsobs']
-
-    if tlsobs is None:
-        output['result'] = 'tls-observatory-scan-failed'
-    elif tlsobs['has_tls'] is False:
-        output['result'] = 'tls-observatory-scan-failed-no-https'
-    else:
-        output['tls_observatory_scan_id'] = tlsobs['id']
-        level = tlsobs['analysis'][0]['result']['level']
-
-        # Some things trigger 'bad' when they shouldn't-ish
-        if level == 'bad':
-            failures = tlsobs['analysis'][0]['result']['failures']
-
-            # Check to see if the only thing holding us back was a weak DHE (this is too common to fail every site)
-            if all('consider ' in _ or 'use DHE of at least 2048bits' in _ for _ in failures['intermediate']):
-                level = 'weak-dhe'
-
-            # Also check to see if it's 'bad' but the only thing keeping it from old is a SHA-256 cert; this can be
-            # a sign that cert switching is in use.  TODO: fix this once TLS Observatory is fixed
-            # See also: https://github.com/mozilla/tls-observatory/issues/103
-            elif all('consider ' in _ or 'use sha1WithRSAEncryption' in _ for _ in failures['old']):
-                level = 'old'
-
-        output['result'] = 'tls-configuration-' + level  # tls-configuration-intermediate
-
-        # Quick shortcut to see if the test passed or failed (tls-configuration-intermediate is in default expectation)
-        if level in expectation:
-            output['pass'] = True
 
     return output
