@@ -21,6 +21,12 @@ def __create_session(url: str, headers=None) -> dict:
     if headers:
         s.headers.update(headers)
 
+    # Override the User-Agent; some sites (like twitter) don't send the CSP header unless you have a modern
+    # user agent
+    s.headers.update({
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:44.0) Gecko/20100101 Firefox/44.0',
+    })
+
     try:
         r = s.get(url)
 
@@ -33,17 +39,25 @@ def __create_session(url: str, headers=None) -> dict:
     return {'session': s, 'response': r}
 
 
-def __get(session, relative_path='/'):
+def __get(session, relative_path='/', headers=None):
     try:
         # TODO: limit the maximum size of the response, to keep malicious site operators from killing us
         # TODO: Perhaps we can naively do it for now by simply setting a timeout?
+        # TODO: catch TLS errors instead of just setting it to None?
         return session.get(session.url.scheme + '://' + session.url.netloc + relative_path, timeout=TIMEOUT)
     except:
         return None
 
 
 def __get_page_text(response: requests.Response) -> str:
-    if response.status_code == 200:
+    if not response:
+        return None
+    elif response.status_code == 200:
+        # A quick and dirty check to make sure that somebody's 404 page didn't actually return 200 with html
+        ext = response.url.split('.')[-1]
+        if 'text/html' in response.headers.get('Content-Type', '') and ext in ('json', 'txt', 'xml'):
+            return None
+
         return response.text
     else:
         return None
@@ -86,6 +100,7 @@ def retrieve_all(hostname: str) -> dict:
         },
         'responses': {
             'auto': None,  # whichever of 'http' or 'https' actually works, with 'https' as higher priority
+            'cors': None,  # CORS preflight test
             'http': None,
             'https': None,
             'tlsobs': None
@@ -97,7 +112,7 @@ def retrieve_all(hostname: str) -> dict:
     resources = (
         '/clientaccesspolicy.xml',
         '/contribute.json',
-        '/crossorigin.xml',
+        '/crossdomain.xml',
         '/robots.txt'
     )
 
@@ -111,7 +126,7 @@ def retrieve_all(hostname: str) -> dict:
 
     # If neither one works, then the site just can't be loaded
     if not http_session['session'] and not https_session['session']:
-        return retrievals  # TODO: Mark scan as completely failed
+        return retrievals
 
     else:
         # Store the HTTP only and HTTPS only responses (some things can only be retrieved over one or the other)
@@ -128,12 +143,15 @@ def retrieve_all(hostname: str) -> dict:
         # Store the contents of the base page
         retrievals['resources']['/'] = __get_page_text(retrievals['responses']['auto'])
 
+        # Do a CORS preflight request
+        retrievals['responses']['cors'] = __get(retrievals['session'], headers={'Origin': 'https://www.httplabs.org'})
+
         # Store all the files we retrieve
         for resource in resources:
             resp = __get(retrievals['session'], resource)
             retrievals['resources'][resource] = __get_page_text(resp)
 
         # Store the TLS Observatory response
-        retrievals['responses']['tlsobs'] = __get_tlsobs_result(hostname)
+        # retrievals['responses']['tlsobs'] = __get_tlsobs_result(hostname)  # TODO: reenable this
 
     return retrievals
