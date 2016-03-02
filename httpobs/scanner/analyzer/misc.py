@@ -36,8 +36,6 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
         pass: whether the site's configuration met its expectation
         result: short string describing the result of the test
     """
-    # TODO: only store part of the xml files, in case they're huge?
-
     output = {
         'data': {
             'acao': None,
@@ -53,9 +51,9 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
 
     if acao:
         if 'Access-Control-Allow-Origin' in acao.headers:
-            output['data']['acao'] = acao.headers['Access-Control-Allow-Origin']
+            output['data']['acao'] = acao.headers['Access-Control-Allow-Origin'].strip()
 
-            if output['data']['acao'].strip() == '*':
+            if output['data']['acao'] == '*':
                 output['result'] = 'cross-origin-resource-sharing-implemented-with-public-access'
             elif (acao.request.headers.get('Origin') == acao.headers['Access-Control-Allow-Origin'] and
                   acao.headers.get('Access-Control-Allow-Credentials', '').lower().strip() == 'true'):
@@ -70,23 +68,29 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
 
         # Get the domains from each
         try:
-            domains = (__parse_acao_xml_get_domains(reqs['resources']['/crossdomain.xml'], 'crossdomain') +
-                       __parse_acao_xml_get_domains(reqs['resources']['/clientaccesspolicy.xml'], 'clientaccesspolicy'))
+            cd = __parse_acao_xml_get_domains(reqs['resources']['/crossdomain.xml'], 'crossdomain')
+            cl = __parse_acao_xml_get_domains(reqs['resources']['/clientaccesspolicy.xml'], 'clientaccesspolicy')
+            domains = cd + cl
+
+            # Code defensively against infinitely sized xml files when storing their contents
+            if len(domains) < 256 and len(str(domains)) < 65536:
+                output['data']['clientaccesspolicy'] = cl if cl else None
+                output['data']['crossdomain'] = cd if cd else None
         except KeyError:
             domains = []
-            output['result'] = 'xml-not-parsable'
+            output['result'] = 'xml-not-parsable'  # If we can't parse either of those xml files
 
-        # If we can't parse either of those xml files
         if '*' in domains:
             output['result'] = 'cross-origin-resource-sharing-implemented-with-universal-access'
-        else:
+
+        # No downgrades from the ACAO result
+        elif domains and output['result'] != 'cross-origin-resource-sharing-implemented-with-universal-access':
             output['result'] = 'cross-origin-resource-sharing-implemented-with-restricted-access'
 
     # Check to see if the test passed or failed
-    if expectation == output['result']:
-        output['pass'] = True
-    elif output['result'] in ('cross-origin-resource-sharing-implemented-with-public-access',
-                              'cross-origin-resource-sharing-implemented-with-restricted-access'):
+    if output['result'] in ('cross-origin-resource-sharing-implemented-with-public-access',
+                            'cross-origin-resource-sharing-implemented-with-restricted-access',
+                            expectation):
         output['pass'] = True
 
     return output
