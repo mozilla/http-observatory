@@ -1,6 +1,24 @@
+from bs4 import BeautifulSoup as bs
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
+
+
+def __parse_acao_xml_get_domains(xml, type='crossdomain') -> list:
+    if xml is None:
+        return []
+
+    # Attempt to parse the XML file
+    try:
+        soup = bs(xml, 'html.parser')
+    except:
+        return None
+
+    # Parse the files
+    if type == 'crossdomain':
+        return [domains.get('domain').strip() for domains in soup.find_all('allow-access-from') if domains.get('domain')]
+    elif type == 'clientaccesspolicy':
+        return [domains.get('uri').strip() for domains in soup.find_all('domain') if domains.get('uri')]
 
 
 @scored_test
@@ -8,8 +26,10 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
-        cross-origin-resource-sharing-not-implemented: ACAO and the XML files don't exist [default]
+        cross-origin-resource-sharing-not-implemented-with-universal-access: Allow origin *
+        cross-origin-resource-sharing-not-implemented-with-restricted-access: Allow a specific origin
         cross-origin-resource-sharing-implemented: One of them does
+        xml-not-parsable: Cannot parse one of the .xml files
     :return: dictionary with:
         data: the ACAO header, clientaccesspolicy.xml file, and crossorigin.xml file
         expectation: test expectation
@@ -22,36 +42,51 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
         'data': {
             'acao': None,
             'clientaccesspolicy': None,
-            'crossorigin': None
+            'crossdomain': None
         },
         'expectation': expectation,
         'pass': False,
-        'result': None,
+        'result': 'cross-origin-resource-sharing-not-implemented',
     }
 
-    acao = reqs['responses']['auto']
+    acao = reqs['responses']['cors']
 
-    if 'Access-Control-Allow-Origin' in acao.headers:
-        output['data']['acao'] = acao.headers['Access-Control-Allow-Origin']
+    if acao:
+        if 'Access-Control-Allow-Origin' in acao.headers:
+            output['data']['acao'] = acao.headers['Access-Control-Allow-Origin']
 
-        if '*' in output['data']['acao']:
-            output['result'] = 'cross-origin-resource-sharing-implemented'
+            if output['data']['acao'].strip() == '*':
+                output['result'] = 'cross-origin-resource-sharing-implemented-with-public-access'
+            elif (acao.request.headers.get('Origin') == acao.headers['Access-Control-Allow-Origin'] and
+                  acao.headers.get('Access-Control-Allow-Credentials', '').lower().strip() == 'true'):
+                output['result'] = 'cross-origin-resource-sharing-implemented-with-universal-access'
+            else:
+                output['result'] = 'cross-origin-resource-sharing-implemented-with-restricted-access'
 
-    # TODO: check to see if it's a limited clientaccesspolicy.xml file
-    if reqs['resources']['/clientaccesspolicy.xml'] == 200:
-        output['result'] = 'cross-origin-resource-sharing-implemented'
+    if reqs['resources']['/crossdomain.xml'] or reqs['resources']['/clientaccesspolicy.xml']:
+        # Store the files in the database
+        output['data']['crossdomain'] = reqs['resources']['/crossdomain.xml']
         output['data']['clientaccesspolicy'] = reqs['resources']['/clientaccesspolicy.xml']
 
-    # TODO: check to see if it's a limited crossorigin.xml file
-    if reqs['resources']['/crossorigin.xml']:
-        output['result'] = 'cross-origin-resource-sharing-implemented'
-        output['data']['crossorigin'] = reqs['resources']['/crossorigin.xml']
+        # Get the domains from each
+        try:
+            domains = (__parse_acao_xml_get_domains(reqs['resources']['/crossdomain.xml'], 'crossdomain') +
+                       __parse_acao_xml_get_domains(reqs['resources']['/clientaccesspolicy.xml'], 'clientaccesspolicy'))
+        except KeyError:
+            domains = []
+            output['result'] = 'xml-not-parsable'
 
-    if not output['data']['acao'] and not output['data']['clientaccesspolicy'] and not output['data']['crossorigin']:
-        output['result'] = 'cross-origin-resource-sharing-not-implemented'
+        # If we can't parse either of those xml files
+        if '*' in domains:
+            output['result'] = 'cross-origin-resource-sharing-implemented-with-universal-access'
+        else:
+            output['result'] = 'cross-origin-resource-sharing-implemented-with-restricted-access'
 
     # Check to see if the test passed or failed
     if expectation == output['result']:
+        output['pass'] = True
+    elif output['result'] in ('cross-origin-resource-sharing-implemented-with-public-access',
+                              'cross-origin-resource-sharing-implemented-with-restricted-access'):
         output['pass'] = True
 
     return output
@@ -65,6 +100,7 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
         redirection-to-https: Redirects from http to https,
           first redirection stays on host [default]
         redirection-not-to-https: Redirection takes place, but to another HTTP address
+        redirection-not-to-https-on-initial-redirection: final destination HTTPS, but not initial redirection
         redirection-missing: No redirection takes place, staying on HTTP
         redirection-not-needed-no-http: Site doesn't listen for HTTP requests at all
         redirection-off-host-from-http: Initial HTTP allowed to go from one host to another, still redirects to HTTPS
@@ -91,43 +127,32 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
 
     if not response:
         output['result'] = 'redirection-not-needed-no-http'
-
-    elif response.history:
-        for entry in response.history:
-            src = urlparse(entry.url)
-            dst = urlparse(entry.headers['Location'])
-
-            # Add the result to the path that requests followed
-            output['route'].append(entry.url)
-
-            # http should never redirect to another http location -- should always go to https first
-            if dst.scheme != 'https':
-                output['result'] = 'redirection-not-to-https'
-                output['status_code'] = entry.status_code
-                break
-
-            # If it's an http -> https redirection, make sure it redirects to the same host. If that's not done, then
-            # HSTS cannot be properly set on the original host
-            elif src.scheme == 'http' and dst.scheme == 'https' and src.netloc != dst.netloc:
-                output['result'] = 'redirection-off-host-from-http'
-                output['status_code'] = entry.status_code
-                break
-
-            else:
-                # Store the final status code for the redirection
-                output['status_code'] = response.history[-1].status_code
-
-        if not output['result']:
-            output['result'] = 'redirection-to-https'
-
-    # No redirections took place
     else:
-        output['result'] = 'redirection-missing'
-        output['redirects'] = False
+        # Construct the route
+        output['route'] = [r.request.url for r in response.history] if response.history else []
+        output['route'] += [response.url]
 
-    # Append the final location to the route (redirection or not)
-    if response:
-        output['route'].append(response.url)
+        # No redirection, so you just stayed on the http website
+        if len(output['route']) == 1:
+            output['redirects'] = False
+            output['result'] = 'redirection-missing'
+
+        # Final destination wasn't an https website
+        elif urlparse(output['route'][-1]).scheme != 'https':
+            output['result'] = 'redirection-not-to-https'
+
+        # http should never redirect to another http location -- should always go to https first
+        elif urlparse(output['route'][1]).scheme == 'http':
+            output['result'] = 'redirection-not-to-https-on-initial-redirection'
+
+        # If it's an http -> https redirection, make sure it redirects to the same host. If that's not done, then
+        # HSTS cannot be properly set on the original host
+        elif (urlparse(output['route'][0]).scheme == 'http' and urlparse(output['route'][1]).scheme == 'https'and
+                       urlparse(output['route'][0]).netloc != urlparse(output['route'][1]).netloc):
+            output['result'] = 'redirection-off-host-from-http'
+            output['status_code'] = response.history[-1].status_code
+        else:
+            output['result'] = 'redirection-to-https'
 
     # Check to see if the test passed or failed
     if expectation == output['result'] or output['result'] == 'redirection-not-needed-no-http':
