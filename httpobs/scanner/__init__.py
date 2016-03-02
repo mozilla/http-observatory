@@ -1,6 +1,3 @@
-# The number of tests in the scanner
-NUM_TESTS = 11
-
 # The various statuses
 STATE_ABORTED = 'ABORTED'
 STATE_FAILED = 'FAILED'
