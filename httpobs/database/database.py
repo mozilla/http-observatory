@@ -1,9 +1,9 @@
 from contextlib import contextmanager
 from json import dumps
 from os import environ
-from sys import exit
 
-from httpobs.scanner import NUM_TESTS, STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
+from httpobs.scanner import STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
+from httpobs.scanner.analyzer import NUM_TESTS
 from httpobs.scanner.grader import grade
 
 import psycopg2
@@ -140,8 +140,8 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> d
 def select_scan_recent_scan(site_id: int) -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT * FROM scans
-                         WHERE start_time >= NOW() - INTERVAL '1 day'
-                         AND site_id = '%s'
+                         WHERE site_id = (%s)
+                         AND start_time >= NOW() - INTERVAL '1 day'
                          ORDER BY start_time DESC
                          LIMIT 1""",
                     (site_id,))
@@ -218,6 +218,8 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
                              RETURNING *""",
                         (state, error, scan_id))
 
+            row = dict(cur.fetchone())
+
     else:
         with get_cursor() as cur:
             cur.execute("""UPDATE scans
@@ -226,4 +228,6 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
                              RETURNING *""",
                         (state, scan_id))
 
-    return dict(cur.fetchone())
+            row = dict(cur.fetchone())
+
+    return row

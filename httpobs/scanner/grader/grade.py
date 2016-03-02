@@ -50,12 +50,16 @@ SCORE_TABLE = {
         'description': 'Content Security Policy (CSP) implemented without unsafe-inline or unsafe-eval',
         'modifier': 0,
     },
-    'csp-implemented-with-unsafe-allowed-in-style-src-only': {
+    'csp-implemented-with-unsafe-inline-in-style-src-only': {
         'description': 'Content Security Policy (CSP) implemented with unsafe-inline inside style-src directive',
         'modifier': -5,
     },
-    'csp-implemented-with-unsafe': {
-        'description': 'Content Security Policy (CSP) implemented, but allows unsafe-inline or unsafe-eval',
+    'csp-implemented-with-unsafe-eval': {
+        'description': 'Content Security Policy (CSP) implemented, but allows unsafe-eval',
+        'modifier': -10,
+    },
+    'csp-implemented-with-unsafe-inline': {
+        'description': 'Content Security Policy (CSP) implemented, but allows unsafe-inline',
         'modifier': -25,
     },
     'csp-implemented-with-insecure-scheme': {
@@ -95,17 +99,25 @@ SCORE_TABLE = {
 
     # Cross-origin resource sharing
     'cross-origin-resource-sharing-not-implemented': {
-        'description': 'Content is visible via cross-origin resource sharing (CORS) files or headers',
+        'description': 'Content is not visible via cross-origin resource sharing (CORS) files or headers',
         'modifier': 0,
     },
-    'cross-origin-resource-sharing-implemented': {
+    'cross-origin-resource-sharing-implemented-with-public-access': {
+        'description': 'Public content is visible via cross-origin resource sharing Access-Control-Allow-Origin header',
+        'modifier': 0,
+    },
+    'cross-origin-resource-sharing-implemented-with-restricted-access': {
+        'description': 'Content is visible via cross-origin resource sharing (CORS) files or headers, but is restricted to specific domains',
+        'modifier': 0,
+    },
+    'cross-origin-resource-sharing-implemented-with-universal-access': {
         'description': 'Content is visible via cross-origin resource sharing (CORS) file or headers',
         'modifier': -50,
     },
 
     # Redirection
     'redirection-to-https': {
-        'description': 'Initial redirection is not to https',
+        'description': 'Initial redirection is to https on same host, final destination is https',
         'modifier': 0,
     },
     'redirection-not-needed-no-http': {
@@ -114,20 +126,28 @@ SCORE_TABLE = {
     },
     'redirection-off-host-from-http': {
         'description': 'Initial redirection from http to https is to a different host, preventing HSTS',
+        'modifier': -5,
+    },
+    'redirection-not-to-https-on-initial-redirection': {
+        'description': 'Redirects to https eventually, but initial redirection is to another http URL',
         'modifier': -10,
     },
     'redirection-not-to-https': {
-        'description': 'Redirects, but final destination is not over https',
-        'modifier': -100,
+        'description': 'Redirects, but final destination is not an https URL',
+        'modifier': -25,
     },
     'redirection-missing': {
-        'description': 'Does not redirect to an https site',
-        'modifier': -100,
+        'description': 'Does not redirect to an https site',  # if there's no HTTPS at all, other tests will score -100
+        'modifier': -25,
     },
 
     # Strict Transport Security (HSTS)
     'hsts-implemented-max-age-at-least-six-months': {
         'description': 'HTTP Strict Transport Security (HSTS) header set to a minimum of six months (15768000)',
+        'modifier': 0,
+    },
+    'hsts-preloaded': {
+        'description': 'Preloaded via the HTTP Strict Transport Security (HSTS) preloading process',
         'modifier': 0,
     },
     'hsts-implemented-max-age-less-than-six-months': {
@@ -141,6 +161,10 @@ SCORE_TABLE = {
     'hsts-not-implemented-no-https': {
         'description': 'HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over https',
         'modifier': -100,
+    },
+    'hsts-header-invalid': {
+        'description': 'HTTP Strict Transport Security (HSTS) header cannot be recognized',
+        'modifier': -25,
     },
 
     # Subresource Integrity (SRI)
@@ -218,6 +242,10 @@ SCORE_TABLE = {
     },
 
     # X-Frame-Options
+    'x-frame-options-implemented-via-csp': {
+        'description': 'X-Frame-Options (XFO) implemented via the CSP frame-ancestors directive',
+        'modifier': +5,
+    },
     'x-frame-options-sameorigin-or-deny': {
         'description': 'X-Frame-Options (XFO) header set to SAMEORIGIN or DENY',
         'modifier': 0,
@@ -228,21 +256,29 @@ SCORE_TABLE = {
     },
     'x-frame-options-not-implemented': {
         'description': 'X-Frame-Options (XFO) header not implemented',
-        'modifier': -25,
+        'modifier': -20,
     },
     'x-frame-options-header-invalid': {
         'description': 'X-Frame-Options (XFO) header cannot be recognized',
-        'modifier': -25,
+        'modifier': -20,
     },
 
     # X-XSS-Protection
-    'x-xss-protection-1-mode-block': {
+    'x-xss-protection-enabled-mode-block': {
         'description': 'X-XSS-Protection header set to "1; mode=block"',
         'modifier': 0,
     },
-    'x-xss-protection-0': {
+    'x-xss-protection-enabled': {
+        'description': 'X-XSS-Protection header set to "1"',
+        'modifier': 0,
+    },
+    'x-xss-protection-not-needed-due-to-csp': {
+        'description': 'X-XSS-Protection header not needed due to strong Content Security Policy (CSP) header',
+        'modifier': 0,
+    },
+    'x-xss-protection-disabled': {
         'description': 'X-XSS-Protection header set to "0" (disabled)',
-        'modifier': -5,
+        'modifier': -10,
     },
     'x-xss-protection-not-implemented': {
         'description': 'X-XSS-Protection header not implemented',
@@ -261,6 +297,10 @@ SCORE_TABLE = {
     'request-did-not-return-status-code-200': {
         'description': '/ did not return a status code of 200',
         'modifier': -5,  # can't run an SRI check on pages that don't return a 200
+    },
+    'xml-not-parsable': {
+        'description': 'Claims to be xml, butt cannot be parsed',
+        'modifier': -20,  # can't run an ACAO check if the xml files can't be parsed
     }
 }
 

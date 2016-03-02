@@ -1,10 +1,11 @@
 from bs4 import BeautifulSoup as bs
+from publicsuffixlist import PublicSuffixList
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
 
 import json
-import tld
+
 
 MOZILLA_DOMAINS = ('mozilla', 'allizom', 'webmaker')
 
@@ -60,7 +61,7 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
     if expectation == output['result']:
         output['pass'] = True
     elif output['result'] == 'contribute-json-only-required-on-mozilla-properties':
-        output['pass'] = None
+        output['pass'] = True
 
     return output
 
@@ -140,10 +141,15 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                 crossorigin = script.get('crossorigin')
 
                 # Check to see if they're on the same TLD
-                sametld = True if tld.get_tld(response.url) == tld.get_tld(script['src'], fail_silently=True) else False
+                # TODO: update the PSL list on startup
+                psl = PublicSuffixList()
+                sametld = True if psl.privatesuffix(response.url) == psl.privatesuffix(script['src']) else False
 
                 # Check to see if it's the same origin, same or a trusted Mozilla subdomain
-                if (src.netloc == '' or
+                if src.netloc != '' and '.' not in src.netloc:  # like localhost
+                    secureorigin = False
+                    scripts_on_foreign_origin = True
+                elif (src.netloc == '' or
                     sametld or
                     src.netloc.split('.')[-2] in MOZILLA_DOMAINS):
                     secureorigin = True

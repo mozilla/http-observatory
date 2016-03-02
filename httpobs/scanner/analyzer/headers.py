@@ -1,6 +1,7 @@
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
+from httpobs.scanner.analyzer.utils import is_hsts_preloaded
 
 
 @scored_test
@@ -9,13 +10,14 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
         csp-implemented-with-no-unsafe: CSP implemented with no unsafe inline keywords [default]
-        csp-implemented-with-unsafe-allowed-in-style-src-only: Allow the 'unsafe' keyword in style-src only
-        csp-implemented-with-unsafe: CSP implemented with using either unsafe-eval or unsafe-inline
+        csp-implemented-with-unsafe-in-style-src-only: Allow the 'unsafe' keyword in style-src only
+        csp-implemented-with-unsafe-inline: CSP implemented with unsafe-inline
+        csp-implemented-with-unsafe-eval: CSP implemented with unsafe-eval
         csp-implemented-with-insecure-scheme: CSP implemented with having sources over http:
         csp-invalid-header: Invalid CSP header
         csp-not-implemented: CSP not implemented
     :return: dictionary with:
-        data: the raw CSP header
+        data: the CSP lookup dictionary
         expectation: test expectation
         pass: whether the site's configuration met its expectation
         result: short string describing the result of the test
@@ -29,26 +31,45 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     }
     response = reqs['responses']['auto']
 
+    # TODO: check for CSP meta tags
+
     # Check to see the state of the CSP header
     if 'Content-Security-Policy' in response.headers:
-        # Store the CSP policy, if it's implemented
-        output['data'] = response.headers['Content-Security-Policy'].strip()
-
         # Decompose the CSP; could probably do this in one step, but it's complicated enough
+        # Should look like:
+        # {
+        #   'default-src': ['\'none\''],
+        #   'script-src': ['https://mozilla.org', '\'unsafe-inline\''],
+        #   'style-src': ['\'self\', 'https://mozilla.org'],
+        #   'upgrade-insecure-requests': [],
+        # }
         try:
-            csp = [directive.strip().split(' ', 1) for directive in output['data'].split(';')]
-            csp = {directive[0].lower(): (directive[1] if len(directive) > 1 else '') for directive in csp}
+            csp = [directive.strip().split(maxsplit=1) for directive in response.headers['Content-Security-Policy'].split(';')]
+            csp = {directive[0].lower():
+                       (directive[1].split() if len(directive) > 1 else []) for directive in csp}
+            output['data'] = csp  # store the CSP policy, if it's implemented
         except:
-            output['result'] = 'csp-invalid-header'
+            output['result'] = 'csp-header-invalid'
             return output
 
-        for directive, value in csp.items():
-            if 'unsafe-' in value and directive == 'style-src' and not output['result']:
-                output['result'] = 'csp-implemented-with-unsafe-allowed-in-style-src-only'
-            elif 'unsafe-' in value:
-                output['result'] = 'csp-implemented-with-unsafe'
-            elif urlparse(response.url).scheme == 'https' and 'http:' in value:
-                output['result'] = 'csp-implemented-with-insecure-scheme'
+        # Replicate default-src to script-src and style-src, if they don't exist and default-src does
+        csp['default-src'] = csp.get('default-src', '')
+        for directive in ['script-src', 'style-src']:
+            csp[directive] = csp.get(directive) if directive in csp else csp.get('default-src')
+
+        # Do all of our tests
+        if '\'unsafe-inline\'' in csp.get('script-src'):
+            output['result'] = 'csp-implemented-with-unsafe-inline'
+        elif not csp.get('default-src') and not csp.get('script-src'):
+            output['result'] = 'csp-implemented-with-unsafe-inline'
+        elif urlparse(response.url).scheme == 'https' and 'http:' in output['data']:
+            output['result'] = 'csp-implemented-with-insecure-scheme'
+        elif '\'unsafe-eval\'' in output['data']:
+            output['result'] = 'csp-implemented-with-unsafe-eval'
+        elif '\'unsafe-inline\'' in csp.get('style-src'):
+            output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
+
+        # TODO: allow a small bonus for upgrade-insecure-requests?
 
         if not output['result']:
             output['result'] = 'csp-implemented-with-no-unsafe'
@@ -88,6 +109,8 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     }
     session = reqs['session']  # all requests and their associated cookies
 
+    # TODO: See if HSTS protects (that is, max-age > when cookie expires)
+
     # If there are no cookies
     if not session.cookies:
         output['result'] = 'cookies-not-found'
@@ -109,6 +132,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
             # All cookies must be set with the secure flag, but httponly not being set overrides it
             # TODO: Check to see if it was set over http, where Secure wouldn't work
+            # TODO: Check for session cookies sent over HTTP
             if not cookie.secure and not output['result']:
                 output['result'] = 'cookies-without-secure-flag'
 
@@ -129,9 +153,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
             output['result'] = 'cookies-secure-with-httponly-sessions'
 
     # Check to see if the test passed or failed
-    if not session.cookies:
-        output['pass'] = True
-    elif expectation == output['result']:
+    if output['result'] in ('cookies-not-found', expectation):
         output['pass'] = True
 
     return output
@@ -149,6 +171,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         hsts-implemented-max-age-less-than-six-months: HSTS implemented with a max age of less than six months
         hsts-not-implemented-no-https: HSTS can't be implemented on http only sites
         hsts-not-implemented: HSTS not implemented
+        hsts-header-invalid: HSTS header isn't parsable
     :return: dictionary with:
         data: the raw HSTS header
         expectation: test expectation
@@ -166,7 +189,8 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         'max-age': None,
         'pass': False,
         'preload': None,
-        'result': None,
+        'preloaded': False,
+        'result': 'hsts-not-implemented',
     }
     response = reqs['responses']['https']
 
@@ -194,7 +218,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                 else:
                     output['result'] = 'hsts-implemented-max-age-at-least-six-months'
             else:
-                output['result'] = 'hsts-invalid-header'
+                output['result'] = 'hsts-header-invalid'
 
             # If they're not included, then they're considered to be unset
             if not output['includesubdomains']:
@@ -203,14 +227,18 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                 output['preload'] = False
 
         except:
-            output['result'] = 'hsts-invalid-header'
+            output['result'] = 'hsts-header-invalid'
 
-    # If HSTS isn't set in the headers
-    else:
-        output['result'] = 'hsts-not-implemented'
+    # If they're in the preloaded list, this overrides most anything else
+    if response is not None:
+        if is_hsts_preloaded(urlparse(response.url).netloc):
+            output['result'] = 'hsts-preloaded'
+            output['preloaded'] = True
 
     # Check to see if the test passed or failed
-    if expectation == output['result']:
+    if output['result'] in ('hsts-implemented-max-age-at-least-six-months',
+                            'hsts-preloaded',
+                            expectation):
         output['pass'] = True
 
     return output
@@ -263,6 +291,7 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
     :param expectation: test expectation
         x-frame-options-sameorigin-or-deny: X-Frame-Options set to "sameorigin" or "deny" [default]
         x-frame-options-allow-from-origin: X-Frame-Options set to ALLOW-FROM uri
+        x-frame-options-implemented-via-csp: X-Frame-Options implemented via CSP frame-ancestors directive
         x-frame-options-not-implemented: X-Frame-Options header missing
         x-frame-options-header-invalid: Invalid X-Frame-Options header
     :return: dictionary with:
@@ -292,8 +321,16 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
     else:
         output['result'] = 'x-frame-options-not-implemented'
 
+    # Check to see if frame-ancestors is implemented in CSP; if it is, then it isn't needed
+    csp = content_security_policy(reqs)
+    if csp['data']:
+        if 'frame-ancestors' in csp['data']:  # specifically not checking for * in frame-ancestors
+            output['result'] = 'x-frame-options-implemented-via-csp'
+
     # Check to see if the test passed or failed
-    if expectation == output['result']:
+    if output['result'] in ('x-frame-options-sameorigin-or-deny',
+                            'x-frame-options-implemented-via-csp',
+                            expectation):
         output['pass'] = True
 
     return output
@@ -304,8 +341,10 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
-        x-xss-protection-1-mode-block: X-XSS-Protection set to "1; block" [default]
-        x-xss-protection-0: X-XSS-Protection set to "0" (disabled)
+        x-xss-protection-enabled-mode-block: X-XSS-Protection set to "1; block" [default]
+        x-xss-protection-enabled: X-XSS-Protection set to "1"
+        x-xss-protection-not-needed-due-to-csp: no X-XSS-Protection header, but CSP blocks inline nonsense
+        x-xss-protection-disabled: X-XSS-Protection set to "0" (disabled)
         x-xss-protection-not-implemented: X-XSS-Protection header missing
         x-xss-protection-header-invalid
     :return: dictionary with:
@@ -323,20 +362,42 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
     }
     response = reqs['responses']['auto']
 
-    if 'X-XSS-Protection' in response.headers:
-        output['data'] = response.headers['X-XSS-Protection']
+    xxssp = response.headers.get('X-XSS-Protection')
 
-        if output['data'].lower().replace(' ', '').strip() == '1;mode=block':
-            output['result'] = 'x-xss-protection-1-mode-block'
-        elif output['data'].strip().startswith('0'):
-            output['result'] = 'x-xss-protection-0'
-        else:
+    if xxssp:
+        output['data'] = xxssp
+
+        # Parse out the X-XSS-Protection header
+        try:
+            if xxssp[0] not in ('0', '1'):
+                raise ValueError
+
+            enabled = True if xxssp[0] == '1' else False
+
+            # {'1': None, 'mode': 'block', 'report': 'https://www.example.com/__reporturi__'}
+            xxssp = {d.split('=')[0].strip(): (d.split('=')[1].strip() if '=' in d else None) for d in xxssp.split(';')}
+        except:
             output['result'] = 'x-xss-protection-header-invalid'
+            return output
+
+        if enabled and xxssp.get('mode') == 'block':
+            output['result'] = 'x-xss-protection-enabled-mode-block'
+        elif enabled:
+            output['result'] = 'x-xss-protection-enabled'
+        elif not enabled:
+            output['result'] = 'x-xss-protection-disabled'
+
     else:
         output['result'] = 'x-xss-protection-not-implemented'
 
-    # Check to see if the test passed or failed
-    if expectation == output['result']:
+    # The test passes if X-XSS-Protection is enabled in any capacity
+    if 'enabled' in output['result']:
         output['pass'] = True
-        
+
+    # Allow sites to skip out of having X-XSS-Protection if they implement a strong CSP policy
+    if output['pass'] is False:
+        if content_security_policy(reqs)['pass']:
+            output['pass'] = True
+            output['result'] = 'x-xss-protection-not-needed-due-to-csp'
+
     return output

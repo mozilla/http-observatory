@@ -24,9 +24,10 @@ def api_post_scan_hostname():
     # Get the hostname
     hostname = request.args.get('host', '').lower()
 
-    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)  # TODO: move to frontend?
-    if not valid_hostname(hostname):
-        return {'error': '{hostname} is an invalid hostname'.format(hostname=hostname)}
+    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
+    hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
+    if not hostname:
+        return {'error': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', ''))}
 
     # Get the site's id number
     try:
@@ -38,6 +39,7 @@ def api_post_scan_hostname():
     row = database.select_scan_recent_scan(site_id)
 
     # TODO: allow something to force a rescan
+    # TODO: return something to indicate that it's a cached result
 
     # Otherwise, let's start up a scan
     if not row:
