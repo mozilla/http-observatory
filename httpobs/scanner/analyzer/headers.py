@@ -44,7 +44,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         #   'upgrade-insecure-requests': [],
         # }
         try:
-            csp = [directive.strip().split(maxsplit=1) for directive in response.headers['Content-Security-Policy'].split(';')]
+            csp = [directive.strip().split(maxsplit=1) for directive in response.headers['Content-Security-Policy'].split(';') if directive]
             csp = {directive[0].lower():
                        (directive[1].split() if len(directive) > 1 else []) for directive in csp}
             output['data'] = csp  # store the CSP policy, if it's implemented
