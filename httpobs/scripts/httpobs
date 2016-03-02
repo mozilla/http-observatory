@@ -29,7 +29,7 @@ def analyze(host):
         raise
     except:
         print('\nUnable to get result from the HTTP Observatory.')
-        sys.exit(1)
+        exit(1)
 
     # Get the test results
     tests = poll(HTTP_OBS_URL + '/getScanResults?scan={scan}'.format(scan=scan['scan_id']),
@@ -43,14 +43,17 @@ def analyze(host):
 
     # Print out the reasons for score modification
     if not args.debug:
-        print('Penalties:')
+        print('Modifiers:')
 
         # Get all the scores that aren't 0, in descending numerical order
         scores = sorted([(tests[test]['score_modifier'], tests[test]['score_description'])
                   for test in tests if tests[test]['score_modifier'] != 0])
         scores = sorted(scores, key=itemgetter(0), reverse=True)
+        scores = [list(score) for score in scores]  # convert everything from tuples to lists
 
         for score in scores:
+            if score[0] > 0:
+                score[0] = '+' + str(score[0])  # display 5 as +5
             print('    [{modifier:>4}] {reason}'.format(modifier=score[0], reason=score[1]))
 
 
@@ -79,7 +82,7 @@ def poll(url, key, values=None, method='GET', timeout=300):
         # See if error is in there; if so, we just abort the whole thing
         if 'error' in r:
             print('\nUnable to get result from the HTTP Observatory. Error: {error}.'.format(error=r['error']))
-            sys.exit(1)
+            exit(1)
 
         # See if the key is one of the pollable values
         if values:
@@ -107,7 +110,7 @@ def poll(url, key, values=None, method='GET', timeout=300):
 
 def usage(cmd):
     print('Usage: {0} <hostname>'.format(cmd))
-    sys.exit(1)
+    exit(1)
 
 
 if __name__ == "__main__":
