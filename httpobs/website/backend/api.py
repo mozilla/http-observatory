@@ -39,11 +39,11 @@ def api_post_scan_hostname():
     row = database.select_scan_recent_scan(site_id)
 
     # TODO: allow something to force a rescan
-    # TODO: return something to indicate that it's a cached result
 
     # Otherwise, let's start up a scan
     if not row:
         row = database.insert_scan(site_id)
+        row['cached'] = False
         scan_id = row['id']
 
         # Begin the dispatch process if it was a POST
@@ -51,6 +51,8 @@ def api_post_scan_hostname():
             scan.delay(hostname, site_id, scan_id)
         else:
             return {'error': 'recent-scan-not-found'}
+    else:
+        row['cached'] = True
 
     # Return the scan row
     return row
