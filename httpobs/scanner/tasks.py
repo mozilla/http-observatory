@@ -15,7 +15,7 @@ scanner = Celery()
 scanner.config_from_object(celeryconfig)
 
 
-@scanner.task(ignore_result=True, soft_time_limit=751, time_limit=1129)
+@scanner.task()
 def scan(hostname: str, site_id: int, scan_id: int):
     try:
         # Once celery kicks off the task, let's update the scan state from PENDING to STARTED
