@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS tests (
   expectation                         VARCHAR  NOT NULL,
   result                              VARCHAR  NOT NULL,
   score_modifier                      SMALLINT NOT NULL,
-  pass                                BOOL     NULL,
+  pass                                BOOL     NOT NULL,
   output                              JSONB    NOT NULL
 );
 
@@ -51,6 +51,7 @@ CREATE INDEX tests_name_idx       ON tests (name);
 CREATE INDEX tests_result_idx     ON tests (result);
 CREATE INDEX tests_pass_idx       ON tests (pass);
 
+/* TODO: Probably need to tighten up these permissions */
 CREATE ROLE httpobsscanner;
 GRANT SELECT, INSERT ON sites, expectations, scans, tests TO httpobsscanner;
 GRANT UPDATE on sites, expectations, scans TO httpobsscanner;
@@ -61,5 +62,18 @@ GRANT SELECT (id, domain, public_headers) ON sites TO httpobsapi;
 GRANT INSERT, UPDATE ON sites, expectations to httpobsapi;
 GRANT INSERT, UPDATE (private_headers) ON sites to httpobsapi;
 
-CREATE VIEW latest_scans AS SELECT latest_scans.* FROM sites s, LATERAL ( SELECT id AS scan_id, site_id, end_time FROM scans WHERE site_id = s.id AND state = 'FINISHED' ORDER BY end_time DESC LIMIT 1 ) latest_scans;
-CREATE VIEW latest_tests AS SELECT tests.site_id, tests.scan_id, name, result, pass, output FROM tests INNER JOIN latest_scans ON (latest_scans.scan_id = tests.scan_id);
+CREATE MATERIALIZED VIEW latest_scans
+  AS SELECT latest_scans.site_id, latest_scans.scan_id, s.domain, latest_scans.state,
+    latest_scans.start_time, latest_scans.end_time, latest_scans.tests_failed, latest_scans.tests_passed,
+    latest_scans.grade, latest_scans.score, latest_scans.error
+  FROM sites s,
+  LATERAL ( SELECT id AS scan_id, site_id, state, start_time, end_time, tests_failed, tests_passed, grade, score, error
+            FROM scans WHERE site_id = s.id AND state = 'FINISHED' ORDER BY end_time DESC LIMIT 1 ) latest_scans;
+COMMENT ON MATERIALIZED VIEW latest_scans IS 'Most recently completed scan for a given website';
+
+CREATE MATERIALIZED VIEW latest_tests
+  AS SELECT latest_scans.domain, tests.site_id, tests.scan_id, name, result, pass, output
+  FROM tests
+  INNER JOIN latest_scans
+  ON (latest_scans.scan_id = tests.scan_id);
+COMMENT ON MATERIALIZED VIEW latest_tests IS 'Test results from all the most recent scans';
