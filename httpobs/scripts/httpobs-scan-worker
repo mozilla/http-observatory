@@ -1,0 +1,12 @@
+#!/bin/sh
+
+exec celery \
+  -A httpobs.scanner.tasks \
+  --concurrency=128 \
+  --logfile='/var/log/httpobs/%n.log' \
+  --loglevel=warning \
+  --pidfile='/var/run/httpobs/%n.pid' \
+  -n scanner \
+  -P gevent \
+  -Q scanner \
+  multi start scanner1 scanner2 scanner3 scanner4
