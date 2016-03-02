@@ -37,11 +37,11 @@ def analyze(host):
                  key='x-frame-options')
 
     # Print out a notification on stderr that it's a cached result
-    if scan['cached']:
-        # I hate working with datetime so much
-        differential = datetime.datetime.now() - datetime.datetime.strptime(scan['end_time'], '%a, %d %b %Y %H:%M:%S %Z')
-        differential = differential.days * 86400 + differential.seconds
+    # I hate working with datetime so much
+    differential = datetime.datetime.now() - datetime.datetime.strptime(scan['end_time'], '%a, %d %b %Y %H:%M:%S %Z')
+    differential = differential.days * 86400 + differential.seconds
 
+    if differential > 300:
         print('Results are cached from {min}m{sec}s ago; use -r to rescan.\n'.format(min=differential / 60, sec=differential % 60), file=sys.stderr)
 
     # Print the grade and scan results
