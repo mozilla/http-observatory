@@ -44,6 +44,19 @@ def is_hsts_preloaded(hostname):
     return False
 
 
+# Return the new result if it's worse than the existing result, otherwise just the current result
+def only_if_worse(new_result: str, old_result: str, order = None) -> str:
+    if order is None:
+        order = []
+
+    if not old_result:
+        return new_result
+    elif order.index(new_result) > order.index(old_result):
+        return new_result
+    else:
+        return old_result
+
+
 # Let this file be run directly so you can see the JSON for the Google HSTS thingie
 if __name__ == '__main__':
     for key in hsts.keys():

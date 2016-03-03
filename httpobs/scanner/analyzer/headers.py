@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
-from httpobs.scanner.analyzer.utils import is_hsts_preloaded
+from httpobs.scanner.analyzer.utils import is_hsts_preloaded, only_if_worse
 
 
 @scored_test
@@ -90,6 +90,8 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
         cookies-secure-with-httponly-sessions: All cookies have secure flag set, all session cookies are HttpOnly
+        cookies-without-secure-flag-but-protected-by-hsts: Cookies don't have secure, but site uses HSTS
+        cookies-session-without-secure-flag-but-protected-by-hsts: Same, but session cookie
         cookies-without-secure-flag: Cookies set without secure flag
         cookies-session-without-secure-flag: Session cookies lack the Secure flag
         cookies-session-without-httponly-flag: Session cookies lack the HttpOnly flag
@@ -109,7 +111,15 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     }
     session = reqs['session']  # all requests and their associated cookies
 
-    # TODO: See if HSTS protects (that is, max-age > when cookie expires)
+    # The order of how bad the various results are
+    goodness = ['cookies-without-secure-flag-but-protected-by-hsts',
+                'cookies-without-secure-flag',
+                'cookies-session-without-secure-flag-but-protected-by-hsts',
+                'cookies-session-without-secure-flag',
+                'cookies-session-without-httponly-flag']
+
+    # Get their HTTP Strict Transport Security status, which can help when cookies are set without Secure
+    hsts = strict_transport_security(reqs)['pass']
 
     # If there are no cookies
     if not session.cookies:
@@ -130,20 +140,36 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
             jar[cookie.name] = {i: getattr(cookie, i, None) for i in ['domain', 'expires', 'httponly',
                                                                       'max-age', 'path', 'port', 'secure']}
 
-            # All cookies must be set with the secure flag, but httponly not being set overrides it
+            # Is it a session identifier?
+            sessionid = any(i in cookie.name.lower() for i in ('login', 'sess'))
+
             # TODO: Check to see if it was set over http, where Secure wouldn't work
             # TODO: Check for session cookies sent over HTTP
-            # TODO: See if they're saved by HSTS?
-            if not cookie.secure and not output['result']:
-                output['result'] = 'cookies-without-secure-flag'
+            if not cookie.secure and hsts:
+                output['result'] = only_if_worse('cookies-without-secure-flag-but-protected-by-hsts',
+                                                 output['result'],
+                                                 goodness)
+
+            elif not cookie.secure:
+                output['result'] = only_if_worse('cookies-without-secure-flag',
+                                                 output['result'],
+                                                 goodness)
 
             # Login and session cookies should be set with Secure
-            elif any(i in cookie.name.lower() for i in ['login', 'sess']) and not cookie.secure:
-                output['result'] = 'cookies-session-without-secure-flag'
+            if sessionid and not cookie.secure and hsts:
+                output['result'] = only_if_worse('cookies-session-without-secure-flag-but-protected-by-hsts',
+                                                 output['result'],
+                                                 goodness)
+            elif sessionid and not cookie.secure:
+                output['result'] = only_if_worse('cookies-session-without-secure-flag',
+                                                 output['result'],
+                                                 goodness)
 
             # Login and session cookies should be set with HttpOnly
-            elif any(i in cookie.name.lower() for i in ['login', 'sess']) and not cookie.httponly:
-                output['result'] = 'cookies-session-without-httponly-flag'
+            if sessionid and not cookie.httponly:
+                output['result'] = only_if_worse('cookies-session-without-httponly-flag',
+                                                 output['result'],
+                                                 goodness)
 
         # Save the cookie jar
         output['data'] = jar
