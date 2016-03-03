@@ -89,6 +89,12 @@ def api_get_recent_scans():
     return jsonify(database.select_scan_recent_finished_scans(min_score=min_score, max_score=max_score))
 
 
+@api.route('/api/v1/getScannerStats', methods=['GET'])
+@add_response_headers()
+def api_get_scanner_stats():
+    return jsonify(database.select_scan_scanner_stats())
+
+
 @api.route('/api/v1/getScanResults', methods=['GET'])
 @add_response_headers()
 @sanitized_api_response

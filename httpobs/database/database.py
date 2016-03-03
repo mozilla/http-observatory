@@ -149,6 +149,13 @@ def select_scan_grade_totals() -> dict:
         return dict(cur.fetchall())
 
 
+def select_scan_scanner_stats() -> dict:
+    with get_cursor() as cur:
+        cur.execute('SELECT state, COUNT(*) as quantity FROM scans GROUP BY state;')
+
+        return dict(cur.fetchall())
+
+
 def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT sites.domain, scans.grade

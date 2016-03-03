@@ -31,7 +31,6 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
     output = {
         'data': None,
         'expectation': expectation,
-        'grade': None,
         'pass': False,
         'result': None,
     }

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from __future__ import print_function
-from celery.task.control import inspect
 
 import os
 import requests
@@ -15,20 +14,25 @@ else:
     HTTP_OBS_URL = 'https://http-observatory.services.mozilla.com/api/v1'
     MAX_QUEUE = 512
 
-ALEXA_FILE = sys.argv[1]
-
-# Get the queue inspector
-queue = inspect(timeout=15)
-
 if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        print('Usage: ' + sys.argv[0] + ' <file>')
+        exit(1)
+
     start_time = time.time()
 
-    with open(ALEXA_FILE, 'r') as alexafp:
-        hosts = [host.strip().split(',')[1] if ',' in host else host.strip() for host in alexafp]
+    try:
+        with open(sys.argv[1], 'r') as alexafp:
+            hosts = [host.strip().split(',')[1] if ',' in host else host.strip() for host in alexafp]
+    except:
+        print('Cannot open ' + sys.argv[1])
+        exit(1)
 
     while True:
         # Get the queue availability
-        available = MAX_QUEUE - sum([len(queue) for queue in inspect().active()])
+        r = requests.get(HTTP_OBS_URL + '/getScannerStats').json()
+        available = MAX_QUEUE - r.get('STARTED', 0) - r.get('PENDING', 0) - r.get('RUNNING', 0)
+
         print('Queue availability: {queue_avail}'.format(queue_avail=available))
 
         while available > 0:
@@ -38,8 +42,7 @@ if __name__ == '__main__':
                 exit(0)
 
             # Start up a new scan
-            requests.post(HTTP_OBS_URL + '/analyze?host={host}'.format(host=hosts.pop()),  # start with the end sites
-                          headers={'Content-Type': 'application/json'})
+            requests.post(HTTP_OBS_URL + '/analyze?host={host}'.format(host=hosts.pop())),  # start with the end sites
             available -= 1
 
         time.sleep(20)
