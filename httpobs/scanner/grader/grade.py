@@ -22,6 +22,8 @@ GRADE_CHART = {
     0: 'F'
 }
 
+GRADES = set(GRADE_CHART.values())
+
 SCORE_TABLE = {
     # contribute.json
     'contribute-json-with-required-keys': {

@@ -1,9 +1,9 @@
-from httpobs.scanner.grader import get_test_score_description
+from httpobs.scanner.grader import get_test_score_description, GRADES
 from httpobs.scanner.tasks import scan
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
 
-from flask import Blueprint, abort, request
+from flask import Blueprint, jsonify, request
 from os import environ
 
 import httpobs.database as database
@@ -62,9 +62,19 @@ def api_post_scan_hostname():
     return row
 
 
+@api.route('/api/v1/getGradeTotals', methods=['GET'])
+@add_response_headers()
+def api_get_grade_totals():
+    totals = database.select_scan_grade_totals()
+
+    # If a grade isn't in the database, return it with quantity 0
+    totals = {grade: totals.get(grade, 0) for grade in GRADES}
+
+    return jsonify(totals)
+
+
 @api.route('/api/v1/getRecentScans', methods=['GET'])
 @add_response_headers()
-@sanitized_api_response
 def api_get_recent_scans():
     try:
         # Get the min and max scores, if they're there
@@ -76,7 +86,7 @@ def api_get_recent_scans():
     except ValueError:
         return {'error': 'invalid-parameters'}
 
-    return database.select_scan_recent_finished_scans(min_score=min_score, max_score=max_score)
+    return jsonify(database.select_scan_recent_finished_scans(min_score=min_score, max_score=max_score))
 
 
 @api.route('/api/v1/getScanResults', methods=['GET'])

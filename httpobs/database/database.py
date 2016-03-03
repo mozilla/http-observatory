@@ -136,6 +136,19 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> d
     return row
 
 
+def select_scan_grade_totals() -> dict:
+    with get_cursor() as cur:
+        cur.execute("""SELECT totals.grade, COUNT(*) AS quantity
+                         FROM
+                           (SELECT site_id, grade, MAX(end_time) AS et
+                              FROM scans
+                              WHERE state = 'FINISHED'
+                              GROUP BY site_id, grade) totals
+                         GROUP BY totals.grade""")
+
+        return dict(cur.fetchall())
+
+
 def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT sites.domain, scans.grade
