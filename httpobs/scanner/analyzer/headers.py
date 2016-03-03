@@ -133,11 +133,11 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
             # All cookies must be set with the secure flag, but httponly not being set overrides it
             # TODO: Check to see if it was set over http, where Secure wouldn't work
             # TODO: Check for session cookies sent over HTTP
+            # TODO: See if they're saved by HSTS?
             if not cookie.secure and not output['result']:
                 output['result'] = 'cookies-without-secure-flag'
 
             # Login and session cookies should be set with Secure
-            # TODO: See if they're saved by HSTS?
             elif any(i in cookie.name.lower() for i in ['login', 'sess']) and not cookie.secure:
                 output['result'] = 'cookies-session-without-secure-flag'
 

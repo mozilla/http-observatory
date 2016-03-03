@@ -136,7 +136,25 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> d
     return row
 
 
-# TODO: Only look for successful scans?
+def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) -> dict:
+    with get_cursor() as cur:
+        cur.execute("""SELECT sites.domain, scans.grade
+                         FROM
+                           (SELECT site_id, grade, MAX(end_time) AS et
+                             FROM scans
+                             WHERE state = 'FINISHED'
+                             AND score >= %s
+                             AND score <= %s
+                             GROUP BY site_id, grade
+                             ORDER BY et DESC
+                             LIMIT %s) scans
+                         INNER JOIN sites
+                           ON (sites.id = scans.site_id)""",
+                    (min_score, max_score, num_scans))
+
+        return dict(cur.fetchall())
+
+
 def select_scan_recent_scan(site_id: int, recent_in_seconds=86400) -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT * FROM scans

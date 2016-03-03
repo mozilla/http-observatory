@@ -244,7 +244,7 @@ SCORE_TABLE = {
     # X-Frame-Options
     'x-frame-options-implemented-via-csp': {
         'description': 'X-Frame-Options (XFO) implemented via the CSP frame-ancestors directive',
-        'modifier': +5,
+        'modifier': 5,
     },
     'x-frame-options-sameorigin-or-deny': {
         'description': 'X-Frame-Options (XFO) header set to SAMEORIGIN or DENY',
@@ -318,13 +318,11 @@ def grade(scan_id) -> tuple:
     # TODO: this needs a ton of fleshing out
     score = 100
     for test in tests:
-        if not tests[test]['pass']:
-            score += tests[test]['score_modifier']
+        score += tests[test]['score_modifier']
+    score = max(score, 0)  # can't have scores below 0
 
-    score = min(max(score, 0), 100)
-
-    # Insert the test score
-    insert_scan_grade(scan_id, GRADE_CHART[score], score)
+    # Insert the test score -- if it's >100, just use the grade for 100
+    insert_scan_grade(scan_id, GRADE_CHART[min(score, 100)], score)
 
     return score, grade
 

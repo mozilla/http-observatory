@@ -44,6 +44,7 @@ def api_post_scan_hostname():
 
     # Otherwise, let's start up a scan
     if not row:
+        # Allow for hidden scans
         row = database.insert_scan(site_id)
         scan_id = row['id']
 
@@ -61,10 +62,27 @@ def api_post_scan_hostname():
     return row
 
 
+@api.route('/api/v1/getRecentScans', methods=['GET'])
+@add_response_headers()
+@sanitized_api_response
+def api_get_recent_scans():
+    try:
+        # Get the min and max scores, if they're there
+        min_score = int(request.args.get('min-score', 0))
+        max_score = int(request.args.get('max-score', 1000))
+
+        min_score = max(0, min_score)
+        max_score = min(1000, max_score)
+    except ValueError:
+        return {'error': 'invalid-parameters'}
+
+    return database.select_scan_recent_finished_scans(min_score=min_score, max_score=max_score)
+
+
 @api.route('/api/v1/getScanResults', methods=['GET'])
 @add_response_headers()
 @sanitized_api_response
-def api_get_test_results():
+def api_get_scan_results():
     scan_id = request.args.get('scan')
 
     if not scan_id:
