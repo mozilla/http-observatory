@@ -86,6 +86,14 @@ SCORE_TABLE = {
         'description': 'No cookies detected',
         'modifier': 0,
     },
+    'cookies-without-secure-flag-but-protected-by-hsts': {
+        'description': 'Cookies set without using the Secure flag, but transmission over HTTP prevented by HSTS',
+        'modifier': -5,
+    },
+    'cookies-session-without-secure-flag-but-protected-by-hsts': {
+        'description': 'Session cookie set without the Secure flag, but transmission over HTTP prevented by HSTS',
+        'modifier': -10,
+    },
     'cookies-without-secure-flag': {
         'description': 'Cookies set without using the Secure flag',
         'modifier': -25,
@@ -144,12 +152,12 @@ SCORE_TABLE = {
     },
 
     # Strict Transport Security (HSTS)
-    'hsts-implemented-max-age-at-least-six-months': {
-        'description': 'HTTP Strict Transport Security (HSTS) header set to a minimum of six months (15768000)',
-        'modifier': 0,
-    },
     'hsts-preloaded': {
         'description': 'Preloaded via the HTTP Strict Transport Security (HSTS) preloading process',
+        'modifier': 5,
+    },
+    'hsts-implemented-max-age-at-least-six-months': {
+        'description': 'HTTP Strict Transport Security (HSTS) header set to a minimum of six months (15768000)',
         'modifier': 0,
     },
     'hsts-implemented-max-age-less-than-six-months': {
@@ -172,7 +180,7 @@ SCORE_TABLE = {
     # Subresource Integrity (SRI)
     'sri-implemented-and-external-scripts-loaded-securely': {
         'description': 'Subresource Integrity (SRI) is implemented and all scripts are loaded securely',
-        'modifier': 0,
+        'modifier': 5,
     },
     'sri-not-implemented-response-not-html': {
         'description': 'Subresource Integrity (SRI) is only needed for html resources',
@@ -196,36 +204,6 @@ SCORE_TABLE = {
     },
     'sri-not-implemented-and-scripts-loaded-insecurely': {
         'description': 'Subresource Integrity (SRI) is not implemented, and external scripts are loaded over http',
-        'modifier': -100,
-    },
-
-    # TLS Configuration (TLS Observatory)
-    'tls-configuration-modern': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration uses the Mozilla modern recommendations',
-        'modifier': 0,
-    },
-    'tls-configuration-intermediate-or-modern': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration uses the Mozilla modern or intermediate recommendations',
-        'modifier': 0,
-    },
-    'tls-configuration-intermediate': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration uses the Mozilla intermediate recommendations',
-        'modifier': 0,
-    },
-    'tls-configuration-weak-dhe': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration has a weak DHE group < 2048-bits',
-        'modifier': -15,
-    },
-    'tls-configuration-old': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration uses the Mozilla old configuration',
-        'modifier': -25,
-    },
-    'tls-configuration-bad': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration doesn\'t match any known Mozilla configurations',
-        'modifier': -40,
-    },
-    'tls-observatory-scan-failed-no-https': {
-        'description': 'Cannot be loaded over https',
         'modifier': -100,
     },
 
