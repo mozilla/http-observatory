@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS tests (
 
 CREATE INDEX sites_domain_idx     ON sites (domain);
 
+CREATE INDEX scans_state_idx      ON scans (state);
 CREATE INDEX scans_start_time_idx ON scans (start_time);
 CREATE INDEX scans_end_time_idx   ON scans (end_time);
 CREATE INDEX scans_grade_idx      ON scans (grade);

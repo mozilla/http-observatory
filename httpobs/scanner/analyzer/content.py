@@ -3,6 +3,7 @@ from publicsuffixlist import PublicSuffixList
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
+from httpobs.scanner.analyzer.utils import only_if_worse
 
 import json
 
@@ -30,7 +31,6 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
     output = {
         'data': None,
         'expectation': expectation,
-        'grade': None,
         'pass': False,
         'result': None,
     }
@@ -97,20 +97,12 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
     }
     response = reqs['responses']['auto']
 
-    # Return the new result if it's worse than the existing result, otherwise just the current result
-    def only_if_worse(result: str) -> str:
-        goodness = ['sri-implemented-and-external-scripts-loaded-securely',
-                    'sri-implemented-but-external-scripts-not-loaded-securely',
-                    'sri-not-implemented-but-external-scripts-loaded-securely',
-                    'sri-not-implemented-and-scripts-loaded-insecurely',
-                    'sri-not-implemented-response-not-html']
-
-        if not output['result']:
-            return result
-        elif goodness.index(result) > goodness.index(output['result']):
-            return result
-        else:
-            return output['result']
+    # The order of how "good" the results are
+    goodness = ['sri-implemented-and-external-scripts-loaded-securely',
+                'sri-implemented-but-external-scripts-not-loaded-securely',
+                'sri-not-implemented-but-external-scripts-loaded-securely',
+                'sri-not-implemented-and-scripts-loaded-insecurely',
+                'sri-not-implemented-response-not-html']
 
     # If the response to get / fails
     if response.status_code != 200:
@@ -171,11 +163,19 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                         securescheme = False
 
                     if integrity and not securescheme:
-                        output['result'] = only_if_worse('sri-implemented-but-external-scripts-not-loaded-securely')
+                        output['result'] = only_if_worse('sri-implemented-but-external-scripts-not-loaded-securely',
+                                                         output['result'],
+                                                         goodness)
                     elif not integrity and securescheme:
-                        output['result'] = only_if_worse('sri-not-implemented-but-external-scripts-loaded-securely')
+                        output['result'] = only_if_worse('sri-not-implemented-but-external-scripts-loaded-securely',
+                                                         output['result'],
+                                                         goodness)
                     elif not integrity and not securescheme:
-                        output['result'] = only_if_worse('sri-not-implemented-and-scripts-loaded-insecurely')
+                        output['result'] = only_if_worse('sri-not-implemented-and-scripts-loaded-insecurely',
+                                                         output['result'],
+                                                         goodness)
+
+                # TODO: Grant bonus even if they use SRI on the same origin
 
         # If the page doesn't load any scripts
         if not scripts:

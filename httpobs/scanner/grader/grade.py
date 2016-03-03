@@ -22,6 +22,8 @@ GRADE_CHART = {
     0: 'F'
 }
 
+GRADES = set(GRADE_CHART.values())
+
 SCORE_TABLE = {
     # contribute.json
     'contribute-json-with-required-keys': {
@@ -84,6 +86,14 @@ SCORE_TABLE = {
         'description': 'No cookies detected',
         'modifier': 0,
     },
+    'cookies-without-secure-flag-but-protected-by-hsts': {
+        'description': 'Cookies set without using the Secure flag, but transmission over HTTP prevented by HSTS',
+        'modifier': -5,
+    },
+    'cookies-session-without-secure-flag-but-protected-by-hsts': {
+        'description': 'Session cookie set without the Secure flag, but transmission over HTTP prevented by HSTS',
+        'modifier': -10,
+    },
     'cookies-without-secure-flag': {
         'description': 'Cookies set without using the Secure flag',
         'modifier': -25,
@@ -142,12 +152,12 @@ SCORE_TABLE = {
     },
 
     # Strict Transport Security (HSTS)
-    'hsts-implemented-max-age-at-least-six-months': {
-        'description': 'HTTP Strict Transport Security (HSTS) header set to a minimum of six months (15768000)',
-        'modifier': 0,
-    },
     'hsts-preloaded': {
         'description': 'Preloaded via the HTTP Strict Transport Security (HSTS) preloading process',
+        'modifier': 5,
+    },
+    'hsts-implemented-max-age-at-least-six-months': {
+        'description': 'HTTP Strict Transport Security (HSTS) header set to a minimum of six months (15768000)',
         'modifier': 0,
     },
     'hsts-implemented-max-age-less-than-six-months': {
@@ -170,7 +180,7 @@ SCORE_TABLE = {
     # Subresource Integrity (SRI)
     'sri-implemented-and-external-scripts-loaded-securely': {
         'description': 'Subresource Integrity (SRI) is implemented and all scripts are loaded securely',
-        'modifier': 0,
+        'modifier': 5,
     },
     'sri-not-implemented-response-not-html': {
         'description': 'Subresource Integrity (SRI) is only needed for html resources',
@@ -197,36 +207,6 @@ SCORE_TABLE = {
         'modifier': -100,
     },
 
-    # TLS Configuration (TLS Observatory)
-    'tls-configuration-modern': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration uses the Mozilla modern recommendations',
-        'modifier': 0,
-    },
-    'tls-configuration-intermediate-or-modern': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration uses the Mozilla modern or intermediate recommendations',
-        'modifier': 0,
-    },
-    'tls-configuration-intermediate': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration uses the Mozilla intermediate recommendations',
-        'modifier': 0,
-    },
-    'tls-configuration-weak-dhe': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration has a weak DHE group < 2048-bits',
-        'modifier': -15,
-    },
-    'tls-configuration-old': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration uses the Mozilla old configuration',
-        'modifier': -25,
-    },
-    'tls-configuration-bad': {
-        'description': 'Transport Layer Security (TLS/SSL) configuration doesn\'t match any known Mozilla configurations',
-        'modifier': -40,
-    },
-    'tls-observatory-scan-failed-no-https': {
-        'description': 'Cannot be loaded over https',
-        'modifier': -100,
-    },
-
     # X-Content-Type-Options
     'x-content-type-options-nosniff': {
         'description': 'X-Content-Type-Options header set to "nosniff"',
@@ -244,7 +224,7 @@ SCORE_TABLE = {
     # X-Frame-Options
     'x-frame-options-implemented-via-csp': {
         'description': 'X-Frame-Options (XFO) implemented via the CSP frame-ancestors directive',
-        'modifier': +5,
+        'modifier': 5,
     },
     'x-frame-options-sameorigin-or-deny': {
         'description': 'X-Frame-Options (XFO) header set to SAMEORIGIN or DENY',
@@ -318,13 +298,11 @@ def grade(scan_id) -> tuple:
     # TODO: this needs a ton of fleshing out
     score = 100
     for test in tests:
-        if not tests[test]['pass']:
-            score += tests[test]['score_modifier']
+        score += tests[test]['score_modifier']
+    score = max(score, 0)  # can't have scores below 0
 
-    score = min(max(score, 0), 100)
-
-    # Insert the test score
-    insert_scan_grade(scan_id, GRADE_CHART[score], score)
+    # Insert the test score -- if it's >100, just use the grade for 100
+    insert_scan_grade(scan_id, GRADE_CHART[min(score, 100)], score)
 
     return score, grade
 
