@@ -137,14 +137,14 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> d
 
 
 # TODO: Only look for successful scans?
-def select_scan_recent_scan(site_id: int) -> dict:
+def select_scan_recent_scan(site_id: int, recent_in_seconds=86400) -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT * FROM scans
                          WHERE site_id = (%s)
-                         AND start_time >= NOW() - INTERVAL '1 day'
+                         AND start_time >= NOW() - INTERVAL '%s seconds'
                          ORDER BY start_time DESC
                          LIMIT 1""",
-                    (site_id,))
+                    (site_id, recent_in_seconds))
 
         if cur.rowcount > 0:
             return dict(cur.fetchone())
