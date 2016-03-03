@@ -3,13 +3,18 @@
 from __future__ import print_function
 from celery.task.control import inspect
 
+import os
 import requests
 import sys
 import time
 
+if 'HTTPOBS_DEV' in os.environ:
+    HTTP_OBS_URL = 'http://http-observatory.services.mozilla.com:5000/api/v1'
+    MAX_QUEUE = 192
+else:
+    HTTP_OBS_URL = 'https://http-observatory.services.mozilla.com/api/v1'
+    MAX_QUEUE = 512
 
-# TODO: Update to HTTPS once real site is live
-HTTP_OBS_URL = 'http://http-observatory.services.mozilla.com:5000/api/v1'
 ALEXA_FILE = sys.argv[1]
 
 # Get the queue inspector
@@ -23,7 +28,7 @@ if __name__ == '__main__':
 
     while True:
         # Get the queue availability
-        available = 512 - sum([len(queue) for queue in inspect().active()])
+        available = MAX_QUEUE - sum([len(queue) for queue in inspect().active()])
         print('Queue availability: {queue_avail}'.format(queue_avail=available))
 
         while available > 0:
