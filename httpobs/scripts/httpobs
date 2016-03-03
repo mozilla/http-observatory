@@ -145,10 +145,12 @@ if __name__ == "__main__":
 
     # Parse the command line
     parser = argparse.ArgumentParser(usage='%(prog)s [options] host')
-    parser.add_argument('host')
+    parser.add_argument('host', help='hostname of the website to scan')
     parser.add_argument('-d', '--debug', action='store_true', help='output only raw JSON from scan and tests')
-    parser.add_argument('-r', '--rescan', action='store_true', help='initiate a rescan instead of showing cached results')
-    parser.add_argument('-v', '--verbose', action='store_true', help='don\'t display progress information')
+    parser.add_argument('-r', '--rescan',
+                        action='store_true',
+                        help='initiate a rescan instead of showing recent scan results')
+    parser.add_argument('-v', '--verbose', action='store_true', help='display progress indicator')
     args = parser.parse_args()
 
     # Go out and scan!
