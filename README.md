@@ -50,6 +50,7 @@ optional arguments:
   -d, --debug    output only raw JSON from scan and tests
   -r, --rescan   initiate a rescan instead of showing recent scan results
   -v, --verbose  display progress indicator
+  -x, --hidden   don't list scan in the recent scan results
 ```
 
 ## Authors
