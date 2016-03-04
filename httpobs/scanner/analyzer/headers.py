@@ -44,10 +44,10 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         #   'upgrade-insecure-requests': [],
         # }
         try:
-            csp = [directive.strip().split(maxsplit=1) for directive in response.headers['Content-Security-Policy'].split(';') if directive]
+            header = response.headers['Content-Security-Policy']
+            csp = [directive.strip().split(maxsplit=1) for directive in header.split(';') if directive]
             csp = {directive[0].lower():
                        (directive[1].split() if len(directive) > 1 else []) for directive in csp}
-            output['data'] = csp  # store the CSP policy, if it's implemented
         except:
             output['result'] = 'csp-header-invalid'
             return output
@@ -62,9 +62,9 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
             output['result'] = 'csp-implemented-with-unsafe-inline'
         elif not csp.get('default-src') and not csp.get('script-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline'
-        elif urlparse(response.url).scheme == 'https' and 'http:' in output['data']:
+        elif urlparse(response.url).scheme == 'https' and 'http:' in header:
             output['result'] = 'csp-implemented-with-insecure-scheme'
-        elif '\'unsafe-eval\'' in output['data']:
+        elif '\'unsafe-eval\'' in header:
             output['result'] = 'csp-implemented-with-unsafe-eval'
         elif '\'unsafe-inline\'' in csp.get('style-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
@@ -74,7 +74,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         # TODO: allow a small bonus for upgrade-insecure-requests?
 
         # Code defensively on the size of the data
-        output['data'] = output['data'] if len(str(output['data'])) < 32768 else {}
+        output['data'] = csp if len(str(csp)) < 32768 else {}
 
     else:
         output['result'] = 'csp-not-implemented'
