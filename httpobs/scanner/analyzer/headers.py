@@ -58,15 +58,15 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
             csp[directive] = csp.get(directive) if directive in csp else csp.get('default-src')
 
         # Do all of our tests
-        if '\'unsafe-inline\'' in csp.get('script-src'):
+        if '\'unsafe-inline\'' in csp.get('script-src') or 'data:' in csp.get('script-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline'
         elif not csp.get('default-src') and not csp.get('script-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline'
         elif urlparse(response.url).scheme == 'https' and 'http:' in header:
             output['result'] = 'csp-implemented-with-insecure-scheme'
-        elif '\'unsafe-eval\'' in header:
+        elif '\'unsafe-eval\'' in csp.get('script-src') or '\'unsafe-eval\'' in csp.get('style-src'):
             output['result'] = 'csp-implemented-with-unsafe-eval'
-        elif '\'unsafe-inline\'' in csp.get('style-src'):
+        elif '\'unsafe-inline\'' in csp.get('style-src') or 'data:' in csp.get('style-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
         else:
             output['result'] = 'csp-implemented-with-no-unsafe'
@@ -249,7 +249,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                 output['result'] = 'hsts-header-invalid'
 
             # If they're not included, then they're considered to be unset
-            if not output['includeubdomains']:
+            if not output['includeSubDomains']:
                 output['includeSubDomains'] = False
             if not output['preload']:
                 output['preload'] = False
@@ -259,8 +259,10 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
 
     # If they're in the preloaded list, this overrides most anything else
     if response is not None:
-        if is_hsts_preloaded(urlparse(response.url).netloc):
+        preloaded = is_hsts_preloaded(urlparse(response.url).netloc)
+        if preloaded:
             output['result'] = 'hsts-preloaded'
+            output['includeSubDomains'] = preloaded['includeSubDomains']
             output['preloaded'] = True
 
     # Check to see if the test passed or failed
