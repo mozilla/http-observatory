@@ -1,5 +1,6 @@
 from celery import Celery
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
+from os import environ
 
 from httpobs.database import insert_test_result, update_scan_state
 from httpobs.scanner import celeryconfig, STATE_ABORTED, STATE_FAILED, STATE_STARTED
@@ -21,7 +22,6 @@ def scan(hostname: str, site_id: int, scan_id: int):
         # Once celery kicks off the task, let's update the scan state from PENDING to STARTED
         update_scan_state(scan_id, STATE_STARTED)
 
-        # TODO: Allow people to skip scans (such as TLS configuration)?
         # Attempt to retrieve all the resources
         reqs = retrieve_all(hostname)
 
@@ -43,10 +43,11 @@ def scan(hostname: str, site_id: int, scan_id: int):
         # TODO: have more specific error messages
         e = sys.exc_info()[1]  # get the error message
 
-        # TODO: remove this once we get to production
-        import traceback
-        print('Error detected in: ' + hostname)
-        traceback.print_exc()
+        # Print the exception to stdout if we're in dev
+        if 'HTTPOBS_DEV' in environ:
+            import traceback
+            print('Error detected in: ' + hostname)
+            traceback.print_exc()
 
         # If we are unsuccessful, close out the scan in the database
         update_scan_state(scan_id, STATE_FAILED, error=repr(e))
