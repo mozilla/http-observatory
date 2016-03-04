@@ -10,7 +10,7 @@ import sys
 import httpobs.scanner.analyzer
 
 
-# Create the salary task queue the Celery task queue
+# Create the scanner task queue
 scanner = Celery()
 scanner.config_from_object(celeryconfig)
 

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from json import dumps
 from os import environ
 
-from httpobs.scanner import STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
+from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
 from httpobs.scanner.analyzer import NUM_TESTS
 from httpobs.scanner.grader import grade
 
@@ -142,9 +142,10 @@ def select_scan_grade_totals() -> dict:
                          FROM
                            (SELECT site_id, grade, MAX(end_time) AS et
                               FROM scans
-                              WHERE state = 'FINISHED'
+                              WHERE state = %s
                               GROUP BY site_id, grade) totals
-                         GROUP BY totals.grade""")
+                         GROUP BY totals.grade""",
+                    (STATE_FINISHED,))
 
         return dict(cur.fetchall())
 
@@ -269,3 +270,21 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
             row = dict(cur.fetchone())
 
     return row
+
+
+def update_scans_abort_broken_scans(num_seconds=1800) -> int:
+    """
+    Update all scans that are stuck. The hard time limit for celery is 1129, so if something isn't aborted, finished, or
+    failed, we should just mark it as aborted.
+    :return: the number of scans that were closed out
+    """
+    with get_cursor() as cur:
+        cur.execute("""UPDATE scans
+                         SET (state, end_time) = (%s, NOW())
+                         WHERE state != %s
+                           AND state != %s
+                           AND state != %s
+                           AND start_time < NOW() - INTERVAL '%s seconds';""",
+                    (STATE_ABORTED, STATE_ABORTED, STATE_FAILED, STATE_FINISHED, num_seconds))
+
+        return cur.rowcount
