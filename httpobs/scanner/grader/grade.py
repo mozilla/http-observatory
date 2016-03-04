@@ -62,11 +62,11 @@ SCORE_TABLE = {
     },
     'csp-implemented-with-unsafe-inline': {
         'description': 'Content Security Policy (CSP) implemented, but allows unsafe-inline',
-        'modifier': -25,
+        'modifier': -20,
     },
     'csp-implemented-with-insecure-scheme': {
         'description': 'Content Security Policy (CSP) implemented, but allows resources to be loaded from http',
-        'modifier': -25,
+        'modifier': -20,
     },
     'csp-header-invalid': {
         'description': 'Content Security Policy (CSP) header cannot be parsed successfully',
@@ -144,11 +144,11 @@ SCORE_TABLE = {
     },
     'redirection-not-to-https': {
         'description': 'Redirects, but final destination is not an https URL',
-        'modifier': -25,
+        'modifier': -20,
     },
     'redirection-missing': {
         'description': 'Does not redirect to an https site',  # if there's no HTTPS at all, other tests will score -100
-        'modifier': -25,
+        'modifier': -20,
     },
 
     # Strict Transport Security (HSTS)
@@ -166,15 +166,15 @@ SCORE_TABLE = {
     },
     'hsts-not-implemented': {
         'description': 'HTTP Strict Transport Security (HSTS) header is not set',
-        'modifier': -25,
+        'modifier': -20,
+    },
+    'hsts-header-invalid': {
+        'description': 'HTTP Strict Transport Security (HSTS) header cannot be recognized',
+        'modifier': -20,
     },
     'hsts-not-implemented-no-https': {
         'description': 'HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over https',
         'modifier': -100,
-    },
-    'hsts-header-invalid': {
-        'description': 'HTTP Strict Transport Security (HSTS) header cannot be recognized',
-        'modifier': -25,
     },
 
     # Subresource Integrity (SRI)
