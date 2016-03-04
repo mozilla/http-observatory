@@ -44,12 +44,12 @@ def api_post_scan_hostname():
 
     # Otherwise, let's start up a scan
     if not row:
-        # Allow for hidden scans
-        row = database.insert_scan(site_id)
-        scan_id = row['id']
+        hidden = True if 'hidden' in request.form else False
 
         # Begin the dispatch process if it was a POST
         if request.method == 'POST':
+            row = database.insert_scan(site_id, hidden=hidden)
+            scan_id = row['id']
             scan.delay(hostname, site_id, scan_id)
         else:
             return {'error': 'recent-scan-not-found'}

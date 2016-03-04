@@ -58,12 +58,12 @@ def get_cursor():
         # TODO: Lets fail gracefully by catching these exceptions
 
 
-def insert_scan(site_id) -> dict:
+def insert_scan(site_id: int, hidden: bool = False) -> dict:
     with get_cursor() as cur:
-        cur.execute("""INSERT INTO scans (site_id, state, start_time, tests_quantity)
-                         VALUES (%s, %s, NOW(), %s)
+        cur.execute("""INSERT INTO scans (site_id, state, start_time, tests_quantity, hidden)
+                         VALUES (%s, %s, NOW(), %s, %s)
                          RETURNING *""",
-                    (site_id, STATE_PENDING, NUM_TESTS))
+                    (site_id, STATE_PENDING, NUM_TESTS, hidden))
 
         return dict(cur.fetchone())
 
@@ -166,6 +166,7 @@ def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) 
                              WHERE state = 'FINISHED'
                              AND score >= %s
                              AND score <= %s
+                             AND hidden = FALSE
                              GROUP BY site_id, grade
                              ORDER BY et DESC
                              LIMIT %s) scans
