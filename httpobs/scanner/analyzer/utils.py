@@ -20,7 +20,10 @@ try:
     r = loads(r)
 
     # Mapping of site -> whether it includes subdomains
-    hsts = {site['name']: site['include_subdomains'] for site in r['entries'] if 'include_subdomains' in site}
+    hsts = {site['name']: {
+        'includeSubDomains': site.get('include_subdomains', False),
+        'pinned': True if 'pins' in site else False,
+    } for site in r['entries']}
 
 except:
     print('Unable to download the Google HSTS Preload list; exiting', file=sys.stderr)
@@ -30,7 +33,7 @@ except:
 def is_hsts_preloaded(hostname):
     # Just return true if the hostname is the HSTS list -- no need to see if includeSubDomains is set or not
     if hostname in hsts:
-        return True
+        return hsts[hostname]
 
     # Either the hostname is in the list *or* the TLD is and includeSubDomains is true
     host = hostname.split('.')
@@ -38,8 +41,9 @@ def is_hsts_preloaded(hostname):
 
     # If hostname is foo.bar.baz.mozilla.org, check bar.baz.mozilla.org, baz.mozilla.org, mozilla.org, and .org
     for i in range(1, levels):
-        if hsts.get('.'.join(host[i:levels])):
-            return True
+        domain = '.'.join(host[i:levels])
+        if domain in hsts:
+            return hsts[domain]
 
     return False
 
@@ -59,5 +63,4 @@ def only_if_worse(new_result: str, old_result: str, order = None) -> str:
 
 # Let this file be run directly so you can see the JSON for the Google HSTS thingie
 if __name__ == '__main__':
-    for key in hsts.keys():
-        print(key)
+    print(hsts)
