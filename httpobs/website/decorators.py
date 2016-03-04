@@ -1,8 +1,8 @@
-from flask import jsonify, make_response
+from flask import jsonify, make_response, request
 from functools import wraps
 
 
-def add_response_headers(headers=None, default_headers=None):
+def add_response_headers(headers=None, default_headers=None, cors=False):
     """
     Adds a bunch of headers to the Flask responses
     :param headers: a dictionary of headers and values to add to the response
@@ -14,10 +14,10 @@ def add_response_headers(headers=None, default_headers=None):
 
     if not default_headers:
         default_headers = {
-            'Content-Security-Policy': "default-src 'self'",
+            'Content-Security-Policy': "default-src 'self'; frame-ancestors 'none'",
             'Strict-Transport-Security': 'max-age=31536000',
-            'X-Frame-Options': 'DENY',
             'X-Content-Type-Options': 'nosniff',
+            'X-Frame-Options': 'DENY',
             'X-XSS-Protection': '1; mode=block',
         }
     headers.update(default_headers)
@@ -25,7 +25,21 @@ def add_response_headers(headers=None, default_headers=None):
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            resp = make_response(fn(*args, **kwargs))
+            # Don't call the underlying function if the method is OPTIONS
+            if request.method == 'OPTIONS':
+                resp = make_response()
+            else:
+                resp = make_response(fn(*args, **kwargs))
+
+            # Append the CORS headers
+            if cors:
+                headers.update({
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': ', '.join(request.url_rule.methods),
+                    'Access-Control-Max-Age': '86400',
+                })
+
+            # Append the headers to the response
             for header, value in headers.items():
                 resp.headers[header] = value
             return resp
