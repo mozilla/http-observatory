@@ -1,4 +1,4 @@
-from time import sleep
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from urllib.parse import urlparse
 
 from httpobs.database import select_site_headers
@@ -14,6 +14,8 @@ TIMEOUT = (6.05, 30)  # connect, read
 
 
 # Create a session, returning the session and the HTTP response in a dictionary
+# Don't create the sessions if it can't connect and retrieve the root of the website
+# TODO: Allow people to scan a subdirectory instead of using '/' as the default path?
 def __create_session(url: str, headers=None) -> dict:
     s = requests.Session()
 
@@ -28,10 +30,13 @@ def __create_session(url: str, headers=None) -> dict:
     })
 
     try:
-        r = s.get(url)
+        r = s.get(url, timeout=TIMEOUT)
 
         # Store the domain and scheme in the session
         s.url = urlparse(r.url)
+    # Let celery exceptions percolate upward
+    except (SoftTimeLimitExceeded, TimeLimitExceeded):
+        raise
     except:
         r = None
         s = None
@@ -45,6 +50,9 @@ def __get(session, relative_path='/', headers=None):
         # TODO: Perhaps we can naively do it for now by simply setting a timeout?
         # TODO: catch TLS errors instead of just setting it to None?
         return session.get(session.url.scheme + '://' + session.url.netloc + relative_path, timeout=TIMEOUT)
+    # Let celery exceptions percolate upward
+    except (SoftTimeLimitExceeded, TimeLimitExceeded):
+        raise
     except:
         return None
 

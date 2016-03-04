@@ -1,0 +1,11 @@
+#!/bin/sh
+
+
+# Execute celery
+exec celery \
+  -A httpobs.database.tasks \
+  --logfile='/var/log/httpobs/database.log' \
+  --loglevel=warning \
+  --pidfile='/var/run/httpobs/database.pid' \
+  --schedule='/var/run/httpobs/database.schedule' \
+  beat

@@ -43,14 +43,26 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
     # If there's no contribute.json file
     if reqs['resources']['/contribute.json']:
         try:
-            output['data'] = json.loads(reqs['resources']['/contribute.json'])
+            contrib = json.loads(reqs['resources']['/contribute.json'])
 
-            if all(key in output['data'] for key in required_keys):
+            if all(key in contrib for key in required_keys):
                 output['result'] = 'contribute-json-with-required-keys'
             else:
                 output['result'] = 'contribute-json-missing-required-keys'
         except (json.JSONDecodeError, TypeError):
+            contrib = {}
             output['result'] = 'contribute-json-invalid-json'
+
+        # Store the contribute.json file
+        if any(key in contrib for key in required_keys):
+            contrib = {key: contrib.get(key) for key in required_keys if key in contrib}
+
+            # Store contribute.json in the database if it's under a certain size
+            if len(str(contrib)) < 32768:
+                output['data'] = contrib
+            else:
+                output['data'] = {}
+
 
     elif urlparse(response.url).netloc.split('.')[-2] not in MOZILLA_DOMAINS:
         output['expectation'] = output['result'] = 'contribute-json-only-required-on-mozilla-properties'
@@ -188,6 +200,9 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
         # If the page loaded from a foreign origin, but everything included SRI
         elif scripts and scripts_on_foreign_origin and not output['result']:
             output['result'] = 'sri-implemented-and-external-scripts-loaded-securely'
+
+    # Code defensively on the size of the data
+    output['data'] = output['data'] if len(str(output['data'])) < 32768 else {}
 
     # Check to see if the test passed or failed
     if expectation == output['result']:

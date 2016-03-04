@@ -44,10 +44,10 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         #   'upgrade-insecure-requests': [],
         # }
         try:
-            csp = [directive.strip().split(maxsplit=1) for directive in response.headers['Content-Security-Policy'].split(';') if directive]
+            header = response.headers['Content-Security-Policy']
+            csp = [directive.strip().split(maxsplit=1) for directive in header.split(';') if directive]
             csp = {directive[0].lower():
                        (directive[1].split() if len(directive) > 1 else []) for directive in csp}
-            output['data'] = csp  # store the CSP policy, if it's implemented
         except:
             output['result'] = 'csp-header-invalid'
             return output
@@ -58,21 +58,23 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
             csp[directive] = csp.get(directive) if directive in csp else csp.get('default-src')
 
         # Do all of our tests
-        if '\'unsafe-inline\'' in csp.get('script-src'):
+        if '\'unsafe-inline\'' in csp.get('script-src') or 'data:' in csp.get('script-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline'
         elif not csp.get('default-src') and not csp.get('script-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline'
-        elif urlparse(response.url).scheme == 'https' and 'http:' in output['data']:
+        elif urlparse(response.url).scheme == 'https' and 'http:' in header:
             output['result'] = 'csp-implemented-with-insecure-scheme'
-        elif '\'unsafe-eval\'' in output['data']:
+        elif '\'unsafe-eval\'' in csp.get('script-src') or '\'unsafe-eval\'' in csp.get('style-src'):
             output['result'] = 'csp-implemented-with-unsafe-eval'
-        elif '\'unsafe-inline\'' in csp.get('style-src'):
+        elif '\'unsafe-inline\'' in csp.get('style-src') or 'data:' in csp.get('style-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
+        else:
+            output['result'] = 'csp-implemented-with-no-unsafe'
 
         # TODO: allow a small bonus for upgrade-insecure-requests?
 
-        if not output['result']:
-            output['result'] = 'csp-implemented-with-no-unsafe'
+        # Code defensively on the size of the data
+        output['data'] = csp if len(str(csp)) < 32768 else {}
 
     else:
         output['result'] = 'csp-not-implemented'
@@ -172,7 +174,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                                                  goodness)
 
         # Save the cookie jar
-        output['data'] = jar
+        output['data'] = jar if len(str(jar)) < 32768 else {}
 
         # Got through the cookie check properly
         if not output['result']:
@@ -211,7 +213,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     output = {
         'data': None,
         'expectation': expectation,
-        'includesubdomains': None,
+        'includeSubDomains': None,
         'max-age': None,
         'pass': False,
         'preload': None,
@@ -225,7 +227,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         output['result'] = 'hsts-not-implemented-no-https'
 
     elif 'Strict-Transport-Security' in response.headers:
-        output['data'] = response.headers['Strict-Transport-Security']
+        output['data'] = response.headers['Strict-Transport-Security'][0:1024]  # code against malicious headers
 
         try:
             sts = [i.lower().strip() for i in output['data'].split(';')]
@@ -234,7 +236,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                 if parameter.startswith('max-age='):
                     output['max-age'] = int(parameter[8:])
                 elif parameter == 'includesubdomains':
-                    output['includesubdomains'] = True
+                    output['includeSubDomains'] = True
                 elif parameter == 'preload':
                     output['preload'] = True
 
@@ -247,8 +249,8 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                 output['result'] = 'hsts-header-invalid'
 
             # If they're not included, then they're considered to be unset
-            if not output['includesubdomains']:
-                output['includesubdomains'] = False
+            if not output['includeSubDomains']:
+                output['includeSubDomains'] = False
             if not output['preload']:
                 output['preload'] = False
 
@@ -257,8 +259,10 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
 
     # If they're in the preloaded list, this overrides most anything else
     if response is not None:
-        if is_hsts_preloaded(urlparse(response.url).netloc):
+        preloaded = is_hsts_preloaded(urlparse(response.url).netloc)
+        if preloaded:
             output['result'] = 'hsts-preloaded'
+            output['includeSubDomains'] = preloaded['includeSubDomains']
             output['preloaded'] = True
 
     # Check to see if the test passed or failed
@@ -294,7 +298,7 @@ def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosni
     response = reqs['responses']['auto']
 
     if 'X-Content-Type-Options' in response.headers:
-        output['data'] = response.headers['X-Content-Type-Options']
+        output['data'] = response.headers['X-Content-Type-Options'][0:256]  # code defensively
 
         if output['data'].lower() == 'nosniff':
             output['result'] = 'x-content-type-options-nosniff'
@@ -336,7 +340,7 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
     response = reqs['responses']['auto']
 
     if 'X-Frame-Options' in response.headers:
-        output['data'] = response.headers['X-Frame-Options']
+        output['data'] = response.headers['X-Frame-Options'][0:1024]  # code defensively
 
         if output['data'].lower() in ('deny', 'sameorigin'):
             output['result'] = 'x-frame-options-sameorigin-or-deny'
@@ -391,7 +395,7 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
     xxssp = response.headers.get('X-XSS-Protection')
 
     if xxssp:
-        output['data'] = xxssp
+        output['data'] = xxssp[0:256]  # code defensively
 
         # Parse out the X-XSS-Protection header
         try:

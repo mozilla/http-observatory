@@ -21,7 +21,12 @@ else:
 def analyze(host):
     global args
 
-    data = {'rescan': 'true'} if args.rescan else {}
+    data = {}
+
+    if args.rescan:
+        data['rescan'] = 'true'
+    if args.hidden:
+        data['hidden'] = 'true'
 
     try:
         # First, make a POST to the Observatory to start the scan
@@ -151,6 +156,7 @@ if __name__ == "__main__":
                         action='store_true',
                         help='initiate a rescan instead of showing recent scan results')
     parser.add_argument('-v', '--verbose', action='store_true', help='display progress indicator')
+    parser.add_argument('-x', '--hidden', action='store_true', help='don\'t list scan in the recent scan results')
     args = parser.parse_args()
 
     # Go out and scan!

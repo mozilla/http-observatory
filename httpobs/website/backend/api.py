@@ -16,8 +16,8 @@ COOLDOWN = 15 if 'HTTPOBS_DEV' in environ else 300
 
 # TODO: Implement API to write public and private headers to the database
 
-@api.route('/api/v1/analyze', methods=['GET', 'POST'])
-@add_response_headers()
+@api.route('/api/v1/analyze', methods=['GET', 'OPTIONS', 'POST'])
+@add_response_headers(cors=True)
 @sanitized_api_response
 def api_post_scan_hostname():
     # Get the hostname
@@ -36,7 +36,7 @@ def api_post_scan_hostname():
 
     # Next, let's see if there's a recent scan; if there was a recent scan, let's just return it
     # Setting rescan shortens what "recent" means
-    rescan = True if 'rescan' in request.form else False
+    rescan = True if request.form.get('rescan', 'false') == 'true' else False
     if rescan:
         row = database.select_scan_recent_scan(site_id, COOLDOWN)
     else:
@@ -44,12 +44,12 @@ def api_post_scan_hostname():
 
     # Otherwise, let's start up a scan
     if not row:
-        # Allow for hidden scans
-        row = database.insert_scan(site_id)
-        scan_id = row['id']
+        hidden = True if request.form.get('hidden', 'false') == 'true' else False
 
         # Begin the dispatch process if it was a POST
         if request.method == 'POST':
+            row = database.insert_scan(site_id, hidden=hidden)
+            scan_id = row['id']
             scan.delay(hostname, site_id, scan_id)
         else:
             return {'error': 'recent-scan-not-found'}
@@ -62,8 +62,8 @@ def api_post_scan_hostname():
     return row
 
 
-@api.route('/api/v1/getGradeTotals', methods=['GET'])
-@add_response_headers()
+@api.route('/api/v1/getGradeTotals', methods=['GET', 'OPTIONS'])
+@add_response_headers(cors=True)
 def api_get_grade_totals():
     totals = database.select_scan_grade_totals()
 
@@ -73,8 +73,8 @@ def api_get_grade_totals():
     return jsonify(totals)
 
 
-@api.route('/api/v1/getRecentScans', methods=['GET'])
-@add_response_headers()
+@api.route('/api/v1/getRecentScans', methods=['GET', 'OPTIONS'])
+@add_response_headers(cors=True)
 def api_get_recent_scans():
     try:
         # Get the min and max scores, if they're there
@@ -89,14 +89,14 @@ def api_get_recent_scans():
     return jsonify(database.select_scan_recent_finished_scans(min_score=min_score, max_score=max_score))
 
 
-@api.route('/api/v1/getScannerStats', methods=['GET'])
-@add_response_headers()
+@api.route('/api/v1/getScannerStats', methods=['GET', 'OPTIONS'])
+@add_response_headers(cors=True)
 def api_get_scanner_stats():
     return jsonify(database.select_scan_scanner_stats())
 
 
-@api.route('/api/v1/getScanResults', methods=['GET'])
-@add_response_headers()
+@api.route('/api/v1/getScanResults', methods=['GET', 'OPTIONS'])
+@add_response_headers(cors=True)
 @sanitized_api_response
 def api_get_scan_results():
     scan_id = request.args.get('scan')

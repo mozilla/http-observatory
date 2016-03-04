@@ -20,6 +20,7 @@ if __name__ == '__main__':
         exit(1)
 
     start_time = time.time()
+    total_scanned = 0
 
     try:
         with open(sys.argv[1], 'r') as alexafp:
@@ -33,7 +34,8 @@ if __name__ == '__main__':
         r = requests.get(HTTP_OBS_URL + '/getScannerStats').json()
         available = MAX_QUEUE - r.get('STARTED', 0) - r.get('PENDING', 0) - r.get('RUNNING', 0)
 
-        print('Queue availability: {queue_avail}'.format(queue_avail=available))
+        print('Queue availability: {queue_avail}. Total scanned: {total_scanned}.'.format(queue_avail=available,
+                                                                                          total_scanned=total_scanned))
 
         while available > 0:
             # Exit if there's nothing left
@@ -44,5 +46,6 @@ if __name__ == '__main__':
             # Start up a new scan
             requests.post(HTTP_OBS_URL + '/analyze?host={host}'.format(host=hosts.pop())),  # start with the end sites
             available -= 1
+            total_scanned += 1
 
         time.sleep(20)
