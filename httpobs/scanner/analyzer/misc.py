@@ -62,10 +62,6 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
                 output['result'] = 'cross-origin-resource-sharing-implemented-with-restricted-access'
 
     if reqs['resources']['/crossdomain.xml'] or reqs['resources']['/clientaccesspolicy.xml']:
-        # Store the files in the database
-        output['data']['crossdomain'] = reqs['resources']['/crossdomain.xml']
-        output['data']['clientaccesspolicy'] = reqs['resources']['/clientaccesspolicy.xml']
-
         # Get the domains from each
         try:
             cd = __parse_acao_xml_get_domains(reqs['resources']['/crossdomain.xml'], 'crossdomain')
@@ -73,7 +69,7 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
             domains = cd + cl
 
             # Code defensively against infinitely sized xml files when storing their contents
-            if len(domains) < 256 and len(str(domains)) < 65536:
+            if len(str(domains)) < 32768:
                 output['data']['clientaccesspolicy'] = cl if cl else None
                 output['data']['crossdomain'] = cd if cd else None
         except KeyError:
@@ -120,7 +116,7 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
 
     response = reqs['responses']['http']
     output = {
-        'destination': response.url if response else None,
+        'destination': response.url[0:2048] if response else None,  # code defensively against long URLs
         'expectation': expectation,
         'pass': False,
         'redirects': True,
@@ -157,6 +153,10 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
             output['status_code'] = response.history[-1].status_code
         else:
             output['result'] = 'redirection-to-https'
+
+    # Code defensively against infinite routing loops and other shenanigans
+    output['route'] = output['route'] if len(str(output['route'])) < 8192 else []
+    output['status_code'] = output['status_code'] if len(str(output['status_code'])) < 5 else None
 
     # Check to see if the test passed or failed
     if expectation == output['result'] or output['result'] == 'redirection-not-needed-no-http':

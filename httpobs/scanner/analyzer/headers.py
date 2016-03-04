@@ -68,11 +68,13 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
             output['result'] = 'csp-implemented-with-unsafe-eval'
         elif '\'unsafe-inline\'' in csp.get('style-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
+        else:
+            output['result'] = 'csp-implemented-with-no-unsafe'
 
         # TODO: allow a small bonus for upgrade-insecure-requests?
 
-        if not output['result']:
-            output['result'] = 'csp-implemented-with-no-unsafe'
+        # Code defensively on the size of the data
+        output['data'] = output['data'] if len(str(output['data'])) < 32768 else {}
 
     else:
         output['result'] = 'csp-not-implemented'
@@ -172,7 +174,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                                                  goodness)
 
         # Save the cookie jar
-        output['data'] = jar
+        output['data'] = jar if len(str(jar)) < 32768 else {}
 
         # Got through the cookie check properly
         if not output['result']:
@@ -211,7 +213,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     output = {
         'data': None,
         'expectation': expectation,
-        'includesubdomains': None,
+        'includeSubDomains': None,
         'max-age': None,
         'pass': False,
         'preload': None,
@@ -225,7 +227,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         output['result'] = 'hsts-not-implemented-no-https'
 
     elif 'Strict-Transport-Security' in response.headers:
-        output['data'] = response.headers['Strict-Transport-Security']
+        output['data'] = response.headers['Strict-Transport-Security'][0:1024]  # code against malicious headers
 
         try:
             sts = [i.lower().strip() for i in output['data'].split(';')]
@@ -234,7 +236,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                 if parameter.startswith('max-age='):
                     output['max-age'] = int(parameter[8:])
                 elif parameter == 'includesubdomains':
-                    output['includesubdomains'] = True
+                    output['includeSubDomains'] = True
                 elif parameter == 'preload':
                     output['preload'] = True
 
@@ -247,8 +249,8 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                 output['result'] = 'hsts-header-invalid'
 
             # If they're not included, then they're considered to be unset
-            if not output['includesubdomains']:
-                output['includesubdomains'] = False
+            if not output['includeubdomains']:
+                output['includeSubDomains'] = False
             if not output['preload']:
                 output['preload'] = False
 
@@ -294,7 +296,7 @@ def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosni
     response = reqs['responses']['auto']
 
     if 'X-Content-Type-Options' in response.headers:
-        output['data'] = response.headers['X-Content-Type-Options']
+        output['data'] = response.headers['X-Content-Type-Options'][0:256]  # code defensively
 
         if output['data'].lower() == 'nosniff':
             output['result'] = 'x-content-type-options-nosniff'
@@ -336,7 +338,7 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
     response = reqs['responses']['auto']
 
     if 'X-Frame-Options' in response.headers:
-        output['data'] = response.headers['X-Frame-Options']
+        output['data'] = response.headers['X-Frame-Options'][0:1024]  # code defensively
 
         if output['data'].lower() in ('deny', 'sameorigin'):
             output['result'] = 'x-frame-options-sameorigin-or-deny'
@@ -391,7 +393,7 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
     xxssp = response.headers.get('X-XSS-Protection')
 
     if xxssp:
-        output['data'] = xxssp
+        output['data'] = xxssp[0:256]  # code defensively
 
         # Parse out the X-XSS-Protection header
         try:
