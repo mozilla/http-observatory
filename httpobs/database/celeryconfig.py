@@ -16,7 +16,7 @@ try:
     CELERYBEAT_SCHEDULE = {
         'abort-broken-scans': {
             'task': 'httpobs.database.tasks.abort_broken_scans',
-            'schedule': 15,
+            'schedule': 1800,
         }
     }
 
