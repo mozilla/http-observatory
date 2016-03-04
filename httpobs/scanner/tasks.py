@@ -1,5 +1,5 @@
 from celery import Celery
-from celery.exceptions import SoftTimeLimitExceeded
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 
 from httpobs.database import insert_test_result, update_scan_state
 from httpobs.scanner import celeryconfig, STATE_ABORTED, STATE_FAILED, STATE_STARTED
@@ -36,7 +36,8 @@ def scan(hostname: str, site_id: int, scan_id: int):
             # TODO: Get overridden expectations
             insert_test_result(site_id, scan_id, test.__name__.replace('_', '-'), test(reqs))
 
-    except SoftTimeLimitExceeded:  # catch the celery timeout, which will almost certainly occur in retrieve_all()
+    # catch the celery timeout, which will almost certainly occur in retrieve_all()
+    except (SoftTimeLimitExceeded, TimeLimitExceeded):
         update_scan_state(scan_id, STATE_ABORTED, error='site unresponsive')
     except:
         # TODO: have more specific error messages
