@@ -20,19 +20,23 @@ Modifiers:
     [  -5] Initial redirection from http to https is to a different host, preventing HSTS
     [  -5] X-Content-Type-Options header not implemented
     [ -10] X-XSS-Protection header not implemented
+    [ -20] HTTP Strict Transport Security (HSTS) header is not set
     [ -25] Content Security Policy (CSP) header missing
-    [ -25] HTTP Strict Transport Security (HSTS) header is not set
 
 $ httpobs www.google.com
 Score: 45 [D+]
 Modifiers:
+Modifiers:
+    [  +5] Preloaded via the HTTP Strict Transport Security (HSTS) preloading process
+    [  -5] Cookies set without using the Secure flag, but transmission over HTTP prevented by HSTS
     [  -5] X-Content-Type-Options header not implemented
     [ -25] Content Security Policy (CSP) header missing
-    [ -25] Cookies set without using the Secure flag
 
 $ httpobs www.github.com
-Score: 95 [A]
+Score: 105 [A+]
 Modifiers:
+    [  +5] Preloaded via the HTTP Strict Transport Security (HSTS) preloading process
+    [  +5] Subresource Integrity (SRI) is implemented and all scripts are loaded from a secure origin
     [  -5] Content Security Policy (CSP) implemented with unsafe-inline inside style-src directive
 ```
 
