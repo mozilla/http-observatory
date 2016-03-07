@@ -95,7 +95,7 @@ SCORE_TABLE = {
         'modifier': -10,
     },
     'cookies-without-secure-flag': {
-        'description': 'Cookies set without using the Secure flag',
+        'description': 'Cookies set without using the Secure flag or set over http',
         'modifier': -25,
     },
     'cookies-session-without-httponly-flag': {
@@ -103,8 +103,8 @@ SCORE_TABLE = {
         'modifier': -40,
     },
     'cookies-session-without-secure-flag': {
-        'description': 'Session cookie set without using the Secure flag',
-        'modifier': -100,
+        'description': 'Session cookie set without using the Secure flag or set over http',
+        'modifier': -50,
     },
 
     # Cross-origin resource sharing
@@ -174,7 +174,7 @@ SCORE_TABLE = {
     },
     'hsts-not-implemented-no-https': {
         'description': 'HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over https',
-        'modifier': -100,
+        'modifier': -20,
     },
 
     # Subresource Integrity (SRI)
@@ -202,9 +202,9 @@ SCORE_TABLE = {
         'description': 'Subresource Integrity (SRI) implemented, but external scripts are loaded over http',
         'modifier': -20,
     },
-    'sri-not-implemented-and-scripts-loaded-insecurely': {
+    'sri-not-implemented-and-external-scripts-not-loaded-securely': {
         'description': 'Subresource Integrity (SRI) is not implemented, and external scripts are loaded over http',
-        'modifier': -100,
+        'modifier': -50,
     },
 
     # X-Content-Type-Options
