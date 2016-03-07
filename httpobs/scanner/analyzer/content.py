@@ -83,6 +83,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
+        sri-implemented-and-all-scripts-loaded-securely: all same origin, and uses SRI
         sri-implemented-and-external-scripts-loaded-securely: integrity attribute exists on all external scripts,
           and scripts loaded [default for HTML]
         sri-implemented-but-external-scripts-not-loaded-securely: SRI implemented, but with scripts loaded over HTTP
@@ -111,7 +112,8 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
     response = reqs['responses']['auto']
 
     # The order of how "good" the results are
-    goodness = ['sri-implemented-and-external-scripts-loaded-securely',
+    goodness = ['sri-implemented-and-all-scripts-loaded-securely',
+                'sri-implemented-and-external-scripts-loaded-securely',
                 'sri-implemented-but-external-scripts-not-loaded-securely',
                 'sri-not-implemented-but-external-scripts-loaded-securely',
                 'sri-not-implemented-and-external-scripts-not-loaded-securely',
@@ -161,18 +163,18 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                     secureorigin = False
                     scripts_on_foreign_origin = True
 
+                # See if it's a secure scheme
+                if src.scheme == 'https' or (src.scheme == '' and urlparse(response.url).scheme == 'https'):
+                    securescheme = True
+                else:
+                    securescheme = False
+
                 # Add it to the scripts data result, if it's not a relative URI
                 if not secureorigin:
                     output['data'][script['src']] = {
                                                         'crossorigin': crossorigin,
                                                         'integrity': integrity
                                                     }
-
-                    # See if it's a secure scheme
-                    if src.scheme == 'https' or (src.scheme == '' and urlparse(response.url).scheme == 'https'):
-                        securescheme = True
-                    else:
-                        securescheme = False
 
                     if integrity and not securescheme:
                         output['result'] = only_if_worse('sri-implemented-but-external-scripts-not-loaded-securely',
@@ -187,25 +189,32 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                                                          output['result'],
                                                          goodness)
 
-                # TODO: Grant bonus even if they use SRI on the same origin
+                # Grant bonus even if they use SRI on the same origin
+                else:
+                    if integrity and securescheme and not output['result']:
+                        output['result'] = 'sri-implemented-and-all-scripts-loaded-securely'
 
         # If the page doesn't load any scripts
         if not scripts:
             output['result'] = 'sri-not-implemented-but-no-scripts-loaded'
 
         # If all the scripts are loaded from a secure origin, not triggering a need for SRI
-        elif scripts and not scripts_on_foreign_origin:
+        elif scripts and not scripts_on_foreign_origin and not output['result']:
             output['result'] = 'sri-not-implemented-but-all-scripts-loaded-from-secure-origin'
 
         # If the page loaded from a foreign origin, but everything included SRI
         elif scripts and scripts_on_foreign_origin and not output['result']:
-            output['result'] = 'sri-implemented-and-external-scripts-loaded-securely'
+            output['result'] = only_if_worse('sri-implemented-and-external-scripts-loaded-securely',
+                                             output['result'],
+                                             goodness)
 
     # Code defensively on the size of the data
     output['data'] = output['data'] if len(str(output['data'])) < 32768 else {}
 
     # Check to see if the test passed or failed
-    if output['result'] in ('sri-not-implemented-response-not-html',
+    if output['result'] in ('sri-implemented-and-all-scripts-loaded-securely',
+                            'sri-implemented-and-external-scripts-loaded-securely',
+                            'sri-not-implemented-response-not-html',
                             'sri-not-implemented-but-all-scripts-loaded-from-secure-origin',
                             'sri-not-implemented-but-no-scripts-loaded',
                             expectation):
