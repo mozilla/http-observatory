@@ -19,6 +19,6 @@ exec celery \
   --detach \
   --hostname='scanner@%h' \
   --logfile='/var/log/httpobs/scanner.log' \
-  --loglevel=info \
+  --loglevel=$LOGLEVEL \
   --pidfile='/var/run/httpobs/scanner.pid' \
   worker

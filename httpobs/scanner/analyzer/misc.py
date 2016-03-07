@@ -26,8 +26,9 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
-        cross-origin-resource-sharing-not-implemented-with-universal-access: Allow origin *
-        cross-origin-resource-sharing-not-implemented-with-restricted-access: Allow a specific origin
+        cross-origin-resource-sharing-implemented-with-public-access: Allow origin *
+        cross-origin-resource-sharing-implemented-with-restricted-access: Allow a specific origin
+        cross-origin-resource-sharing-implemented-with-universal-access: Reflect Origin, or have open .XML files
         cross-origin-resource-sharing-implemented: One of them does
         xml-not-parsable: Cannot parse one of the .xml files
     :return: dictionary with:
@@ -49,9 +50,9 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
 
     acao = reqs['responses']['cors']
 
-    if acao:
+    if acao is not None:
         if 'Access-Control-Allow-Origin' in acao.headers:
-            output['data']['acao'] = acao.headers['Access-Control-Allow-Origin'].strip()
+            output['data']['acao'] = acao.headers['Access-Control-Allow-Origin'].strip()[0:256]
 
             if output['data']['acao'] == '*':
                 output['result'] = 'cross-origin-resource-sharing-implemented-with-public-access'
@@ -125,7 +126,7 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
         'status_code': response.status_code if response else None,
     }
 
-    if not response:
+    if response is None:
         output['result'] = 'redirection-not-needed-no-http'
     else:
         # Construct the route

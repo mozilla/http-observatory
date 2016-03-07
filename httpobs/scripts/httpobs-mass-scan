@@ -22,6 +22,8 @@ if __name__ == '__main__':
     start_time = time.time()
     total_scanned = 0
 
+    s = requests.Session()
+
     try:
         with open(sys.argv[1], 'r') as alexafp:
             hosts = [host.strip().split(',')[1] if ',' in host else host.strip() for host in alexafp]
@@ -30,8 +32,10 @@ if __name__ == '__main__':
         exit(1)
 
     while True:
+        loop_time = time.time()
+
         # Get the queue availability
-        r = requests.get(HTTP_OBS_URL + '/getScannerStats').json()
+        r = s.get(HTTP_OBS_URL + '/getScannerStats').json()
         available = MAX_QUEUE - r.get('STARTED', 0) - r.get('PENDING', 0) - r.get('RUNNING', 0)
 
         print('Queue availability: {queue_avail}. Total scanned: {total_scanned}.'.format(queue_avail=available,
@@ -44,8 +48,10 @@ if __name__ == '__main__':
                 exit(0)
 
             # Start up a new scan
-            requests.post(HTTP_OBS_URL + '/analyze?host={host}'.format(host=hosts.pop())),  # start with the end sites
-            available -= 1
+            s.post(HTTP_OBS_URL + '/analyze?host={host}'.format(host=hosts.pop())),  # start with the end sites
             total_scanned += 1
+            available -= 1
 
-        time.sleep(20)
+        # If the previous loop completely quickly, cooldown a moment
+        if time.time() - loop_time < 15:
+            time.sleep(15)
