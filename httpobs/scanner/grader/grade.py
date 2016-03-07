@@ -178,6 +178,10 @@ SCORE_TABLE = {
     },
 
     # Subresource Integrity (SRI)
+    'sri-implemented-and-all-scripts-loaded-securely': {
+        'description': 'Subresource Integrity (SRI) is implemented and all scripts are loaded from a secure origin',
+        'modifier': 5,
+    },
     'sri-implemented-and-external-scripts-loaded-securely': {
         'description': 'Subresource Integrity (SRI) is implemented and all scripts are loaded securely',
         'modifier': 5,
@@ -191,7 +195,7 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'sri-not-implemented-but-all-scripts-loaded-from-secure-origin': {
-        'description': 'Subresource Integrity (SRI) not implemented as all scripts are loaded from the same origin',
+        'description': 'Subresource Integrity (SRI) not implemented as all scripts are loaded from a secure origin',
         'modifier': 0,
     },
     'sri-not-implemented-but-external-scripts-loaded-securely':{

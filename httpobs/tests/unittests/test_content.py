@@ -201,6 +201,24 @@ class TestSubResourceIntegrity(TestCase):
         self.assertEquals('sri-implemented-and-external-scripts-loaded-securely', result['result'])
         self.assertTrue(result['pass'])
 
+    def test_implemented_same_origin(self):
+        self.reqs['resources']['/'] = """
+        <html>
+          <head>
+            <script src="/static/js/react-0.14.7.min.js"
+                    integrity="sha384-zTm/dblzLXQNp3CgY+hfaC/WJ6h4XtNrePh2CW2+rO9GPuNiPb9jmthvAL+oI/dQ"
+                    crossorigin="anonymous">
+            </script>
+          <head>
+          <body></body>
+        </html>
+        """
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals('sri-implemented-and-all-scripts-loaded-securely', result['result'])
+        self.assertTrue(result['pass'])
+
     def test_not_implemented_external_scripts_https(self):
         self.reqs['resources']['/'] = """
         <html>

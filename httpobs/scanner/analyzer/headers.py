@@ -145,8 +145,6 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
             # Is it a session identifier?
             sessionid = any(i in cookie.name.lower() for i in ('login', 'sess'))
 
-            # TODO: Check to see if it was set over http, where Secure wouldn't work
-            # TODO: Check for session cookies sent over HTTP
             if not cookie.secure and hsts:
                 output['result'] = only_if_worse('cookies-without-secure-flag-but-protected-by-hsts',
                                                  output['result'],
