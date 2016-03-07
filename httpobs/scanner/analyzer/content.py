@@ -8,7 +8,7 @@ from httpobs.scanner.analyzer.utils import only_if_worse
 import json
 
 
-MOZILLA_DOMAINS = ('mozilla', 'allizom', 'webmaker')
+MOZILLA_DOMAINS = ('mozilla', 'allizom', 'firefox', 'webmaker')
 
 
 @scored_test
@@ -88,7 +88,8 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
         sri-implemented-but-external-scripts-not-loaded-securely: SRI implemented, but with scripts loaded over HTTP
         sri-not-implemented-but-external-scripts-loaded-securely: SRI isn't implemented,
           but all scripts are loaded over HTTPS
-        sri-not-implemented-and-scripts-loaded-insecurely: SRI isn't implemented, and scripts are downloaded over HTTP
+        sri-not-implemented-and-external-scripts-not-loaded-securely: SRI isn't implemented,
+          and scripts are downloaded over HTTP
         sri-not-implemented-but-all-scripts-loaded-from-secure-origin: SRI isn't implemented,
           but all scripts come from secure origins (self)
         sri-not-implemented-but-no-scripts-loaded: SRI isn't implemented, because the page doesn't load any scripts
@@ -113,7 +114,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
     goodness = ['sri-implemented-and-external-scripts-loaded-securely',
                 'sri-implemented-but-external-scripts-not-loaded-securely',
                 'sri-not-implemented-but-external-scripts-loaded-securely',
-                'sri-not-implemented-and-scripts-loaded-insecurely',
+                'sri-not-implemented-and-external-scripts-not-loaded-securely',
                 'sri-not-implemented-response-not-html']
 
     # If the response to get / fails
@@ -144,24 +145,23 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                 integrity = script.get('integrity')
                 crossorigin = script.get('crossorigin')
 
-                # Check to see if they're on the same TLD
+                # Check to see if they're on the same second-level domain
                 # TODO: update the PSL list on startup
                 psl = PublicSuffixList()
-                sametld = True if psl.privatesuffix(response.url) == psl.privatesuffix(script['src']) else False
+                samesld = True if psl.privatesuffix(urlparse(response.url).netloc) == \
+                                  psl.privatesuffix(src.netloc) else False
 
-                # Check to see if it's the same origin, same or a trusted Mozilla subdomain
-                if src.netloc != '' and '.' not in src.netloc:  # like localhost
+                # Check to see if it's the same origin or second-level domain
+                if src.netloc == '' or samesld:
+                    secureorigin = True
+                elif src.netloc != '' and '.' not in src.netloc:  # like localhost
                     secureorigin = False
                     scripts_on_foreign_origin = True
-                elif (src.netloc == '' or
-                    sametld or
-                    src.netloc.split('.')[-2] in MOZILLA_DOMAINS):
-                    secureorigin = True
                 else:
                     secureorigin = False
                     scripts_on_foreign_origin = True
 
-                # Add it to the scripts data result, if it's not a relative URI or on a Mozilla subdomain
+                # Add it to the scripts data result, if it's not a relative URI
                 if not secureorigin:
                     output['data'][script['src']] = {
                                                         'crossorigin': crossorigin,
@@ -183,7 +183,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                                                          output['result'],
                                                          goodness)
                     elif not integrity and not securescheme:
-                        output['result'] = only_if_worse('sri-not-implemented-and-scripts-loaded-insecurely',
+                        output['result'] = only_if_worse('sri-not-implemented-and-external-scripts-not-loaded-securely',
                                                          output['result'],
                                                          goodness)
 
@@ -205,11 +205,10 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
     output['data'] = output['data'] if len(str(output['data'])) < 32768 else {}
 
     # Check to see if the test passed or failed
-    if expectation == output['result']:
-        output['pass'] = True
-    elif output['result'] in ('sri-not-implemented-response-not-html',
-                              'sri-not-implemented-but-all-scripts-loaded-from-secure-origin',
-                              'sri-not-implemented-but-no-scripts-loaded'):
+    if output['result'] in ('sri-not-implemented-response-not-html',
+                            'sri-not-implemented-but-all-scripts-loaded-from-secure-origin',
+                            'sri-not-implemented-but-no-scripts-loaded',
+                            expectation):
         output['pass'] = True
 
     return output
