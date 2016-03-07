@@ -1,4 +1,5 @@
 from collections import UserDict
+from http.cookiejar import CookieJar
 from copy import deepcopy
 
 
@@ -6,6 +7,7 @@ def empty_requests() -> dict:
     req = {
         'hostname': 'http-observatory.services.mozilla.com',
         'resources': {
+            '/': None,
             '/clientaccesspolicy.xml': None,
             '/contribute.json': None,
             '/crossdomain.xml': None,
@@ -17,11 +19,16 @@ def empty_requests() -> dict:
             'http': None,
             'https': None,
         },
-        'session': None,
+        'session': UserDict(),
     }
 
-    req['responses']['auto'].headers = {}
+    req['responses']['auto'].headers = {
+        'Content-Type': 'text/html',
+    }
+    req['responses']['auto'].status_code = 200
     req['responses']['auto'].url = 'https://http-observatory.services.mozilla.com'
+
+    req['session'].cookies = CookieJar()
 
     req['responses']['http'] = deepcopy(req['responses']['auto'])
     req['responses']['https'] = deepcopy(req['responses']['auto'])
