@@ -22,6 +22,9 @@ try:
     # Mapping of site -> whether it includes subdomains
     hsts = {site['name']: {
         'includeSubDomains': site.get('include_subdomains', False),
+        'includeSubDomainsForPinning':
+            site.get('include_subdomains', False) or site.get('include_subdomains_for_pinning', False),
+        'mode': site.get('mode'),
         'pinned': True if 'pins' in site else False,
     } for site in r['entries']}
 
@@ -30,9 +33,28 @@ except:
     exit(1)
 
 
+def is_hpkp_preloaded(hostname):
+    # Just see if the hostname is in the HSTS list and pinned
+    if hsts.get(hostname, {}).get('pinned'):
+        return hsts[hostname]
+
+    # Either the hostname is in the list *or* one of its subdomains is
+    host = hostname.split('.')
+    levels = len(host)
+
+    # If hostname is foo.bar.baz.mozilla.org, check bar.baz.mozilla.org, baz.mozilla.org, mozilla.org, and .org
+    for i in range(1, levels):
+        domain = '.'.join(host[i:levels])
+
+        if hsts.get(domain, {}).get('pinned') == True and hsts.get(domain, {}).get('includeSubDomainsForPinning'):
+            return hsts[domain]
+
+    return False
+
+
 def is_hsts_preloaded(hostname):
-    # Just return true if the hostname is the HSTS list -- no need to see if includeSubDomains is set or not
-    if hostname in hsts:
+    # Just see if the hostname is the HSTS list with the right mode -- no need to check includeSubDomains
+    if hsts.get(hostname, {}).get('mode') == 'force-https':
         return hsts[hostname]
 
     # Either the hostname is in the list *or* the TLD is and includeSubDomains is true
@@ -42,7 +64,8 @@ def is_hsts_preloaded(hostname):
     # If hostname is foo.bar.baz.mozilla.org, check bar.baz.mozilla.org, baz.mozilla.org, mozilla.org, and .org
     for i in range(1, levels):
         domain = '.'.join(host[i:levels])
-        if domain in hsts:
+
+        if hsts.get(domain, {}).get('mode') == 'force-https' and hsts.get(domain, {}).get('includeSubDomains'):
             return hsts[domain]
 
     return False

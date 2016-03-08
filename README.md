@@ -15,7 +15,7 @@ And then scan websites to your heart's content, using our hosted service:
 
 ```bash
 $ httpobs www.mozilla.org
-Score: 30 [E]
+Score: 35 [D-]
 Modifiers:
     [  -5] Initial redirection from http to https is to a different host, preventing HSTS
     [  -5] X-Content-Type-Options header not implemented
@@ -27,16 +27,18 @@ $ httpobs www.google.com
 Score: 45 [D+]
 Modifiers:
 Modifiers:
-    [  +5] Preloaded via the HTTP Strict Transport Security (HSTS) preloading process
-    [  -5] Cookies set without using the Secure flag, but transmission over HTTP prevented by HSTS
+    [  +5] Preloaded via the HTTP Public Key Pinning (HPKP) preloading process
     [  -5] X-Content-Type-Options header not implemented
+    [ -20] HTTP Strict Transport Security (HSTS) header is not set
     [ -25] Content Security Policy (CSP) header missing
+    [ -25] Cookies set without using the Secure flag or set over http
 
 $ httpobs www.github.com
-Score: 105 [A+]
+Score: 106 [A+]
 Modifiers:
     [  +5] Preloaded via the HTTP Strict Transport Security (HSTS) preloading process
     [  +5] Subresource Integrity (SRI) is implemented and all scripts are loaded from a secure origin
+    [  +1] HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000)
     [  -5] Content Security Policy (CSP) implemented with unsafe-inline inside style-src directive
 ```
 

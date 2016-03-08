@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
-from httpobs.scanner.analyzer.utils import is_hsts_preloaded, only_if_worse
+from httpobs.scanner.analyzer.utils import *
 
 
 @scored_test
@@ -32,6 +32,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     response = reqs['responses']['auto']
 
     # TODO: check for CSP meta tags
+    # TODO: try to parse when there are multiple CSP headers
 
     # Check to see the state of the CSP header
     if 'Content-Security-Policy' in response.headers:
@@ -186,7 +187,85 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
 
 # TODO: def public_key_pinning()
+@scored_test
+def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
+    """
+    :param reqs: dictionary containing all the request and response objects
+    :param expectation: test expectation; possible results:
+      hpkp-not-implemented-no-https
+      hpkp-not-implemented
+      hpkp-implemented-max-age-less-than-fifteen-days
+      hpkp-implemented-max-age-at-least-fifteen-days
+      hpkp-preloaded
+      hpkp-header-invalid
+    :return: dictionary with:
+      data: the raw HPKP header
+        includesubdomains: whether the includeSubDomains directive is set
+        max-age: what the max
+        num-pins: the number of pins
+      expectation: test expectation
+      pass: whether the site's configuration met its expectation
+      result: short string describing the result of the test
+    """
+    FIFTEEN_DAYS = 1296000
 
+    output = {
+        'data': None,
+        'expectation': expectation,
+        'includeSubDomains': False,
+        'max-age': None,
+        'numPins': None,
+        'pass': True,
+        'preloaded': False,
+        'result': 'hpkp-not-implemented',
+    }
+    response = reqs['responses']['https']
+
+    # If there's no HTTPS, we can't have HPKP
+    if response is None:
+        output['result'] = 'hpkp-not-implemented-no-https'
+
+    elif 'Public-Key-Pins' in response.headers:
+        output['data'] = response.headers['Public-Key-Pins'][0:2048]  # code against malicious headers
+
+        try:
+            pkp = [i.lower().strip() for i in output['data'].split(';')]
+            pins = []
+
+            for parameter in pkp:
+                if parameter.startswith('max-age='):
+                    output['max-age'] = int(parameter[8:128])  # defense
+                elif parameter.startswith('pin-sha256=') and parameter not in pins:
+                    pins.append(parameter)
+                elif parameter == 'includesubdomains':
+                    output['includeSubDomains'] = True
+            output['numPins'] = len(pins)
+
+            # You must set a max-age with HPKP
+            if output['max-age']:
+                if output['max-age'] < FIFTEEN_DAYS:
+                    output['result'] = 'hpkp-implemented-max-age-less-than-fifteen-days'
+                else:
+                    output['result'] = 'hpkp-implemented-max-age-at-least-fifteen-days'
+
+            # You must have at least two pins with HPKP and set max-age
+            if not output['max-age'] or len(pins) < 2:
+                raise ValueError
+
+        except:
+            output['result'] = 'hpkp-header-invalid'
+            output['pass'] = False
+
+    # If they're in the preloaded list, this overrides most anything else
+    if response is not None:
+        preloaded = is_hpkp_preloaded(urlparse(response.url).netloc)
+        if preloaded:
+            output['result'] = 'hpkp-preloaded'
+            output['includeSubDomains'] = preloaded['includeSubDomainsForPinning']
+            output['preloaded'] = True
+
+    # No need to check pass/fail here, the only way to fail is to have an invalid header
+    return output
 
 @scored_test
 def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-at-least-six-months') -> dict:
@@ -211,10 +290,10 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     output = {
         'data': None,
         'expectation': expectation,
-        'includeSubDomains': None,
+        'includeSubDomains': False,
         'max-age': None,
         'pass': False,
-        'preload': None,
+        'preload': False,
         'preloaded': False,
         'result': 'hsts-not-implemented',
     }
@@ -232,7 +311,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
 
             for parameter in sts:
                 if parameter.startswith('max-age='):
-                    output['max-age'] = int(parameter[8:])
+                    output['max-age'] = int(parameter[8:128])  # defense
                 elif parameter == 'includesubdomains':
                     output['includeSubDomains'] = True
                 elif parameter == 'preload':
@@ -244,13 +323,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
                 else:
                     output['result'] = 'hsts-implemented-max-age-at-least-six-months'
             else:
-                output['result'] = 'hsts-header-invalid'
-
-            # If they're not included, then they're considered to be unset
-            if not output['includeSubDomains']:
-                output['includeSubDomains'] = False
-            if not output['preload']:
-                output['preload'] = False
+                raise ValueError
 
         except:
             output['result'] = 'hsts-header-invalid'
