@@ -1,7 +1,6 @@
 /dist
 /build
-*.egg
 *.egg-info
 .idea
-*.pyc
 __pycache__
+/venv
