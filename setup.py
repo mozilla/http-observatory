@@ -25,6 +25,7 @@ setup(
     author='April King',
     author_email='april@mozilla.com',
     packages=find_packages(),
+    package_dir={'': 'httpobs'},
     include_package_data=True,
     install_requires=[
         'beautifulsoup4',
@@ -34,6 +35,9 @@ setup(
         'publicsuffixlist',
         'requests',
     ],
-    scripts=['scripts/httpobs.py'],
+    scripts=['httpobs/scripts/httpobs',
+             'httpobs/scripts/httpobs-database-beat',
+             'httpobs/scripts/httpobs-mass-scan',
+             'httpobs/scripts/httpobs-scan-worker'],
     zip_safe=False,
 )
