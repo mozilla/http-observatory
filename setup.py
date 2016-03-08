@@ -33,7 +33,7 @@ setup(
     author_email='april@mozilla.com',
     packages=find_packages('httpobs', exclude=['tests*']),
     package_dir={'': 'httpobs'},
-    include_package_data=True,
+    include_package_data=False,
     scripts=['httpobs/scripts/httpobs',
              'httpobs/scripts/httpobs-database-beat',
              'httpobs/scripts/httpobs-mass-scan',
