@@ -8,7 +8,7 @@ from httpobs.scanner.analyzer.utils import only_if_worse
 import json
 
 
-MOZILLA_DOMAINS = ('mozilla', 'allizom', 'firefox', 'webmaker')
+MOZILLA_DOMAINS = ('mozilla', 'allizom', 'browserid', 'firefox', 'persona', 'taskcluster', 'webmaker')
 
 
 @scored_test
@@ -27,6 +27,7 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
         pass: whether the site's configuration met its expectation (null for non-Mozilla sites)
         result: short string describing the result of the test
     """
+    # TODO: allow a bonus if you have a contribute.json on a non-Mozilla website
 
     output = {
         'data': None,

@@ -1,5 +1,5 @@
 from .content import contribute, subresource_integrity
-from .headers import (content_security_policy, cookies, strict_transport_security,
+from .headers import (content_security_policy, cookies, public_key_pinning, strict_transport_security,
                       x_content_type_options, x_xss_protection, x_frame_options)
 from .misc import cross_origin_resource_sharing, redirection
 
@@ -14,6 +14,7 @@ tests = (
     cookies,
     contribute,
     cross_origin_resource_sharing,
+    public_key_pinning,
     redirection,
     strict_transport_security,
     subresource_integrity,

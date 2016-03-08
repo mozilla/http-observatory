@@ -125,6 +125,32 @@ SCORE_TABLE = {
         'modifier': -50,
     },
 
+    # Public Key Pinning
+    'hpkp-preloaded': {
+        'description': 'Preloaded via the HTTP Public Key Pinning (HPKP) preloading process',
+        'modifier': 5,
+    },
+    'hpkp-implemented-max-age-at-least-fifteen-days': {
+        'description': 'HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000)',
+        'modifier': 5,
+    },
+    'hpkp-implemented-max-age-less-than-fifteen-days': {
+        'description': 'HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000)',
+        'modifier': 1,
+    },
+    'hpkp-not-implemented': {
+        'description': 'HTTP Public Key Pinning (HPKP) header not implemented',
+        'modifier': 0,
+    },
+    'hpkp-not-implemented-no-https': {
+        'description': 'HTTP Public Key Pinning (HPKP) header can\'t be implemented without https',
+        'modifier': 0,
+    },
+    'hpkp-header-invalid': {
+        'description': 'HTTP Public Key Pinning (HPKP) header cannot be recognized',
+        'modifier': -5,
+    },
+
     # Redirection
     'redirection-to-https': {
         'description': 'Initial redirection is to https on same host, final destination is https',
