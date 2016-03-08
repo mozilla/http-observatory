@@ -271,11 +271,6 @@ class TestCookies(TestCase):
 
 
 class TestPublicKeyPinning(TestCase):
-      # hpkp-not-implemented-no-https
-      # hpkp-not-implemented
-      # hpkp-implemented-max-age-less-than-fifteen-days
-      # hpkp-implemented-max-age-at-least-fifteen-days
-      # hpkp-header-invalid
     def setUp(self):
         self.reqs = empty_requests()
 
