@@ -20,6 +20,8 @@ COOLDOWN = 15 if 'HTTPOBS_DEV' in environ else 300
 @add_response_headers(cors=True)
 @sanitized_api_response
 def api_post_scan_hostname():
+    # TODO: Allow people to accidentally use https://mozilla.org and convert to mozilla.org
+
     # Get the hostname
     hostname = request.args.get('host', '').lower()
 
