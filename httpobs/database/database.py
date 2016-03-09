@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from json import dumps
 from os import environ
+from sys import exit
 
 from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
 from httpobs.scanner.analyzer import NUM_TESTS

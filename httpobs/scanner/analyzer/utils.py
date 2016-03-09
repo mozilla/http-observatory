@@ -3,6 +3,7 @@ import sys
 
 from base64 import b64decode
 from json import loads
+from sys import exit
 
 
 HSTS_URL = ('https://chromium.googlesource.com/chromium'
