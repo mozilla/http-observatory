@@ -46,7 +46,7 @@ def is_hpkp_preloaded(hostname):
     for i in range(1, levels):
         domain = '.'.join(host[i:levels])
 
-        if hsts.get(domain, {}).get('pinned') == True and hsts.get(domain, {}).get('includeSubDomainsForPinning'):
+        if hsts.get(domain, {}).get('pinned') is True and hsts.get(domain, {}).get('includeSubDomainsForPinning'):
             return hsts[domain]
 
     return False
@@ -72,7 +72,7 @@ def is_hsts_preloaded(hostname):
 
 
 # Return the new result if it's worse than the existing result, otherwise just the current result
-def only_if_worse(new_result: str, old_result: str, order = None) -> str:
+def only_if_worse(new_result: str, old_result: str, order=None) -> str:
     if order is None:
         order = []
 

@@ -64,7 +64,6 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
             else:
                 output['data'] = {}
 
-
     elif urlparse(response.url).netloc.split('.')[-2] not in MOZILLA_DOMAINS:
         output['expectation'] = output['result'] = 'contribute-json-only-required-on-mozilla-properties'
     else:
@@ -96,7 +95,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
           but all scripts come from secure origins (self)
         sri-not-implemented-but-no-scripts-loaded: SRI isn't implemented, because the page doesn't load any scripts
         sri-not-implemented-response-not-html: SRI isn't needed, because the page isn't HTML [default for non-HTML]
-        request-did-not-return-status-code-200: Let's only look for SRI on pages that returned 200, not things like 404s
+        request-did-not-return-status-code-200: Only look for SRI on pages that returned 200, not things like 404s
         html-not-parsable: Can't parse the page's content
     :return: dictionary with:
         data: all external scripts and their integrity / crossorigin attributes
@@ -151,8 +150,8 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                 # Check to see if they're on the same second-level domain
                 # TODO: update the PSL list on startup
                 psl = PublicSuffixList()
-                samesld = True if psl.privatesuffix(urlparse(response.url).netloc) == \
-                                  psl.privatesuffix(src.netloc) else False
+                samesld = True if (psl.privatesuffix(urlparse(response.url).netloc) ==
+                                   psl.privatesuffix(src.netloc)) else False
 
                 # Check to see if it's the same origin or second-level domain
                 if src.netloc == '' or samesld:
@@ -186,7 +185,8 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                                                          output['result'],
                                                          goodness)
                     elif not integrity and not securescheme:
-                        output['result'] = only_if_worse('sri-not-implemented-and-external-scripts-not-loaded-securely',
+                        output['result'] = only_if_worse('sri-not-implemented-and-external-scripts'
+                                                         '-not-loaded-securely',
                                                          output['result'],
                                                          goodness)
 

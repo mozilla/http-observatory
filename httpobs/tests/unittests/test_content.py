@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from httpobs.scanner.analyzer.content import *
+from httpobs.scanner.analyzer.content import contribute, subresource_integrity
 from httpobs.tests.utils import empty_requests
 
 

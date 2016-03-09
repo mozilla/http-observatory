@@ -16,7 +16,8 @@ def __parse_acao_xml_get_domains(xml, type='crossdomain') -> list:
 
     # Parse the files
     if type == 'crossdomain':
-        return [domains.get('domain').strip() for domains in soup.find_all('allow-access-from') if domains.get('domain')]
+        return [domains.get('domain').strip()
+                for domains in soup.find_all('allow-access-from') if domains.get('domain')]
     elif type == 'clientaccesspolicy':
         return [domains.get('uri').strip() for domains in soup.find_all('domain') if domains.get('uri')]
 
@@ -148,8 +149,8 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
 
         # If it's an http -> https redirection, make sure it redirects to the same host. If that's not done, then
         # HSTS cannot be properly set on the original host
-        elif (urlparse(output['route'][0]).scheme == 'http' and urlparse(output['route'][1]).scheme == 'https'and
-                       urlparse(output['route'][0]).netloc != urlparse(output['route'][1]).netloc):
+        elif (urlparse(output['route'][0]).scheme == 'http' and urlparse(output['route'][1]).scheme == 'https' and
+              urlparse(output['route'][0]).netloc != urlparse(output['route'][1]).netloc):
             output['result'] = 'redirection-off-host-from-http'
             output['status_code'] = response.history[-1].status_code
         else:

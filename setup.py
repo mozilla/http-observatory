@@ -31,7 +31,7 @@ setup(
     ],
     author='April King',
     author_email='april@mozilla.com',
-    packages=find_packages(exclude=['httpobs.tests*']),
+    packages=find_packages(),
     include_package_data=False,
     scripts=['httpobs/scripts/httpobs',
              'httpobs/scripts/httpobs-database-beat',

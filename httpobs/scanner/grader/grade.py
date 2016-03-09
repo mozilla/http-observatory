@@ -113,11 +113,13 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-public-access': {
-        'description': 'Public content is visible via cross-origin resource sharing Access-Control-Allow-Origin header',
+        'description': ('Public content is visible via cross-origin resource sharing (CORS) '
+                        'Access-Control-Allow-Origin header'),
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-restricted-access': {
-        'description': 'Content is visible via cross-origin resource sharing (CORS) files or headers, but is restricted to specific domains',
+        'description': ('Content is visible via cross-origin resource sharing (CORS) files or headers, '
+                        'but is restricted to specific domains'),
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-universal-access': {
@@ -224,7 +226,7 @@ SCORE_TABLE = {
         'description': 'Subresource Integrity (SRI) not implemented as all scripts are loaded from a similar origin',
         'modifier': 0,
     },
-    'sri-not-implemented-but-external-scripts-loaded-securely':{
+    'sri-not-implemented-but-external-scripts-loaded-securely': {
         'description': 'Subresource Integrity (SRI) not implemented, but all external scripts are loaded over https',
         'modifier': -5,
     },

@@ -6,7 +6,7 @@ def valid_hostname(hostname: str):
     :param hostname: The hostname requested in the scan
     :return: Hostname if it's valid, otherwise None
     """
-    
+
     # First, let's try to see if it's an IPv4 address
     try:
         socket.inet_aton(hostname)  # inet_aton() will throw an exception if hostname is not a valid IP address

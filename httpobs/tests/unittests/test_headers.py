@@ -1,7 +1,13 @@
 from http.cookiejar import Cookie
 from unittest import TestCase
 
-from httpobs.scanner.analyzer.headers import *
+from httpobs.scanner.analyzer.headers import (content_security_policy,
+                                              cookies,
+                                              public_key_pinning,
+                                              strict_transport_security,
+                                              x_content_type_options,
+                                              x_frame_options,
+                                              x_xss_protection)
 from httpobs.tests.utils import empty_requests
 
 
