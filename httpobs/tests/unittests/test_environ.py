@@ -18,8 +18,8 @@ class TestEnvironmentalVariables(TestCase):
             if httpobs.scanner.celeryconfig.CELERY_IGNORE_RESULTS:
                 pass
 
-        self.assertRaises(SystemExit, __import_database_celeryconfig_no_broker_url())
-        self.assertRaises(SystemExit, __import_scanner_celeryconfig_no_broker_url())
+        self.assertRaises(SystemExit, __import_database_celeryconfig_no_broker_url)
+        self.assertRaises(SystemExit, __import_scanner_celeryconfig_no_broker_url)
 
     def test_broker_url(self):
         environ['BROKER_URL'] = 'foo'
@@ -38,4 +38,4 @@ class TestEnvironmentalVariables(TestCase):
             if httpobs.database.database.conn:
                 pass
 
-        self.assertRaises(SystemExit, __import_database_no_database_url())
+        self.assertRaises(SystemExit, __import_database_no_database_url)
