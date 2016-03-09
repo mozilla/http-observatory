@@ -7,10 +7,14 @@ def valid_hostname(hostname: str):
     :return: Hostname if it's valid, otherwise None
     """
 
+    # Block attempts to scan things like 'localhost'
+    if '.' not in hostname or 'localhost' in hostname:
+        return False
+
     # First, let's try to see if it's an IPv4 address
     try:
         socket.inet_aton(hostname)  # inet_aton() will throw an exception if hostname is not a valid IP address
-        return None                # If we get this far, it's an IP address and therefore not a valid fqdn
+        return None                 # If we get this far, it's an IP address and therefore not a valid fqdn
     except:
         pass
 
