@@ -309,6 +309,10 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         try:
             sts = [i.lower().strip() for i in output['data'].split(';')]
 
+            # Throw an error if the header is set twice
+            if ',' in output['data']:
+                raise ValueError
+
             for parameter in sts:
                 if parameter.startswith('max-age='):
                     output['max-age'] = int(parameter[8:128])  # defense
