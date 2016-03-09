@@ -21,14 +21,15 @@ class TestEnvironmentalVariables(TestCase):
         self.assertRaises(SystemExit, __import_database_celeryconfig_no_broker_url)
         self.assertRaises(SystemExit, __import_scanner_celeryconfig_no_broker_url)
 
-    def test_broker_url(self):
-        environ['BROKER_URL'] = 'foo'
-
-        import httpobs.database.celeryconfig
-        import httpobs.scanner.celeryconfig
-
-        self.assertTrue(httpobs.database.celeryconfig.CELERY_IGNORE_RESULTS)
-        self.assertTrue(httpobs.scanner.celeryconfig.CELERY_IGNORE_RESULTS)
+    # Mock this
+    # def test_broker_url(self):
+    #     environ['BROKER_URL'] = 'foo'
+    #
+    #     import httpobs.database.celeryconfig
+    #     import httpobs.scanner.celeryconfig
+    #
+    #     self.assertTrue(httpobs.database.celeryconfig.CELERY_IGNORE_RESULTS)
+    #     self.assertTrue(httpobs.scanner.celeryconfig.CELERY_IGNORE_RESULTS)
 
     def test_no_database_url(self):
         def __import_database_no_database_url():
