@@ -1,20 +1,21 @@
 #!/bin/sh
 
 if [ -n "$HTTPOBS_DEV" ]; then
-  CONCURRENCY=192
+  CONCURRENCY=128
   LOGLEVEL=info
 
   if [ $(uname -s) = "Darwin" ]; then
     ulimit -n 2048  # increase file descriptor limits on OS X
   fi
 else
-  CONCURRENCY=512
+  CONCURRENCY=256
   LOGLEVEL=warning
 fi
 
 # Execute celery
 exec celery \
   -A httpobs.scanner.tasks \
+  --broker=$HTTPOBS_BROKER_URL \
   --concurrency=$CONCURRENCY \
   --detach \
   --hostname='scanner@%h' \
