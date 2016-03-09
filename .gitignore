@@ -1,5 +1,6 @@
 /dist
 /build
+.coverage
 *.egg-info
 .idea
 __pycache__

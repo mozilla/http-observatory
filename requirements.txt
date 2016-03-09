@@ -3,6 +3,7 @@ anyjson==0.3.3
 beautifulsoup4==4.4.1
 billiard==3.3.0.23
 celery==3.1.22
+coverage==4.0.3
 flake8==2.5.4
 Flask==0.10.1
 itsdangerous==0.24
