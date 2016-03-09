@@ -1,7 +1,13 @@
 from http.cookiejar import Cookie
 from unittest import TestCase
 
-from httpobs.scanner.analyzer.headers import *
+from httpobs.scanner.analyzer.headers import (content_security_policy,
+                                              cookies,
+                                              public_key_pinning,
+                                              strict_transport_security,
+                                              x_content_type_options,
+                                              x_frame_options,
+                                              x_xss_protection)
 from httpobs.tests.utils import empty_requests
 
 
@@ -407,6 +413,15 @@ class TestStrictTransportSecurity(TestCase):
         self.assertEquals('hsts-header-invalid', result['result'])
         self.assertFalse(result['pass'])
 
+        # If the header is set twice
+        self.reqs['responses']['https'].headers['Strict-Transport-Security'] = \
+            'max-age=15768000; includeSubDomains, max-age=15768000; includeSubDomains'
+
+        result = strict_transport_security(self.reqs)
+
+        self.assertEquals('hsts-header-invalid', result['result'])
+        self.assertFalse(result['pass'])
+
     def test_no_https(self):
         self.reqs['responses']['auto'].headers['Strict-Transport-Security'] = 'max-age=15768000'
         self.reqs['responses']['http'].headers['Strict-Transport-Security'] = 'max-age=15768000'
@@ -426,7 +441,8 @@ class TestStrictTransportSecurity(TestCase):
         self.assertFalse(result['pass'])
 
     def test_implemented(self):
-        self.reqs['responses']['https'].headers['Strict-Transport-Security'] = 'max-age=15768000; includeSubDomains; preload'
+        self.reqs['responses']['https'].headers['Strict-Transport-Security'] = \
+            'max-age=15768000; includeSubDomains; preload'
 
         result = strict_transport_security(self.reqs)
 

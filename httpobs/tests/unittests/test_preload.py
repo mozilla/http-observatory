@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from httpobs.scanner.analyzer.utils import *
+from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded
 
 
 class TestPreloadPublicKeyPinning(TestCase):

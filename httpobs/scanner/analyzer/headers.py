@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
-from httpobs.scanner.analyzer.utils import *
+from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
 
 
 @scored_test
@@ -48,7 +48,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
             header = response.headers['Content-Security-Policy']
             csp = [directive.strip().split(maxsplit=1) for directive in header.split(';') if directive]
             csp = {directive[0].lower():
-                       (directive[1].split() if len(directive) > 1 else []) for directive in csp}
+                   (directive[1].split() if len(directive) > 1 else []) for directive in csp}
         except:
             output['result'] = 'csp-header-invalid'
             return output
@@ -186,7 +186,6 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     return output
 
 
-# TODO: def public_key_pinning()
 @scored_test
 def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
     """
@@ -267,6 +266,7 @@ def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
     # No need to check pass/fail here, the only way to fail is to have an invalid header
     return output
 
+
 @scored_test
 def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-at-least-six-months') -> dict:
     """
@@ -308,6 +308,10 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
 
         try:
             sts = [i.lower().strip() for i in output['data'].split(';')]
+
+            # Throw an error if the header is set twice
+            if ',' in output['data']:
+                raise ValueError
 
             for parameter in sts:
                 if parameter.startswith('max-age='):
@@ -476,7 +480,8 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
             enabled = True if xxssp[0] == '1' else False
 
             # {'1': None, 'mode': 'block', 'report': 'https://www.example.com/__reporturi__'}
-            xxssp = {d.split('=')[0].strip(): (d.split('=')[1].strip() if '=' in d else None) for d in xxssp.split(';')}
+            xxssp = {d.split('=')[0].strip():
+                     (d.split('=')[1].strip() if '=' in d else None) for d in xxssp.split(';')}
         except:
             output['result'] = 'x-xss-protection-header-invalid'
             return output

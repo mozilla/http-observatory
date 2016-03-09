@@ -1,4 +1,5 @@
 from os import environ
+from sys import exit
 
 
 # Set the Celery task queue

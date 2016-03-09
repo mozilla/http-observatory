@@ -73,7 +73,7 @@ SCORE_TABLE = {
         'modifier': -25,
     },
     'csp-not-implemented': {
-        'description': 'Content Security Policy (CSP) header missing',
+        'description': 'Content Security Policy (CSP) header not implemented',
         'modifier': -25,
     },
 
@@ -113,11 +113,13 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-public-access': {
-        'description': 'Public content is visible via cross-origin resource sharing Access-Control-Allow-Origin header',
+        'description': ('Public content is visible via cross-origin resource sharing (CORS) '
+                        'Access-Control-Allow-Origin header'),
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-restricted-access': {
-        'description': 'Content is visible via cross-origin resource sharing (CORS) files or headers, but is restricted to specific domains',
+        'description': ('Content is visible via cross-origin resource sharing (CORS) files or headers, '
+                        'but is restricted to specific domains'),
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-universal-access': {
@@ -191,7 +193,7 @@ SCORE_TABLE = {
         'modifier': -10,
     },
     'hsts-not-implemented': {
-        'description': 'HTTP Strict Transport Security (HSTS) header is not set',
+        'description': 'HTTP Strict Transport Security (HSTS) header not implemented',
         'modifier': -20,
     },
     'hsts-header-invalid': {
@@ -205,7 +207,7 @@ SCORE_TABLE = {
 
     # Subresource Integrity (SRI)
     'sri-implemented-and-all-scripts-loaded-securely': {
-        'description': 'Subresource Integrity (SRI) is implemented and all scripts are loaded from a secure origin',
+        'description': 'Subresource Integrity (SRI) is implemented and all scripts are loaded from a similar origin',
         'modifier': 5,
     },
     'sri-implemented-and-external-scripts-loaded-securely': {
@@ -221,10 +223,10 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'sri-not-implemented-but-all-scripts-loaded-from-secure-origin': {
-        'description': 'Subresource Integrity (SRI) not implemented as all scripts are loaded from a secure origin',
+        'description': 'Subresource Integrity (SRI) not implemented as all scripts are loaded from a similar origin',
         'modifier': 0,
     },
-    'sri-not-implemented-but-external-scripts-loaded-securely':{
+    'sri-not-implemented-but-external-scripts-loaded-securely': {
         'description': 'Subresource Integrity (SRI) not implemented, but all external scripts are loaded over https',
         'modifier': -5,
     },
@@ -331,8 +333,9 @@ def grade(scan_id) -> tuple:
         score += tests[test]['score_modifier']
     score = max(score, 0)  # can't have scores below 0
 
-    # Insert the test score -- if it's >100, just use the grade for 100
-    insert_scan_grade(scan_id, GRADE_CHART[min(score, 100)], score)
+    # Insert the test grade -- if it's >100, just use the grade for 100, otherwise round down to the nearest multiple
+    # of 5
+    insert_scan_grade(scan_id, GRADE_CHART[min(score - score % 5, 100)], score)
 
     return score, grade
 

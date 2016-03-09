@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from json import dumps
 from os import environ
+from sys import exit
 
 from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
 from httpobs.scanner.analyzer import NUM_TESTS
@@ -124,7 +125,6 @@ def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> d
                     (site_id, scan_id, name, expectation, result, passed, dumps(output), score_modifier))
 
         row = dict(cur.fetchone())
-
 
     # If the state was finished, let's trigger a grading call
     try:
@@ -275,8 +275,8 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
 
 def update_scans_abort_broken_scans(num_seconds=1800) -> int:
     """
-    Update all scans that are stuck. The hard time limit for celery is 1129, so if something isn't aborted, finished, or
-    failed, we should just mark it as aborted.
+    Update all scans that are stuck. The hard time limit for celery is 1129, so if something isn't aborted, finished,
+    or failed, we should just mark it as aborted.
     :return: the number of scans that were closed out
     """
     with get_cursor() as cur:

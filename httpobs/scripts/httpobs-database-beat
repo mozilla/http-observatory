@@ -4,6 +4,7 @@
 # Execute celery
 exec celery \
   -A httpobs.database.tasks \
+  --broker=$HTTPOBS_BROKER_URL \
   --logfile='/var/log/httpobs/database.log' \
   --loglevel=warning \
   --pidfile='/var/run/httpobs/database.pid' \

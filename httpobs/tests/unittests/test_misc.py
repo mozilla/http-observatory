@@ -1,7 +1,7 @@
 from collections import UserDict
 from unittest import TestCase
 
-from httpobs.scanner.analyzer.misc import *
+from httpobs.scanner.analyzer.misc import cross_origin_resource_sharing, redirection
 from httpobs.tests.utils import empty_requests
 
 
@@ -81,7 +81,8 @@ class TestCORS(TestCase):
         result = cross_origin_resource_sharing(self.reqs)
 
         self.assertEquals('cross-origin-resource-sharing-implemented-with-restricted-access', result['result'])
-        self.assertEquals(['http-observatory.services.mozilla.com', 'github.com'], result['data']['clientaccesspolicy'])
+        self.assertEquals(['http-observatory.services.mozilla.com', 'github.com'],
+                          result['data']['clientaccesspolicy'])
         self.assertTrue(result['pass'])
 
     def test_acao_universal_with_clientaccess(self):
