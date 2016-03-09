@@ -11,5 +11,6 @@ MarkupSafe==0.23
 psycopg2==2.6.1
 publicsuffixlist==0.4.0
 pytz==2015.7
+redis==2.10.5
 requests==2.9.1
 Werkzeug==0.11.4
