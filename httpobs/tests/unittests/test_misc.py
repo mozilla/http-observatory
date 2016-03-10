@@ -12,6 +12,21 @@ class TestCORS(TestCase):
     def tearDown(self):
         self.reqs = None
 
+    def test_acao_not_implemented(self):
+        result = cross_origin_resource_sharing(self.reqs)
+
+        self.assertEquals('cross-origin-resource-sharing-not-implemented', result['result'])
+        self.assertTrue(result['pass'])
+
+
+    def test_xml_not_valid(self):
+        self.reqs['resources']['/crossdomain.xml'] = '<![..]>'
+
+        result = cross_origin_resource_sharing(self.reqs)
+
+        self.assertEquals('xml-not-parsable', result['result'])
+        self.assertFalse(result['pass'])
+
     def test_acao_public(self):
         self.reqs['responses']['cors'].headers['Access-Control-Allow-Origin'] = '*'
 
