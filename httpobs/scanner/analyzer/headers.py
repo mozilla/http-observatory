@@ -400,7 +400,7 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
         x-frame-options-not-implemented: X-Frame-Options header missing
         x-frame-options-header-invalid: Invalid X-Frame-Options header
     :return: dictionary with:
-        data: the raw X-Content-Type-Options header
+        data: the raw X-Frame-Options header
         expectation: test expectation
         pass: whether the site's configuration met its expectation
         result: short string describing the result of the test
@@ -416,10 +416,11 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
 
     if 'X-Frame-Options' in response.headers:
         output['data'] = response.headers['X-Frame-Options'][0:1024]  # code defensively
+        xfo = output['data'].strip().lower()
 
-        if output['data'].lower() in ('deny', 'sameorigin'):
+        if xfo in ('deny', 'sameorigin'):
             output['result'] = 'x-frame-options-sameorigin-or-deny'
-        elif 'allow-from ' in output['data'].lower():
+        elif xfo.startswith('allow-from '):
             output['result'] = 'x-frame-options-allow-from-origin'
         else:
             output['result'] = 'x-frame-options-header-invalid'
@@ -433,7 +434,8 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
             output['result'] = 'x-frame-options-implemented-via-csp'
 
     # Check to see if the test passed or failed
-    if output['result'] in ('x-frame-options-sameorigin-or-deny',
+    if output['result'] in ('x-frame-options-allow-from-origin',
+                            'x-frame-options-sameorigin-or-deny',
                             'x-frame-options-implemented-via-csp',
                             expectation):
         output['pass'] = True

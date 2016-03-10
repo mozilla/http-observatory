@@ -1,4 +1,4 @@
-from httpobs.scanner.grader import get_test_score_description, GRADES
+from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.tasks import scan
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
@@ -111,6 +111,6 @@ def api_get_scan_results():
 
     # For each test, get the test score description and add that in
     for test in tests:
-        tests[test]['score_description'] = get_test_score_description(tests[test]['result'])
+        tests[test]['score_description'] = get_score_description(tests[test]['result'])
 
     return tests

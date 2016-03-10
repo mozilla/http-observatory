@@ -12,7 +12,7 @@ def __parse_acao_xml_get_domains(xml, type='crossdomain') -> list:
     try:
         soup = bs(xml, 'html.parser')
     except:
-        return None
+        raise KeyError
 
     # Parse the files
     if type == 'crossdomain':

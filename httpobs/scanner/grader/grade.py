@@ -340,9 +340,9 @@ def grade(scan_id) -> tuple:
     return score, grade
 
 
-def get_test_score_description(result) -> str:
+def get_score_description(result) -> str:
     return SCORE_TABLE[result]['description']
 
 
-def get_test_score_modifier(result) -> int:
+def get_score_modifier(result) -> int:
     return SCORE_TABLE[result]['modifier']

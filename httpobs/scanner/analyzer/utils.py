@@ -73,10 +73,7 @@ def is_hsts_preloaded(hostname):
 
 
 # Return the new result if it's worse than the existing result, otherwise just the current result
-def only_if_worse(new_result: str, old_result: str, order=None) -> str:
-    if order is None:
-        order = []
-
+def only_if_worse(new_result: str, old_result: str, order) -> str:
     if not old_result:
         return new_result
     elif order.index(new_result) > order.index(old_result):

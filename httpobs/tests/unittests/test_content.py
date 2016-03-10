@@ -33,6 +33,13 @@ class TestContribute(TestCase):
         self.assertEquals('contribute-json-invalid-json', result['result'])
         self.assertFalse(result['pass'])
 
+    def test_contribute_too_large(self):
+        self.reqs['resources']['/contribute.json'] = '{"name": "' + 'foo' * 100000 + '"}'
+
+        result = contribute(self.reqs)
+
+        self.assertEquals(result['data'], {})
+
     def test_with_required_keys(self):
         self.reqs['resources']['/contribute.json'] = """
         {
@@ -140,6 +147,15 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
     def test_not_html(self):
+        # invalid html
+        self.reqs['resources']['/'] = '<![..]>'
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals('html-not-parsable', result['result'])
+        self.assertFalse(result['pass'])
+
+        # json, like what an API might return
         self.reqs['responses']['auto'].headers['Content-Type'] = 'application/json'
         self.reqs['resources']['/'] = """
         {
@@ -151,6 +167,14 @@ class TestSubResourceIntegrity(TestCase):
 
         self.assertEquals('sri-not-implemented-response-not-html', result['result'])
         self.assertTrue(result['pass'])
+
+    def test_not_status_code_200(self):
+        self.reqs['responses']['auto'].status_code = 404
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals(result['result'], 'request-did-not-return-status-code-200')
+        self.assertFalse(result['pass'])
 
     def test_same_origin(self):
         self.reqs['resources']['/'] = """
@@ -183,11 +207,31 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
     def test_implemented_external_scripts_https(self):
+        # load from a remote site
         self.reqs['resources']['/'] = """
         <html>
           <head>
             <script src="/static/js/foo.js"></script>
             <script src="https://fb.me/react-0.14.7.min.js"
+                    integrity="sha384-zTm/dblzLXQNp3CgY+hfaC/WJ6h4XtNrePh2CW2+rO9GPuNiPb9jmthvAL+oI/dQ"
+                    crossorigin="anonymous">
+            </script>
+          <head>
+          <body></body>
+        </html>
+        """
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals('sri-implemented-and-external-scripts-loaded-securely', result['result'])
+        self.assertTrue(result['pass'])
+
+        # load from an intranet / localhost
+        self.reqs['resources']['/'] = """
+        <html>
+          <head>
+            <script src="/static/js/foo.js"></script>
+            <script src="https://localhost/react-0.14.7.min.js"
                     integrity="sha384-zTm/dblzLXQNp3CgY+hfaC/WJ6h4XtNrePh2CW2+rO9GPuNiPb9jmthvAL+oI/dQ"
                     crossorigin="anonymous">
             </script>
