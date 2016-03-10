@@ -18,7 +18,6 @@ class TestCORS(TestCase):
         self.assertEquals('cross-origin-resource-sharing-not-implemented', result['result'])
         self.assertTrue(result['pass'])
 
-
     def test_xml_not_valid(self):
         self.reqs['resources']['/crossdomain.xml'] = '<![..]>'
 
