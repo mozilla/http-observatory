@@ -26,7 +26,7 @@ def __create_session(url: str, headers=None) -> dict:
     # Override the User-Agent; some sites (like twitter) don't send the CSP header unless you have a modern
     # user agent
     s.headers.update({
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:44.0) Gecko/20100101 Firefox/44.0',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:45.0) Gecko/20100101 Firefox/45.0',
     })
 
     try:
