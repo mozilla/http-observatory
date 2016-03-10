@@ -5,5 +5,5 @@ install:
   - pip install .
   - pip install -r requirements.txt
 script:
-  - "nosetests httpobs/tests -e insert_test_result -e scored_test -e select_test_results --with-coverage --cover-package=httpobs"
+  - "nosetests -v 2 httpobs/tests -e insert_test_result -e scored_test -e select_test_results --with-coverage --cover-package=httpobs"
   - "flake8 --config .flake8 httpobs"
