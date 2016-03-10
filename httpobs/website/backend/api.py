@@ -64,7 +64,7 @@ def api_post_scan_hostname():
     return row
 
 
-@api.route('/api/v1/getGradeTotals', methods=['GET', 'OPTIONS'])
+@api.route('/api/v1/getGradeDistribution', methods=['GET', 'OPTIONS'])
 @add_response_headers(cors=True)
 def api_get_grade_totals():
     totals = database.select_scan_grade_totals()
