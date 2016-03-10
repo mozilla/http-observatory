@@ -14,5 +14,6 @@ class TestValidHostname(TestCase):
         self.assertFalse(valid_hostname('foo'))
         self.assertFalse(valid_hostname('localhost'))
         self.assertFalse(valid_hostname('intranet'))
+        self.assertFalse(valid_hostname('_spf.google.com'))  # no A records
         self.assertFalse(valid_hostname('127.0.0.1'))
         self.assertFalse(valid_hostname('2607:f8b0:4009:80b::200e'))

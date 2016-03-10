@@ -39,6 +39,11 @@ class TestPreloadStrictTransportSecurity(TestCase):
         self.assertEquals('force-https', result['mode'])
         self.assertTrue(result['includeSubDomains'])
 
+        result = is_hsts_preloaded('foo.bugzilla.mozilla.org')
+
+        self.assertEquals('force-https', result['mode'])
+        self.assertTrue(result['includeSubDomains'])
+
         result = is_hsts_preloaded('mail.yahoo.com')
 
         self.assertEqual('force-https', result['mode'])
