@@ -25,12 +25,12 @@ class TestContentSecurityPolicy(TestCase):
         self.assertFalse(result['pass'])
 
     def test_header_invalid(self):
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = ''  # TODO: Try to think of anything!
+        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = '  '
 
-        # result = content_security_policy(self.reqs)
+        result = content_security_policy(self.reqs)
 
-        # self.assertEquals(result['result'], 'csp-header-invalid')
-        # self.assertFalse(result['pass'])
+        self.assertEquals(result['result'], 'csp-header-invalid')
+        self.assertFalse(result['pass'])
 
     def test_insecure_scheme(self):
         self.reqs['responses']['auto'].headers['Content-Security-Policy'] = 'default-src http://mozilla.org'
@@ -533,6 +533,22 @@ class TestXFrameOptions(TestCase):
 
         self.assertEquals('x-frame-options-header-invalid', result['result'])
         self.assertFalse(result['pass'])
+
+        # common to see this header sent multiple times
+        self.reqs['responses']['auto'].headers['X-Frame-Options'] = 'SAMEORIGIN, SAMEORIGIN'
+
+        result = x_frame_options(self.reqs)
+
+        self.assertEquals('x-frame-options-header-invalid', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_allow_from_origin(self):
+        self.reqs['responses']['auto'].headers['X-Frame-Options'] = 'ALLOW-FROM https://mozilla.org'
+
+        result = x_frame_options(self.reqs)
+
+        self.assertEquals('x-frame-options-allow-from-origin', result['result'])
+        self.assertTrue(result['pass'])
 
     def test_deny(self):
         self.reqs['responses']['auto'].headers['X-Frame-Options'] = 'DENY'
