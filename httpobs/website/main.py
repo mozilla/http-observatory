@@ -4,6 +4,7 @@ from flask import Flask
 from os import environ
 
 from httpobs.website import add_response_headers
+from httpobs.website.common import common_api
 
 
 def __exit_with(msg: str) -> None:
@@ -21,6 +22,7 @@ elif environ.get('HTTPOBS_ENVIRONMENT') == 'frontend':
 else:
     __exit_with('HTTPOBS_ENVIRONMENT not set. Exiting.')
 app.register_blueprint(api)
+app.register_blueprint(common_api)
 
 # Check to make sure we have all the needed environmental variables set
 if 'HTTPOBS_API_KEY' not in environ:

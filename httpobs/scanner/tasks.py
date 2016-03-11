@@ -39,15 +39,18 @@ def scan(hostname: str, site_id: int, scan_id: int):
     # catch the celery timeout, which will almost certainly occur in retrieve_all()
     except (SoftTimeLimitExceeded, TimeLimitExceeded):
         update_scan_state(scan_id, STATE_ABORTED, error='site unresponsive')
+    # the database is down, oh no!
+    except IOError:
+        print('database down, aborting scan on {hostname}'.format(hostname=hostname), file=sys.stderr)
     except:
         # TODO: have more specific error messages
         e = sys.exc_info()[1]  # get the error message
 
-        # Print the exception to stdout if we're in dev
-        if 'HTTPOBS_DEV' in environ:
-            import traceback
-            print('Error detected in: ' + hostname)
-            traceback.print_exc()
-
         # If we are unsuccessful, close out the scan in the database
         update_scan_state(scan_id, STATE_FAILED, error=repr(e))
+
+        # Print the exception to stderr if we're in dev
+        if 'HTTPOBS_DEV' in environ:
+            import traceback
+            print('Error detected in scan for : ' + hostname)
+            traceback.print_exc(file=sys.stderr)

@@ -1,7 +1,6 @@
 from contextlib import contextmanager
 from json import dumps
 from os import environ
-from sys import exit
 
 from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
 from httpobs.scanner.analyzer import NUM_TESTS
@@ -10,6 +9,7 @@ from httpobs.scanner.grader import grade
 import psycopg2
 import psycopg2.extras
 import psycopg2.pool
+import sys
 
 
 # TODO: Try to fix connection pooling someday, ugh
@@ -38,9 +38,11 @@ import psycopg2.pool
 # Try to connect to PostgreSQL on startup:
 try:
     conn = psycopg2.connect(environ['HTTPOBS_DATABASE_URL'])
+except KeyError:
+    print('HTTPOBS_DATABASE_URL not set. Exiting.', file=sys.stderr)
+    sys.exit(1)
 except:
-    print('Unable to connect to PostgreSQL. Exiting.')
-    exit(1)
+    print('WARNING: Unable to connect to PostgreSQL.', file=sys.stderr)
 
 
 @contextmanager
