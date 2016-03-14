@@ -311,7 +311,7 @@ SCORE_TABLE = {
         'modifier': -5,  # can't run an SRI check on pages that don't return a 200
     },
     'xml-not-parsable': {
-        'description': 'Claims to be xml, butt cannot be parsed',
+        'description': 'Claims to be xml, but cannot be parsed',
         'modifier': -20,  # can't run an ACAO check if the xml files can't be parsed
     }
 }
