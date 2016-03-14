@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from json import dumps
 
-from httpobs.conf import (DATABASE_CERT,
+from httpobs.conf import (DATABASE_CA_CERT,
                           DATABASE_DB,
                           DATABASE_HOST,
                           DATABASE_PASSWORD,
@@ -48,8 +48,8 @@ def get_cursor():
                                 host=DATABASE_HOST,
                                 password=DATABASE_PASSWORD,
                                 port=DATABASE_PORT,
-                                sslcert=DATABASE_CERT,
                                 sslmode=DATABASE_SSL_MODE,
+                                sslrootcert=DATABASE_CA_CERT,
                                 user=DATABASE_USER)
 
         try:
@@ -58,7 +58,6 @@ def get_cursor():
         except:
             conn.rollback()
     except:
-        print('Unable to connect to PostgreSQL.')
         raise IOError
 
 
@@ -68,6 +67,7 @@ try:
         pass
 except IOError:
     print('WARNING: Unable to connect to PostgreSQL.', file=sys.stderr)
+    raise
 
 
 def insert_scan(site_id: int, hidden: bool = False) -> dict:

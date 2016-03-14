@@ -42,8 +42,8 @@ else:
 # Set some database provider specific parameters
 __dirname = os.path.abspath(os.path.dirname(__file__))
 if DATABASE_HOST.endswith('.rds.amazonaws.com'):
-    DATABASE_CERT = os.path.join(__dirname, 'amazon-rds.pem')
+    DATABASE_CA_CERT = os.path.join(__dirname, 'amazon-rds.pem')
     DATABASE_SSL_MODE = 'verify-full'
 else:
-    DATABASE_CERT = None
+    DATABASE_CA_CERT = None
     DATABASE_SSL_MODE = 'prefer'
