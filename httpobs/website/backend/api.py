@@ -1,22 +1,19 @@
+from httpobs.conf import API_KEY, COOLDOWN
 from httpobs.scanner.tasks import scan
 from httpobs.website import add_response_headers
 
 from flask import abort, jsonify, Blueprint, request
-from os import environ
 
 import httpobs.database as database
 
 api = Blueprint('api', __name__)
 
 
-COOLDOWN = 15 if 'HTTPOBS_DEV' in environ else 300
-
-
 @api.route('/api/v1/analyze', methods=['POST'])
 @add_response_headers()
 def api_post_scan_hostname():
     # Abort if the API keys don't match
-    if request.form.get('apikey', 'notatrueapikey') != environ.get('HTTPOBS_API_KEY'):
+    if request.form.get('apikey', 'notatrueapikey') != API_KEY:
         abort(403)
 
     # Get the hostname, whether the scan is hidden, site_id, and scan_id

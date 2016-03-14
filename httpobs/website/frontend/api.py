@@ -1,9 +1,9 @@
+from httpobs.conf import API_KEY, BACKEND_API_URL, COOLDOWN
 from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
 
 from flask import Blueprint, jsonify, request
-from os import environ
 
 import httpobs.database as database
 
@@ -11,9 +11,6 @@ import requests
 
 
 api = Blueprint('api', __name__)
-
-
-COOLDOWN = 15 if 'HTTPOBS_DEV' in environ else 300
 
 
 # TODO: Implement API to write public and private headers to the database
@@ -54,10 +51,10 @@ def api_post_scan_hostname():
         if request.method == 'POST':
             try:
                 # Connect to the backend and initiate a scan
-                return requests.post(environ['HTTPOBS_BACKEND_URL'] + '/api/v1/analyze?host=' + hostname,
+                return requests.post(BACKEND_API_URL + '/api/v1/analyze?host=' + hostname,
                                      data={'site_id': site_id,
                                            'hidden': hidden,
-                                           'apikey': environ['HTTPOBS_API_KEY']}
+                                           'apikey': API_KEY}
                                      ).json()
             except:
                 return {'error': 'scanner-backend-not-available-try-again-soon'}

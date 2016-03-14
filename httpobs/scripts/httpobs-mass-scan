@@ -8,7 +8,7 @@ import requests
 import sys
 import time
 
-if 'HTTPOBS_DEV' in os.environ:
+if 'HTTPOBS_DEV' in os.environ:  # TODO: use httpobs.conf
     HTTP_OBS_URL = 'http://http-observatory.services.mozilla.com:5000/api/v1'
     MAX_QUEUE = 192
 else:

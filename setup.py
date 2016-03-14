@@ -33,7 +33,7 @@ setup(
     author='April King',
     author_email='april@mozilla.com',
     packages=find_packages(),
-    include_package_data=False,
+    include_package_data=True,
     scripts=['httpobs/scripts/httpobs',
              'httpobs/scripts/httpobs-database-beat',
              'httpobs/scripts/httpobs-mass-scan',

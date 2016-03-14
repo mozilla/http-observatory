@@ -54,16 +54,19 @@ CREATE INDEX tests_name_idx       ON tests (name);
 CREATE INDEX tests_result_idx     ON tests (result);
 CREATE INDEX tests_pass_idx       ON tests (pass);
 
-/* TODO: Probably need to tighten up these permissions */
-CREATE ROLE httpobsscanner;
+CREATE USER httpobsscanner;
 GRANT SELECT, INSERT ON sites, expectations, scans, tests TO httpobsscanner;
 GRANT UPDATE on sites, expectations, scans TO httpobsscanner;
+GRANT USAGE ON SEQUENCE expectations_id_seq TO httpobsscanner;
+GRANT USAGE ON SEQUENCE scans_id_seq TO httpobsscanner;
+GRANT USAGE ON SEQUENCE tests_id_seq TO httpobsscanner;
 
-CREATE ROLE httpobsapi;
+CREATE USER httpobsapi;
 GRANT SELECT ON expectations, scans, tests to httpobsapi;
-GRANT SELECT (id, domain, public_headers) ON sites TO httpobsapi;
-GRANT INSERT, UPDATE ON sites, expectations to httpobsapi;
-GRANT INSERT, UPDATE (private_headers) ON sites to httpobsapi;
+GRANT SELECT (id, domain, creation_time, public_headers) ON sites TO httpobsapi;
+GRANT INSERT ON sites to httpobsapi;
+GRANT UPDATE (public_headers, private_headers) ON sites to httpobsapi;
+GRANT USAGE ON SEQUENCE sites_id_seq TO httpobsapi;
 
 CREATE MATERIALIZED VIEW latest_scans
   AS SELECT latest_scans.site_id, latest_scans.scan_id, s.domain, latest_scans.state,

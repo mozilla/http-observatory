@@ -1,7 +1,13 @@
 from contextlib import contextmanager
 from json import dumps
-from os import environ
 
+from httpobs.conf import (DATABASE_CERT,
+                          DATABASE_DB,
+                          DATABASE_HOST,
+                          DATABASE_PASSWORD,
+                          DATABASE_PORT,
+                          DATABASE_SSL_MODE,
+                          DATABASE_USER)
 from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
 from httpobs.scanner.analyzer import NUM_TESTS
 from httpobs.scanner.grader import grade
@@ -35,20 +41,16 @@ import sys
 #     finally:
 #         pool.putconn(conn)
 
-# Try to connect to PostgreSQL on startup:
-try:
-    conn = psycopg2.connect(environ['HTTPOBS_DATABASE_URL'])
-except KeyError:
-    print('HTTPOBS_DATABASE_URL not set. Exiting.', file=sys.stderr)
-    sys.exit(1)
-except:
-    print('WARNING: Unable to connect to PostgreSQL.', file=sys.stderr)
-
-
 @contextmanager
 def get_cursor():
     try:
-        conn = psycopg2.connect(environ['HTTPOBS_DATABASE_URL'])
+        conn = psycopg2.connect(database=DATABASE_DB,
+                                host=DATABASE_HOST,
+                                password=DATABASE_PASSWORD,
+                                port=DATABASE_PORT,
+                                sslcert=DATABASE_CERT,
+                                sslmode=DATABASE_SSL_MODE,
+                                user=DATABASE_USER)
 
         try:
             yield conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -58,7 +60,14 @@ def get_cursor():
     except:
         print('Unable to connect to PostgreSQL.')
         raise IOError
-        # TODO: Lets fail gracefully by catching these exceptions
+
+
+# Print out a warning on startup if we can't connect to PostgreSQL
+try:
+    with get_cursor() as _:  # noqa
+        pass
+except IOError:
+    print('WARNING: Unable to connect to PostgreSQL.', file=sys.stderr)
 
 
 def insert_scan(site_id: int, hidden: bool = False) -> dict:

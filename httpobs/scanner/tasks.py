@@ -1,7 +1,7 @@
 from celery import Celery
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
-from os import environ
 
+from httpobs.conf import DEVELOPMENT_MODE
 from httpobs.database import insert_test_result, update_scan_state
 from httpobs.scanner import celeryconfig, STATE_ABORTED, STATE_FAILED, STATE_STARTED
 from httpobs.scanner.retriever import retrieve_all
@@ -50,7 +50,7 @@ def scan(hostname: str, site_id: int, scan_id: int):
         update_scan_state(scan_id, STATE_FAILED, error=repr(e))
 
         # Print the exception to stderr if we're in dev
-        if 'HTTPOBS_DEV' in environ:
+        if DEVELOPMENT_MODE:
             import traceback
             print('Error detected in scan for : ' + hostname)
             traceback.print_exc(file=sys.stderr)
