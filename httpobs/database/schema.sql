@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS expectations (
 
 CREATE TABLE IF NOT EXISTS scans (
   id                                  SERIAL PRIMARY KEY,
-  site_id                             INTEGER REFERENCES sites (id),
+  site_id                             INTEGER REFERENCES sites (id) NOT NULL,
   state                               VARCHAR    NOT NULL,
   start_time                          TIMESTAMP  NOT NULL,
   end_time                            TIMESTAMP  NULL,
@@ -30,8 +30,8 @@ CREATE TABLE IF NOT EXISTS scans (
 
 CREATE TABLE IF NOT EXISTS tests (
   id                                  BIGSERIAL PRIMARY KEY,
-  site_id                             INTEGER REFERENCES sites (id),
-  scan_id                             INTEGER REFERENCES scans (id),
+  site_id                             INTEGER REFERENCES sites (id) NOT NULL,
+  scan_id                             INTEGER REFERENCES scans (id) NOT NULL,
   name                                VARCHAR  NOT NULL,
   expectation                         VARCHAR  NOT NULL,
   result                              VARCHAR  NOT NULL,
@@ -56,6 +56,7 @@ CREATE INDEX tests_pass_idx       ON tests (pass);
 CREATE USER httpobsscanner;
 GRANT SELECT, INSERT ON sites, expectations, scans, tests TO httpobsscanner;
 GRANT UPDATE on sites, expectations, scans TO httpobsscanner;
+GRANT USAGE ON SEQUENCE sites_id_seq TO httpobsscanner;
 GRANT USAGE ON SEQUENCE expectations_id_seq TO httpobsscanner;
 GRANT USAGE ON SEQUENCE scans_id_seq TO httpobsscanner;
 GRANT USAGE ON SEQUENCE tests_id_seq TO httpobsscanner;

@@ -51,7 +51,7 @@ def api_post_scan_hostname():
         if request.method == 'POST':
             try:
                 # Connect to the backend and initiate a scan
-                return requests.post(BACKEND_API_URL + '/api/v1/analyze?host=' + hostname,
+                return requests.post(BACKEND_API_URL + '/analyze?host=' + hostname,
                                      data={'site_id': site_id,
                                            'hidden': hidden,
                                            'apikey': API_KEY}

@@ -30,14 +30,16 @@ ENVIRONMENT = __exit_without('HTTPOBS_ENVIRONMENT')
 if ENVIRONMENT == 'frontend':
     DATABASE_USER = 'httpobsapi'
     PORT = 57001
-    BACKEND_API_URL = environ.get('HTTPOBS_BACKEND', 'http://localhost:' + str(PORT + 1))
 elif ENVIRONMENT == 'backend':
     DATABASE_USER = 'httpobsscanner'
     PORT = 57002
-    BACKEND_API_URL = 'http://localhost:' + str(PORT)
 else:
     print('Invalid environment. Exiting.')
     sys.exit(1)
+
+# Set the FRONTEND and BACKEND URLs
+FRONTEND_API_URL = environ.get('HTTPOBS_FRONTEND_URL', 'http://localhost:57001/api/v1')
+BACKEND_API_URL = environ.get('HTTPOBS_BACKEND_URL', 'http://localhost:57002/api/v1')
 
 # Set some database provider specific parameters
 __dirname = os.path.abspath(os.path.dirname(__file__))

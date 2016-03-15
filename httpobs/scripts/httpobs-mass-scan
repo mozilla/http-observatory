@@ -3,22 +3,22 @@
 from __future__ import print_function
 from sys import exit
 
+from httpobs.conf import API_KEY, BACKEND_API_URL, FRONTEND_API_URL
+
 import os
 import requests
 import sys
 import time
 
 if 'HTTPOBS_DEV' in os.environ:  # TODO: use httpobs.conf
-    HTTP_OBS_URL = 'http://http-observatory.services.mozilla.com:57001/api/v1'
-    MAX_QUEUE = 192
+    MAX_QUEUE = 128
 else:
-    HTTP_OBS_URL = 'https://http-observatory.services.mozilla.com/api/v1'
-    MAX_QUEUE = 512
+    MAX_QUEUE = 256
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('Usage: ' + sys.argv[0] + ' <file>')
-        exit(1)
+        sys.exit(1)
 
     start_time = time.time()
     total_scanned = 0
@@ -30,29 +30,38 @@ if __name__ == '__main__':
             hosts = [host.strip().split(',')[1] if ',' in host else host.strip() for host in alexafp]
     except:
         print('Cannot open ' + sys.argv[1])
-        exit(1)
+        sys.exit(1)
 
     while True:
         loop_time = time.time()
 
         # Get the queue availability
-        r = s.get(HTTP_OBS_URL + '/getScannerStats').json()
-        available = MAX_QUEUE - r.get('STARTED', 0) - r.get('PENDING', 0) - r.get('RUNNING', 0)
+        r = s.get(FRONTEND_API_URL + '/getScannerStats').json()
+        available = MAX_QUEUE - r.get('PENDING', 0) - r.get('RUNNING', 0)
 
-        print('Queue availability: {queue_avail}. Total scanned: {total_scanned}.'.format(queue_avail=available,
-                                                                                          total_scanned=total_scanned))
+        print('Queue availability: {queue_avail}. Total scanned: {total_scanned}. Pending: {pending}.'.format(
+            queue_avail=available, total_scanned=total_scanned, pending=r.get('PENDING', 0)))
 
-        while available > 0:
-            # Exit if there's nothing left
-            if len(hosts) == 0:
-                print('Elapsed time: {elapsed_time}'.format(elapsed_time=(time.time() - start_time)))
-                exit(0)
+        # Quit if the scanner reports that nothing is pending
+        if not hosts and r.get('PENDING', 0) == 0:
+            break
 
-            # Start up a new scan
-            s.post(HTTP_OBS_URL + '/analyze?host={host}'.format(host=hosts.pop())),  # start with the end sites
-            total_scanned += 1
-            available -= 1
+        # Start up a new mass scan
+        s.post(BACKEND_API_URL + '/massAnalyze', data={'hosts': ','.join(hosts[0:available]),
+                                                       'apikey': API_KEY})
+
+        if hosts:
+            total_scanned += available
+
+        if len(hosts) < available:
+            hosts = []
+        else:
+            hosts = hosts[available:]
 
         # If the previous loop completely quickly, cooldown a moment
-        if time.time() - loop_time < 15:
-            time.sleep(15)
+        if time.time() - loop_time < 5:
+            time.sleep(5)
+
+    total_time = int(time.time() - start_time)
+    print('Elapsed time: {elapsed_time}s'.format(elapsed_time=total_time))
+    print('Scans/sec: {speed}'.format(speed=total_scanned / total_time))
