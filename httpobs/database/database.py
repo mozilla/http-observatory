@@ -1,5 +1,7 @@
 from contextlib import contextmanager
 from json import dumps
+from types import SimpleNamespace
+from os import getpid
 
 from httpobs.conf import (DATABASE_CA_CERT,
                           DATABASE_DB,
@@ -18,45 +20,53 @@ import psycopg2.pool
 import sys
 
 
-# TODO: Try to fix connection pooling someday, ugh
-# Create a psycopg2 connection pool
-# try:
-#     pool = psycopg2.pool.ThreadedConnectionPool(1, 224, environ['HTTPOBS_DATABASE_URL'])
-# except KeyError:
-#     print('Cannot find environmental variable $HTTPOBS_DATABASE_URL. Exiting.')
-#     exit(1)
-# except psycopg2.OperationalError:
-#     print('Cannot connect to PostgreSQL. Exiting.')
-#     exit(1)
-#
-# @contextmanager
-# def get_cursor():
-#     conn = pool.getconn()
-#
-#     try:
-#         yield conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-#         conn.commit()
-#     except:
-#         conn.rollback()
-#     finally:
-#         pool.putconn(conn)
+class SimpleDatabaseConnection:
+    def __init__(self):
+        self._initialized_pid = getpid()
+        self._connect()
+
+    def _connect(self):
+        try:
+            self._conn = psycopg2.connect(database=DATABASE_DB,
+                                          host=DATABASE_HOST,
+                                          password=DATABASE_PASSWORD,
+                                          port=DATABASE_PORT,
+                                          sslmode=DATABASE_SSL_MODE,
+                                          sslrootcert=DATABASE_CA_CERT,
+                                          user=DATABASE_USER)
+        except:
+            self._conn = SimpleNamespace(closed=1)
+
+    @property
+    def conn(self):
+        # TLS connections cannot be shared across workers; you'll get a decryption failed or bad mac error
+        # What we will do is detect if we're running in a different PID and reconnect if so
+        # TODO: use celery's worker init stuff instead?
+        if self._initialized_pid != getpid():
+            self.__init__()
+
+        # If the connection is closed, try to reconnect and raise an IOError if it's unsuccessful
+        if self._conn.closed:
+            self._connect()
+
+            if self._conn.closed:
+                raise IOError
+
+        return self._conn
+
+
+# Create an initial database connection on startup
+db = SimpleDatabaseConnection()
+
 
 @contextmanager
 def get_cursor():
     try:
-        conn = psycopg2.connect(database=DATABASE_DB,
-                                host=DATABASE_HOST,
-                                password=DATABASE_PASSWORD,
-                                port=DATABASE_PORT,
-                                sslmode=DATABASE_SSL_MODE,
-                                sslrootcert=DATABASE_CA_CERT,
-                                user=DATABASE_USER)
-
         try:
-            yield conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            conn.commit()
+            yield db.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+            db.conn.commit()
         except:
-            conn.rollback()
+            db.conn.rollback()
     except:
         raise IOError
 
@@ -67,7 +77,6 @@ try:
         pass
 except IOError:
     print('WARNING: Unable to connect to PostgreSQL.', file=sys.stderr)
-    raise
 
 
 def insert_scan(site_id: int, hidden: bool = False) -> dict:
