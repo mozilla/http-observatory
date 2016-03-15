@@ -8,9 +8,9 @@ from httpobs.conf import (DATABASE_CA_CERT,
                           DATABASE_PORT,
                           DATABASE_SSL_MODE,
                           DATABASE_USER)
-from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_RUNNING, STATE_STARTED
+from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING
 from httpobs.scanner.analyzer import NUM_TESTS
-from httpobs.scanner.grader import grade
+from httpobs.scanner.grader import get_grade_for_score
 
 import psycopg2
 import psycopg2.extras
@@ -92,57 +92,44 @@ def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
         return dict(cur.fetchone())
 
 
-def insert_test_result(site_id: int, scan_id: int, name: str, output: dict) -> dict:
+def insert_test_results(site_id: int, scan_id: int, tests: list) -> dict:
     with get_cursor() as cur:
-        # Pull the expectation, result, and pass result from the output
-        expectation = output.pop('expectation')
-        passed = output.pop('pass')
-        result = output.pop('result')
-        score_modifier = output.pop('score_modifier')
+        tests_failed = tests_passed = 0
+        score = 100
 
-        # First, let's get the scan from the scans table
-        cur.execute("""SELECT tests_completed, tests_passed, tests_failed, tests_quantity, state FROM scans
-                         WHERE id=%s""", (scan_id,))
+        for test in tests:
+            name = test.pop('name')
+            expectation = test.pop('expectation')
+            passed = test.pop('pass')
+            result = test.pop('result')
+            score_modifier = test.pop('score_modifier')
 
-        row = cur.fetchone()
+            # Keep track of how many tests passed or failed
+            if passed:
+                tests_passed += 1
+            else:
+                tests_failed += 1
 
-        # Increment the number of tests completed
-        tests_completed = row['tests_completed'] + 1
-        end_time = 'NULL'
+            # And keep track of the score
+            score += score_modifier
 
-        # Set the proper state
-        state = row['state']
-        if state == STATE_STARTED:
-            state = STATE_RUNNING
-        elif tests_completed == row['tests_quantity']:
-            state = STATE_FINISHED
-            end_time = 'NOW()'
+            # Insert test result to the database
+            cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, pass, output, score_modifier)
+                             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                        (site_id, scan_id, name, expectation, result, passed, dumps(test), score_modifier))
 
-        # Increment the tests passed/failed column
-        tests_passed = row['tests_passed'] + 1 if passed in (True, None) else row['tests_passed']
-        tests_failed = row['tests_failed'] + 1 if passed is False else row['tests_failed']
+        # Now we need to update the scans table
+        score, grade = get_grade_for_score(score)
 
         # Update the scans table
         cur.execute("""UPDATE scans
-                         SET (end_time, tests_completed, tests_failed, tests_passed, state) =
-                         ({0}, %s, %s, %s, %s)
-                         WHERE id = %s""".format(end_time),
-                    (tests_completed, tests_failed, tests_passed, state, scan_id))
-
-        # Add the test result to the database
-        cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, pass, output, score_modifier)
-                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                         SET (end_time, tests_failed, tests_passed, grade, score, state) =
+                         (NOW(), %s, %s, %s, %s, %s)
+                         WHERE id = %s
                          RETURNING *""",
-                    (site_id, scan_id, name, expectation, result, passed, dumps(output), score_modifier))
+                    (tests_failed, tests_passed, grade, score, STATE_FINISHED, scan_id))
 
         row = dict(cur.fetchone())
-
-    # If the state was finished, let's trigger a grading call
-    try:
-        if state == STATE_FINISHED:
-            grade(scan_id)
-    except:
-        pass
 
     return row
 

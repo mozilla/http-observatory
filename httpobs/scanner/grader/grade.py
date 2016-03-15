@@ -96,15 +96,15 @@ SCORE_TABLE = {
     },
     'cookies-without-secure-flag': {
         'description': 'Cookies set without using the Secure flag or set over http',
-        'modifier': -25,
+        'modifier': -20,
     },
     'cookies-session-without-httponly-flag': {
         'description': 'Session cookie set without using the HttpOnly flag',
-        'modifier': -40,
+        'modifier': -30,
     },
     'cookies-session-without-secure-flag': {
         'description': 'Session cookie set without using the Secure flag or set over http',
-        'modifier': -50,
+        'modifier': -40,
     },
 
     # Cross-origin resource sharing
@@ -317,25 +317,16 @@ SCORE_TABLE = {
 }
 
 
-def grade(scan_id) -> tuple:
+def get_grade_for_score(score: int) -> tuple:
     """
     :param scan_id: the scan_id belonging to the tests to grade
     :return: the overall test score and grade
     """
-    from httpobs.database import select_test_results, insert_scan_grade  # avoid import loops
 
-    # Get all the tests
-    tests = select_test_results(scan_id)
-
-    # TODO: this needs a ton of fleshing out
-    score = 100
-    for test in tests:
-        score += tests[test]['score_modifier']
     score = max(score, 0)  # can't have scores below 0
 
-    # Insert the test grade -- if it's >100, just use the grade for 100, otherwise round down to the nearest multiple
-    # of 5
-    insert_scan_grade(scan_id, GRADE_CHART[min(score - score % 5, 100)], score)
+    # If it's >100, just use the grade for 100, otherwise round down to the nearest multiple of 5
+    grade = GRADE_CHART[min(score - score % 5, 100)]
 
     return score, grade
 

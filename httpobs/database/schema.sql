@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS scans (
   state                               VARCHAR    NOT NULL,
   start_time                          TIMESTAMP  NOT NULL,
   end_time                            TIMESTAMP  NULL,
-  tests_completed                     SMALLINT   NOT NULL DEFAULT 0,
   tests_failed                        SMALLINT   NOT NULL DEFAULT 0,
   tests_passed                        SMALLINT   NOT NULL DEFAULT 0,
   tests_quantity                      SMALLINT   NOT NULL,
