@@ -1,116 +1,75 @@
-from httpobs.scanner.grader import get_score_description, GRADES
+from httpobs.conf import API_KEY, COOLDOWN
 from httpobs.scanner.tasks import scan
 from httpobs.scanner.utils import valid_hostname
-from httpobs.website import add_response_headers, sanitized_api_response
+from httpobs.website import add_response_headers
 
-from flask import Blueprint, jsonify, request
-from os import environ
+from flask import abort, jsonify, Blueprint, request
 
 import httpobs.database as database
 
 api = Blueprint('api', __name__)
 
 
-COOLDOWN = 15 if 'HTTPOBS_DEV' in environ else 300
-
-
-# TODO: Implement API to write public and private headers to the database
-
-@api.route('/api/v1/analyze', methods=['GET', 'OPTIONS', 'POST'])
-@add_response_headers(cors=True)
-@sanitized_api_response
+@api.route('/api/v1/analyze', methods=['POST'])
+@add_response_headers()
 def api_post_scan_hostname():
-    # TODO: Allow people to accidentally use https://mozilla.org and convert to mozilla.org
+    # Abort if the API keys don't match
+    if request.form.get('apikey', 'notatrueapikey') != API_KEY:
+        abort(403)
 
-    # Get the hostname
-    hostname = request.args.get('host', '').lower()
-
-    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
-    hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
-    if not hostname:
-        return {'error': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', ''))}
-
-    # Get the site's id number
+    # Get the hostname, whether the scan is hidden, site_id, and scan_id
     try:
-        site_id = database.select_site_id(hostname)
-    except IOError:
-        return {'error': 'Unable to connect to database'}
+        hostname = request.args['host']
+        hidden = False if request.form['hidden'] == 'false' else True
+        site_id = request.form['site_id']
+    except KeyError:
+        return {'error': 'scan-missing-parameters'}
 
-    # Next, let's see if there's a recent scan; if there was a recent scan, let's just return it
-    # Setting rescan shortens what "recent" means
-    rescan = True if request.form.get('rescan', 'false') == 'true' else False
-    if rescan:
-        row = database.select_scan_recent_scan(site_id, COOLDOWN)
-    else:
-        row = database.select_scan_recent_scan(site_id)
+    # Sanity check to see that there are no scans pending; it's not a huge issue if we end up with duplicate
+    # scans, but it's better not
+    row = database.select_scan_recent_scan(site_id, COOLDOWN)
 
-    # Otherwise, let's start up a scan
+    # Start up the scan
     if not row:
-        hidden = True if request.form.get('hidden', 'false') == 'true' else False
-
-        # Begin the dispatch process if it was a POST
-        if request.method == 'POST':
+        try:
             row = database.insert_scan(site_id, hidden=hidden)
             scan_id = row['id']
             scan.delay(hostname, site_id, scan_id)
-        else:
-            return {'error': 'recent-scan-not-found'}
-
-    # If there was a rescan attempt and it returned a row, it's because the rescan was done within the cooldown window
-    elif rescan and request.method == 'POST':
-        return {'error': 'rescan-attempt-too-soon'}
+        except IOError:
+            return {'error': 'scanner-down-try-again-soon'}
 
     # Return the scan row
-    return row
+    return jsonify(row)
 
 
-@api.route('/api/v1/getGradeTotals', methods=['GET', 'OPTIONS'])
-@add_response_headers(cors=True)
-def api_get_grade_totals():
-    totals = database.select_scan_grade_totals()
+@api.route('/api/v1/massAnalyze', methods=['POST'])
+@add_response_headers()
+def api_post_mass_analyze():
+    # Abort if the API keys don't match
+    if request.form.get('apikey', 'notatrueapikey') != API_KEY:
+        abort(403)
 
-    # If a grade isn't in the database, return it with quantity 0
-    totals = {grade: totals.get(grade, 0) for grade in GRADES}
-
-    return jsonify(totals)
-
-
-@api.route('/api/v1/getRecentScans', methods=['GET', 'OPTIONS'])
-@add_response_headers(cors=True)
-def api_get_recent_scans():
+    # Get the hostnames
     try:
-        # Get the min and max scores, if they're there
-        min_score = int(request.args.get('min-score', 0))
-        max_score = int(request.args.get('max-score', 1000))
+        hostnames = request.form['hosts']
+    except KeyError:
+        return {'error': 'scan-missing-parameters'}
 
-        min_score = max(0, min_score)
-        max_score = min(1000, max_score)
-    except ValueError:
-        return {'error': 'invalid-parameters'}
+    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
+    for host in hostnames.split(','):
+        hostname = valid_hostname(host) or valid_hostname('www.' + host)  # prepend www. if necessary
 
-    return jsonify(database.select_scan_recent_finished_scans(min_score=min_score, max_score=max_score))
+        if not hostname:
+            continue
 
+        # Get the site's id number
+        try:
+            site_id = database.select_site_id(hostname)
+        except IOError:
+            return {'error': 'Unable to connect to database'}
 
-@api.route('/api/v1/getScannerStats', methods=['GET', 'OPTIONS'])
-@add_response_headers(cors=True)
-def api_get_scanner_stats():
-    return jsonify(database.select_scan_scanner_stats())
+        # And start up a scan
+        row = database.insert_scan(site_id)
+        scan.delay(hostname, site_id, row['id'])
 
-
-@api.route('/api/v1/getScanResults', methods=['GET', 'OPTIONS'])
-@add_response_headers(cors=True)
-@sanitized_api_response
-def api_get_scan_results():
-    scan_id = request.args.get('scan')
-
-    if not scan_id:
-        return {'error': 'scan-not-found'}
-
-    # Get all the test results for the given scan id
-    tests = dict(database.select_test_results(scan_id))
-
-    # For each test, get the test score description and add that in
-    for test in tests:
-        tests[test]['score_description'] = get_score_description(tests[test]['result'])
-
-    return tests
+    return jsonify({'state': 'OK'})

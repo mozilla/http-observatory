@@ -1,6 +1,8 @@
 language: python
 python:
   - "3.5"
+env:
+  - HTTPOBS_API_KEY="fakeapikey" HTTPOBS_BROKER_URL="fakebrokerurl" HTTPOBS_ENVIRONMENT="frontend"
 install:
   - pip install .
   - pip install -r requirements.txt

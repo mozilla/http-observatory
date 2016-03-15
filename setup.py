@@ -2,6 +2,7 @@
 
 import os
 
+from httpobs import SOURCE_URL, VERSION
 from setuptools import setup, find_packages
 
 
@@ -12,9 +13,9 @@ with open(os.path.join(__dirname, 'README.md')) as readme:
 
 setup(
     name='httpobs',
-    version='0.9.0',
+    version=VERSION,
     description='HTTP Observatory: a set of tests and tools to scan your website for basic web hygeine.',
-    url='https://github.com/mozilla/http-observatory',
+    url=SOURCE_URL,
     long_description=README,
     classifiers=[
         'Development Status :: 4 - Beta',
@@ -32,7 +33,7 @@ setup(
     author='April King',
     author_email='april@mozilla.com',
     packages=find_packages(),
-    include_package_data=False,
+    include_package_data=True,
     scripts=['httpobs/scripts/httpobs',
              'httpobs/scripts/httpobs-database-beat',
              'httpobs/scripts/httpobs-mass-scan',

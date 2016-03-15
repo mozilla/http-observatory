@@ -1,10 +1,26 @@
+import sys
+
 from flask import Flask
-from os import environ
 
+from httpobs.conf import DEVELOPMENT_MODE, ENVIRONMENT, PORT
 from httpobs.website import add_response_headers
-from httpobs.website.backend import api
+from httpobs.website.common import common_api
 
+
+def __exit_with(msg: str) -> None:
+    print(msg)
+    sys.exit(1)
+
+# Register the application with flask
 app = Flask('http-observatory')
+if ENVIRONMENT == 'backend':
+    print('Loading the HTTP Observatory Backend')
+    from httpobs.website.backend import api
+elif ENVIRONMENT == 'frontend':
+    print('Loading the HTTP Observatory Frontend')
+    from httpobs.website.frontend import api
+app.register_blueprint(api)
+app.register_blueprint(common_api)
 
 
 @app.route('/')
@@ -12,10 +28,6 @@ app = Flask('http-observatory')
 def main() -> str:
     return 'Welcome to the HTTP Observatory!'
 
-if __name__ == '__main__':
-    app.register_blueprint(api)
 
-    if 'HTTPOBS_DEV' in environ:
-        app.run(debug=True)
-    else:
-        app.run(debug=False)
+if __name__ == '__main__':
+    app.run(debug=DEVELOPMENT_MODE, port=PORT)

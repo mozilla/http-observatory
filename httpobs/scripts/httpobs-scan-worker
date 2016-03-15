@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
 if [ -n "$HTTPOBS_DEV" ]; then
   CONCURRENCY=128

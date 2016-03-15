@@ -62,7 +62,7 @@ def __get_page_text(response: requests.Response) -> str:
         return None
     elif response.status_code == 200:
         # A quick and dirty check to make sure that somebody's 404 page didn't actually return 200 with html
-        ext = response.url.split('.')[-1]
+        ext = (response.history[0].url if response.history else response.url).split('.')[-1]
         if 'text/html' in response.headers.get('Content-Type', '') and ext in ('json', 'txt', 'xml'):
             return None
 
