@@ -1,0 +1,76 @@
+version: '2'
+services:
+  frontend:
+    build: ./httpobs
+    command: uwsgi --http :57001 --wsgi-file /app/httpobs/website/main.py --callable app --master
+    depends_on:
+      - backend
+      - postgres
+    env_file:
+      - httpobs/conf/.env
+    environment:
+      - HTTPOBS_ENVIRONMENT=frontend
+    links:
+      - backend
+      - postgres
+    ports:
+      - "57001"
+    restart: always
+
+  backend:
+    build: ./httpobs
+    command: uwsgi --http :57002 --wsgi-file /app/httpobs/website/main.py --callable app --master
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - httpobs/conf/.env
+    environment:
+      - HTTPOBS_ENVIRONMENT=backend
+    expose:
+      - "57002"
+    links:
+      - postgres
+      - redis
+    restart: always
+
+  # celery task for scanner
+  scanner:
+    build: ./httpobs
+    command: /app/httpobs/scripts/httpobs-scan-worker
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - httpobs/conf/.env
+    environment:
+      - HTTPOBS_ENVIRONMENT=backend
+    links:
+      - postgres
+      - redis
+
+  # celery beat for database cleanup
+  janitor:
+    build: ./httpobs
+    command: /app/httpobs/scripts/httpobs-database-beat
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - httpobs/conf/.env
+    environment:
+      - HTTPOBS_ENVIRONMENT=backend
+    links:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres
+    build: ./httpobs/database
+    environment:
+      - POSTGRES_USER=httpobs
+      - POSTGRES_PASSWORD=totallyfakepassword
+      - POSTGRES_DB=http_observatory
+
+  redis:
+    image: redis

@@ -5,7 +5,7 @@ env:
   - HTTPOBS_API_KEY="fakeapikey" HTTPOBS_BROKER_URL="fakebrokerurl" HTTPOBS_ENVIRONMENT="frontend"
 install:
   - pip install .
-  - pip install -r requirements.txt
+  - pip install -r httpobs/requirements.txt
 script:
   - "nosetests httpobs/tests -e insert_test_result -e scored_test -e select_test_results -e test_retrieve --with-coverage --cover-package=httpobs"
   - "flake8 --config .flake8 httpobs"
