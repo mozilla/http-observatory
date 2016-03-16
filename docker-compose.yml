@@ -9,12 +9,14 @@ services:
     env_file:
       - httpobs/conf/.env
     environment:
+      - HTTPOBS_BACKEND_URL=http://backend:57002/api/v1
+      - HTTPOBS_DATABASE_PASS=httpobsapipassword
       - HTTPOBS_ENVIRONMENT=frontend
     links:
       - backend
       - postgres
     ports:
-      - "57001"
+      - "57001:57001"
     restart: always
 
   backend:
@@ -26,6 +28,7 @@ services:
     env_file:
       - httpobs/conf/.env
     environment:
+      - HTTPOBS_DATABASE_PASS=httpobsscannerpassword
       - HTTPOBS_ENVIRONMENT=backend
     expose:
       - "57002"
@@ -44,6 +47,8 @@ services:
     env_file:
       - httpobs/conf/.env
     environment:
+      - HTTPOBS_DATABASE_PASS=httpobsscannerpassword
+      - HTTPOBS_DOCKER_CONCURRENCY=8
       - HTTPOBS_ENVIRONMENT=backend
     links:
       - postgres
@@ -59,6 +64,7 @@ services:
     env_file:
       - httpobs/conf/.env
     environment:
+      - HTTPOBS_DATABASE_PASS=httpobsscannerpassword
       - HTTPOBS_ENVIRONMENT=backend
     links:
       - postgres
