@@ -75,8 +75,11 @@ def analyze(host):
         print('Modifiers:')
 
         # Get all the scores that aren't 0, in descending numerical order
-        scores = sorted([(tests[test]['score_modifier'], tests[test]['score_description'])
-                   for test in tests if tests[test]['score_modifier'] != 0])
+        if args.zero:
+            scores = sorted([(tests[test]['score_modifier'], tests[test]['score_description']) for test in tests])
+        else:
+            scores = sorted([(tests[test]['score_modifier'], tests[test]['score_description'])
+                       for test in tests if tests[test]['score_modifier'] != 0])
         scores = sorted(scores, key=itemgetter(0), reverse=True)  # [(-5, 'foo'), (-10, 'bar')]
         scores = [list(score) for score in scores]  # convert everything from tuples to lists
 
@@ -153,6 +156,8 @@ if __name__ == "__main__":
                         help='initiate a rescan instead of showing recent scan results')
     parser.add_argument('-v', '--verbose', action='store_true', help='display progress indicator')
     parser.add_argument('-x', '--hidden', action='store_true', help='don\'t list scan in the recent scan results')
+    parser.add_argument('-z', '--zero', action='store_true',
+                        help='show test results that don\'t affect the final score')
     args = parser.parse_args()
 
     # Go out and scan!
