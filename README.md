@@ -70,7 +70,7 @@ optional arguments:
 ### Running a local scanner with Docker
 * Install [Docker Toolbox](https://www.docker.com/products/docker-toolbox) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
-```
+```bash
 # Install the HTTP Observatory client and requests library
 $ git clone https://github.com/mozilla/http-observatory.git
 $ cd http-observatory
