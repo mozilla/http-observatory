@@ -16,7 +16,7 @@ pep8==1.7.0
 psycopg2==2.6.1
 publicsuffixlist==0.4.0
 pyflakes==1.1.0
-pytz==2015.7
+pytz==2016.1
 redis==2.10.5
 requests==2.9.1
 uwsgi==2.0.12
