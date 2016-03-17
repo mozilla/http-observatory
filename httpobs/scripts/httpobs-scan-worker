@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 
-if [ -n "$HTTPOBS_DEV" ]; then
+if [ -n "$HTTPOBS_DOCKER_CONCURRENCY" ]; then
+  CONCURRENCY=$HTTPOBS_DOCKER_CONCURRENCY
+  LOGLEVEL=info
+elif [ -n "$HTTPOBS_DEV" ]; then
   CONCURRENCY=128
   LOGLEVEL=info
 
@@ -17,7 +20,6 @@ exec celery \
   -A httpobs.scanner.tasks \
   --broker=$HTTPOBS_BROKER_URL \
   --concurrency=$CONCURRENCY \
-  --detach \
   --hostname='scanner@%h' \
   --logfile='/var/log/httpobs/scanner.log' \
   --loglevel=$LOGLEVEL \

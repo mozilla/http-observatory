@@ -1,4 +1,5 @@
 from httpobs.conf import API_KEY, COOLDOWN
+from httpobs.scanner import STATE_ABORTED
 from httpobs.scanner.tasks import scan
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers
@@ -6,8 +7,18 @@ from httpobs.website import add_response_headers
 from flask import abort, jsonify, Blueprint, request
 
 import httpobs.database as database
+import redis.exceptions
 
 api = Blueprint('api', __name__)
+
+
+def __start_scan(hostname, site_id):
+    row = database.insert_scan(site_id)
+    try:
+        scan.delay(hostname, site_id, row['id'])
+    except redis.exceptions.ConnectionError:
+        database.update_scan_state(row['id'], STATE_ABORTED, error='redis down')
+        return {'error': 'Unable to connect to task system'}
 
 
 @api.route('/api/v1/analyze', methods=['POST'])
@@ -70,6 +81,10 @@ def api_post_mass_analyze():
 
         # And start up a scan
         row = database.insert_scan(site_id)
-        scan.delay(hostname, site_id, row['id'])
+        try:
+            scan.delay(hostname, site_id, row['id'])
+        except redis.exceptions.ConnectionError:
+            database.update_scan_state(row['id'], STATE_ABORTED, error='redis down')
+            return {'error': 'Unable to connect to task system'}
 
     return jsonify({'state': 'OK'})

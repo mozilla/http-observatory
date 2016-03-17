@@ -61,6 +61,34 @@ optional arguments:
   -x, --hidden   don't list scan in the recent scan results
 ```
 
+## Contributing
+
+### Prerequisites
+* Python 3
+* Git
+
+### Running a local scanner with Docker
+* Install [Docker Toolbox](https://www.docker.com/products/docker-toolbox) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+
+```bash
+# Install the HTTP Observatory client and requests library
+$ git clone https://github.com/mozilla/http-observatory.git
+$ cd http-observatory
+$ pip3 install .
+$ pip3 install --upgrade requests
+
+# Create docker machine
+$ docker-machine create --driver virtualbox --virtualbox-disk-size "40000" http-observatory
+
+# Save the URL to the eventual frontend in your .profile, .bash_profile, or whatever
+$ echo export HTTPOBS_FRONTEND_API_URL=http://$(docker-machine ip http-observatory):57001/api/v1 >> ~/.profile
+$ . ~/.profile
+
+# Start up the docker instance and install all the pieces
+$ eval $(docker-machine env http-observatory)
+$ docker-compose up -d
+```
+
 ## Authors
 
 * April King
