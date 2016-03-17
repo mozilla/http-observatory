@@ -9,7 +9,7 @@ services:
     env_file:
       - httpobs/conf/.env
     environment:
-      - HTTPOBS_BACKEND_URL=http://backend:57002/api/v1
+      - HTTPOBS_BACKEND_API_URL=http://backend:57002/api/v1
       - HTTPOBS_DATABASE_PASS=httpobsapipassword
       - HTTPOBS_ENVIRONMENT=frontend
     links:

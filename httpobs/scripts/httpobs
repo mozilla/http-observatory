@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 from operator import itemgetter
@@ -7,16 +7,11 @@ from sys import exit
 import argparse
 import datetime
 import json
-import os
 import requests
 import sys
 import time
 
-
-if 'HTTPOBS_DEV' in os.environ:  # TODO: use httpobs.conf
-    HTTP_OBS_URL = 'http://http-observatory.services.mozilla.com:57001/api/v1'
-else:
-    HTTP_OBS_URL = 'https://http-observatory.services.mozilla.com/api/v1'
+from httpobs.conf import FRONTEND_API_URL
 
 
 def analyze(host):
@@ -31,7 +26,7 @@ def analyze(host):
 
     try:
         # First, make a POST to the Observatory to start the scan
-        scan = requests.post(HTTP_OBS_URL + '/analyze?host={host}'.format(host=host), data=data).json()
+        scan = requests.post(FRONTEND_API_URL + '/analyze?host={host}'.format(host=host), data=data).json()
 
         # Notify the user if the user if they attempted a rescan too soon
         if args.rescan and scan.get('error') == 'rescan-attempt-too-soon':
@@ -40,7 +35,7 @@ def analyze(host):
 
         # Keep polling the HTTP Observatory for the scan to finish
         if scan.get('state') != 'FINISHED':
-            scan = poll(HTTP_OBS_URL + '/analyze?host={host}'.format(host=host),
+            scan = poll(FRONTEND_API_URL + '/analyze?host={host}'.format(host=host),
                         key='state',
                         values=['FINISHED'],
                         method='GET')
@@ -49,11 +44,11 @@ def analyze(host):
     except SystemExit:
         raise
     except:
-        print('\nUnable to get result from the HTTP Observatory.')
+        print('\nCannot connect to HTTP Observatory at: {url}.'.format(url=FRONTEND_API_URL))
         exit(1)
 
     # Get the test results
-    tests = poll(HTTP_OBS_URL + '/getScanResults?scan={scan}'.format(scan=scan['scan_id']),
+    tests = poll(FRONTEND_API_URL + '/getScanResults?scan={scan}'.format(scan=scan['scan_id']),
                  key='x-frame-options')
 
     # Print out a notification on stderr that it's a cached result
