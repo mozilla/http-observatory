@@ -15,7 +15,7 @@ $ ln -s `pwd`/http-observatory/httpobs/scripts/httpobs /usr/local/bin/httpobs
 
 And then scan websites to your heart's content, using our hosted service:
 
-```bash
+```
 $ httpobs www.mozilla.org
 Score: 30 [E]
 Modifiers:
@@ -53,7 +53,7 @@ Modifiers:
 
 If you want additional options, such as to see the raw scan output, use `httpobs --help`:
 
-```bash
+```
 $ httpobs --help
 usage: httpobs [options] host
 
