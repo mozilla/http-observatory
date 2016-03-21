@@ -17,8 +17,6 @@ And then scan websites to your heart's content, using our hosted service:
 
 ```bash
 $ httpobs www.mozilla.org
-Score: 35 [D-]
-Modifiers:
 Score: 30 [E]
 Modifiers:
     [  -5] Initial redirection from http to https is to a different host, preventing HSTS
