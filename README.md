@@ -35,7 +35,7 @@ Modifiers:
     [ -20] HTTP Strict Transport Security (HSTS) header not implemented
     [ -25] Content Security Policy (CSP) header not implemented
 
-$ httpobs/scripts/httpobs --zero github.com
+$ httpobs --zero github.com
 Score: 106 [A+]
 Modifiers:
     [  +5] Preloaded via the HTTP Strict Transport Security (HSTS) preloading process
