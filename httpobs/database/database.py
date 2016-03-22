@@ -10,7 +10,7 @@ from httpobs.conf import (DATABASE_CA_CERT,
                           DATABASE_PORT,
                           DATABASE_SSL_MODE,
                           DATABASE_USER)
-from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING
+from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_STARTING
 from httpobs.scanner.analyzer import NUM_TESTS
 from httpobs.scanner.grader import get_grade_for_score
 
@@ -23,6 +23,7 @@ import sys
 class SimpleDatabaseConnection:
     def __init__(self):
         self._initialized_pid = getpid()
+        self._connected = True
         self._connect()
 
     def _connect(self):
@@ -34,8 +35,17 @@ class SimpleDatabaseConnection:
                                           sslmode=DATABASE_SSL_MODE,
                                           sslrootcert=DATABASE_CA_CERT,
                                           user=DATABASE_USER)
+
+            if not self._connected:
+                print('INFO: Connected to PostgreSQL', file=sys.stderr)
+            self._connected = True
+
         except:
             self._conn = SimpleNamespace(closed=1)
+
+            if self._connected:
+                print('WARNING: Disconnected from PostgreSQL', file=sys.stderr)
+            self._connected = False
 
     @property
     def conn(self):
@@ -62,8 +72,8 @@ db = SimpleDatabaseConnection()
 @contextmanager
 def get_cursor():
     try:
+        yield db.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         try:
-            yield db.conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
             db.conn.commit()
         except:
             db.conn.rollback()
@@ -292,7 +302,25 @@ def update_scans_abort_broken_scans(num_seconds=1800) -> int:
                          WHERE state != %s
                            AND state != %s
                            AND state != %s
-                           AND start_time < NOW() - INTERVAL '%s seconds';""",
+                           AND start_time < NOW() - INTERVAL '%s seconds'""",
                     (STATE_ABORTED, STATE_ABORTED, STATE_FAILED, STATE_FINISHED, num_seconds))
 
         return cur.rowcount
+
+
+def update_scans_dequeue_scans(num_to_dequeue: int = 0) -> dict:
+    with get_cursor() as cur:
+        cur.execute("""UPDATE scans
+                         SET (state) = (%s)
+                         FROM (
+                           SELECT sites.domain, scans.site_id, scans.id AS scan_id, scans.state
+                             FROM scans
+                             INNER JOIN sites ON scans.site_id = sites.id
+                             WHERE state = %s
+                             LIMIT %s
+                             FOR UPDATE) sub
+                         WHERE scans.id = sub.scan_id
+                         RETURNING sub.domain, sub.site_id, sub.scan_id""",
+                    (STATE_STARTING, STATE_PENDING, num_to_dequeue))
+
+        return cur.fetchall()

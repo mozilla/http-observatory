@@ -1,27 +1,32 @@
 #!/usr/bin/env sh
 
-if [ -n "$HTTPOBS_DOCKER_CONCURRENCY" ]; then
-  CONCURRENCY=$HTTPOBS_DOCKER_CONCURRENCY
-  LOGLEVEL=info
-elif [ -n "$HTTPOBS_DEV" ]; then
-  CONCURRENCY=128
-  LOGLEVEL=info
+if [ $(uname -s) = "Darwin" ]; then
+  ulimit -n 2048  # increase file descriptor limits on OS X
+fi
 
-  if [ $(uname -s) = "Darwin" ]; then
-    ulimit -n 2048  # increase file descriptor limits on OS X
-  fi
+if [ -n "$HTTPOBS_MAX_CONCURRENCY" ]; then
+  CONCURRENCY=$HTTPOBS_MAX_CONCURRENCY
+  LOGLEVEL=warning
+elif [ -n "$HTTPOBS_DEV" ]; then
+  CONCURRENCY=64
+  LOGLEVEL=info
 else
-  CONCURRENCY=256
+  CONCURRENCY=128
   LOGLEVEL=warning
 fi
 
 # Execute celery
-exec celery \
+celery \
   -A httpobs.scanner.tasks \
+  --autoscale=$CONCURRENCY,4 \
   --broker=$HTTPOBS_BROKER_URL \
-  --concurrency=$CONCURRENCY \
+  --detach \
   --hostname='scanner@%h' \
   --logfile='/var/log/httpobs/scanner.log' \
   --loglevel=$LOGLEVEL \
+  --maxtasksperchild=1024 \
   --pidfile='/var/run/httpobs/scanner.pid' \
   worker
+
+# Run the scanner
+python3 httpobs/scanner/main.py
