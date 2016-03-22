@@ -88,8 +88,8 @@ $ pip3 install --upgrade requests
 # Create docker machine
 $ docker-machine create --driver virtualbox --virtualbox-disk-size "40000" http-observatory
 
-# Save the URL to the eventual frontend in your .profile, .bash_profile, or whatever
-$ echo export HTTPOBS_FRONTEND_API_URL=http://$(docker-machine ip http-observatory):57001/api/v1 >> ~/.profile
+# Save the URL to the API in your .profile, .bash_profile, or whatever
+$ echo export HTTPOBS_API_URL=http://$(docker-machine ip http-observatory):57001/api/v1 >> ~/.profile
 $ . ~/.profile
 
 # Start up the docker instance and install all the pieces
