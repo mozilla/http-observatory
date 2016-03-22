@@ -15,10 +15,8 @@ $ ln -s `pwd`/http-observatory/httpobs/scripts/httpobs /usr/local/bin/httpobs
 
 And then scan websites to your heart's content, using our hosted service:
 
-```bash
+```
 $ httpobs www.mozilla.org
-Score: 35 [D-]
-Modifiers:
 Score: 30 [E]
 Modifiers:
     [  -5] Initial redirection from http to https is to a different host, preventing HSTS
@@ -37,7 +35,7 @@ Modifiers:
     [ -20] HTTP Strict Transport Security (HSTS) header not implemented
     [ -25] Content Security Policy (CSP) header not implemented
 
-$ httpobs/scripts/httpobs --zero github.com
+$ httpobs --zero github.com
 Score: 106 [A+]
 Modifiers:
     [  +5] Preloaded via the HTTP Strict Transport Security (HSTS) preloading process
@@ -55,7 +53,7 @@ Modifiers:
 
 If you want additional options, such as to see the raw scan output, use `httpobs --help`:
 
-```bash
+```
 $ httpobs --help
 usage: httpobs [options] host
 
@@ -90,8 +88,8 @@ $ pip3 install --upgrade requests
 # Create docker machine
 $ docker-machine create --driver virtualbox --virtualbox-disk-size "40000" http-observatory
 
-# Save the URL to the eventual frontend in your .profile, .bash_profile, or whatever
-$ echo export HTTPOBS_FRONTEND_API_URL=http://$(docker-machine ip http-observatory):57001/api/v1 >> ~/.profile
+# Save the URL to the API in your .profile, .bash_profile, or whatever
+$ echo export HTTPOBS_API_URL=http://$(docker-machine ip http-observatory):57001/api/v1 >> ~/.profile
 $ . ~/.profile
 
 # Start up the docker instance and install all the pieces
