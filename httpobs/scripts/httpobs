@@ -11,7 +11,7 @@ import requests
 import sys
 import time
 
-from httpobs.conf import FRONTEND_API_URL
+from httpobs.conf import API_URL
 
 
 def analyze(host):
@@ -26,7 +26,7 @@ def analyze(host):
 
     try:
         # First, make a POST to the Observatory to start the scan
-        scan = requests.post(FRONTEND_API_URL + '/analyze?host={host}'.format(host=host), data=data).json()
+        scan = requests.post(API_URL + '/analyze?host={host}'.format(host=host), data=data).json()
 
         # Notify the user if the user if they attempted a rescan too soon
         if args.rescan and scan.get('error') == 'rescan-attempt-too-soon':
@@ -35,7 +35,7 @@ def analyze(host):
 
         # Keep polling the HTTP Observatory for the scan to finish
         if scan.get('state') != 'FINISHED':
-            scan = poll(FRONTEND_API_URL + '/analyze?host={host}'.format(host=host),
+            scan = poll(API_URL + '/analyze?host={host}'.format(host=host),
                         key='state',
                         values=['FINISHED'],
                         method='GET')
@@ -44,11 +44,11 @@ def analyze(host):
     except SystemExit:
         raise
     except:
-        print('\nCannot connect to HTTP Observatory at: {url}.'.format(url=FRONTEND_API_URL))
+        print('\nCannot connect to HTTP Observatory at: {url}.'.format(url=API_URL))
         exit(1)
 
     # Get the test results
-    tests = poll(FRONTEND_API_URL + '/getScanResults?scan={scan}'.format(scan=scan['scan_id']),
+    tests = poll(API_URL + '/getScanResults?scan={scan}'.format(scan=scan['scan_id']),
                  key='x-frame-options')
 
     # Print out a notification on stderr that it's a cached result
@@ -57,9 +57,9 @@ def analyze(host):
     differential = differential.days * 86400 + differential.seconds
 
     if differential > 300:
-        hour = differential / 3600
-        minute = (differential - 3600 * hour) / 60
-        sec = differential % 60
+        hour = int(differential / 3600)
+        minute = int((differential - 3600 * hour) / 60)
+        sec = int(differential % 60)
         print('Results are cached from {hour}h{min}m{sec}s ago; use -r to rescan.\n'
               .format(hour=hour, min=minute, sec=sec),
               file=sys.stderr)

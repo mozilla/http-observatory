@@ -1,4 +1,4 @@
-from os import environ
+from os import environ, cpu_count
 
 import os.path
 import sys
@@ -19,29 +19,17 @@ DEVELOPMENT_MODE = True if environ.get('HTTPOBS_DEV', False) == 'true' else Fals
 # Set the scanner cooldown speed
 COOLDOWN = 15 if DEVELOPMENT_MODE else 300
 
-API_KEY = __exit_without('HTTPOBS_API_KEY')
+API_KEY = environ.get('HTTPOBS_API_KEY')
+API_URL = environ.get('HTTPOBS_API_URL',
+                      'https://http.observatory.services.mozilla.com/api/v1')
 BROKER_URL = __exit_without('HTTPOBS_BROKER_URL')
 DATABASE_DB = environ.get('HTTPOBS_DATABASE_DB', 'http_observatory')
 DATABASE_HOST = environ.get('HTTPOBS_DATABASE_HOST', 'localhost')
-DATABASE_PASSWORD = environ.get('HTTPOBS_DATABASE_PASS')
+DATABASE_PASSWORD = __exit_without('HTTPOBS_DATABASE_PASS')
 DATABASE_PORT = environ.get('HTTPOBS_DATABASE_PORT', 5432)
-ENVIRONMENT = __exit_without('HTTPOBS_ENVIRONMENT')
+DATABASE_USER = __exit_without('HTTPOBS_DATABASE_USER')
+WEBSITE_PORT = environ.get('HTTPOBS_WEBSITE_PORT', 57001)
 
-if ENVIRONMENT == 'frontend':
-    DATABASE_USER = 'httpobsapi'
-    PORT = 57001
-elif ENVIRONMENT == 'backend':
-    DATABASE_USER = 'httpobsscanner'
-    PORT = 57002
-else:
-    print('Invalid environment. Exiting.')
-    sys.exit(1)
-
-# Set the frontend and backend URLs
-FRONTEND_API_URL = environ.get('HTTPOBS_FRONTEND_API_URL',
-                               'https://http.observatory.services.mozilla.com/api/v1')
-BACKEND_API_URL = environ.get('HTTPOBS_BACKEND_API_URL',
-                              'https://observatory-scanner.services.mozilla.com:57002/api/v1')
 
 # Set some database provider specific parameters
 __dirname = os.path.abspath(os.path.dirname(__file__))
@@ -51,3 +39,10 @@ if DATABASE_HOST.endswith('.rds.amazonaws.com'):
 else:
     DATABASE_CA_CERT = None
     DATABASE_SSL_MODE = 'prefer'
+
+# The scanner should back off once the system load average reaches a specific load factor
+SCANNER_MAX_LOAD_RATIO = 3
+SCANNER_MAX_LOAD = cpu_count() * SCANNER_MAX_LOAD_RATIO
+SCANNER_BROKER_RECONNECTION_SLEEP_TIME = 15
+SCANNER_CYCLE_SLEEP_TIME = .5  # half a second
+SCANNER_DATABASE_RECONNECTION_SLEEP_TIME = 5

@@ -35,7 +35,6 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     scripts=['httpobs/scripts/httpobs',
-             'httpobs/scripts/httpobs-database-beat',
              'httpobs/scripts/httpobs-mass-scan',
              'httpobs/scripts/httpobs-scan-worker'],
     zip_safe=False,

@@ -54,19 +54,21 @@ CREATE INDEX tests_result_idx     ON tests (result);
 CREATE INDEX tests_pass_idx       ON tests (pass);
 
 CREATE USER httpobsscanner;
-GRANT SELECT, INSERT ON sites, expectations, scans, tests TO httpobsscanner;
-GRANT UPDATE on sites, expectations, scans TO httpobsscanner;
-GRANT USAGE ON SEQUENCE sites_id_seq TO httpobsscanner;
-GRANT USAGE ON SEQUENCE expectations_id_seq TO httpobsscanner;
-GRANT USAGE ON SEQUENCE scans_id_seq TO httpobsscanner;
+GRANT SELECT on sites, scans, expectations, tests TO httpobsscanner;
+GRANT UPDATE (domain) ON sites to httpobsscanner;  /* TODO: there's got to be a better way with SELECT ... FOR UPDATE */
+GRANT UPDATE on scans TO httpobsscanner;
+GRANT INSERT on tests TO httpobsscanner;
 GRANT USAGE ON SEQUENCE tests_id_seq TO httpobsscanner;
 
 CREATE USER httpobsapi;
 GRANT SELECT ON expectations, scans, tests to httpobsapi;
 GRANT SELECT (id, domain, creation_time, public_headers) ON sites TO httpobsapi;
-GRANT INSERT ON sites to httpobsapi;
-GRANT UPDATE (public_headers, private_headers) ON sites to httpobsapi;
+GRANT INSERT ON sites, scans TO httpobsapi;
+GRANT UPDATE (public_headers, private_headers) ON sites TO httpobsapi;
+GRANT UPDATE ON scans TO httpobsapi;
 GRANT USAGE ON SEQUENCE sites_id_seq TO httpobsapi;
+GRANT USAGE ON SEQUENCE scans_id_seq TO httpobsapi;
+GRANT USAGE ON SEQUENCE expectations_id_seq TO httpobsapi;
 
 CREATE MATERIALIZED VIEW latest_scans
   AS SELECT latest_scans.site_id, latest_scans.scan_id, s.domain, latest_scans.state,

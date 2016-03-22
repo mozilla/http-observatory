@@ -1,40 +1,20 @@
 version: '2'
 services:
-  frontend:
+  website:
     build: ./httpobs
     command: uwsgi --http :57001 --wsgi-file /app/httpobs/website/main.py --callable app --master
     depends_on:
-      - backend
       - postgres
-    env_file:
-      - httpobs/conf/.env
     environment:
-      - HTTPOBS_BACKEND_API_URL=http://backend:57002/api/v1
+      - HTTPOBS_API_KEY=insertapikeyhere
+      - HTTPOBS_BROKER_URL=redis://redis:6379/0
+      - HTTPOBS_DATABASE_HOST=postgres
       - HTTPOBS_DATABASE_PASS=httpobsapipassword
-      - HTTPOBS_ENVIRONMENT=frontend
+      - HTTPOBS_DATABASE_USER=httpobsapi
     links:
-      - backend
       - postgres
     ports:
       - "57001:57001"
-    restart: always
-
-  backend:
-    build: ./httpobs
-    command: uwsgi --http :57002 --wsgi-file /app/httpobs/website/main.py --callable app --master
-    depends_on:
-      - postgres
-      - redis
-    env_file:
-      - httpobs/conf/.env
-    environment:
-      - HTTPOBS_DATABASE_PASS=httpobsscannerpassword
-      - HTTPOBS_ENVIRONMENT=backend
-    expose:
-      - "57002"
-    links:
-      - postgres
-      - redis
     restart: always
 
   # celery task for scanner
@@ -44,28 +24,12 @@ services:
     depends_on:
       - postgres
       - redis
-    env_file:
-      - httpobs/conf/.env
     environment:
+      - HTTPOBS_BROKER_URL=redis://redis:6379/0
+      - HTTPOBS_DATABASE_HOST=postgres
       - HTTPOBS_DATABASE_PASS=httpobsscannerpassword
-      - HTTPOBS_DOCKER_CONCURRENCY=8
-      - HTTPOBS_ENVIRONMENT=backend
-    links:
-      - postgres
-      - redis
-
-  # celery beat for database cleanup
-  janitor:
-    build: ./httpobs
-    command: /app/httpobs/scripts/httpobs-database-beat
-    depends_on:
-      - postgres
-      - redis
-    env_file:
-      - httpobs/conf/.env
-    environment:
-      - HTTPOBS_DATABASE_PASS=httpobsscannerpassword
-      - HTTPOBS_ENVIRONMENT=backend
+      - HTTPOBS_DATABASE_USER=httpobsscanner
+      - HTTPOBS_MAX_CONCURRENCY=16
     links:
       - postgres
       - redis

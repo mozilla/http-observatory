@@ -1,13 +1,11 @@
-from httpobs.conf import API_KEY, BACKEND_API_URL, COOLDOWN
+from httpobs.conf import API_KEY, COOLDOWN
 from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
 
-from flask import Blueprint, jsonify, request
+from flask import abort, Blueprint, jsonify, request
 
 import httpobs.database as database
-
-import requests
 
 
 api = Blueprint('api', __name__)
@@ -43,21 +41,13 @@ def api_post_scan_hostname():
     else:
         row = database.select_scan_recent_scan(site_id)
 
-    # Otherwise, let's start up a scan
+    # Otherwise, let's queue up the scan
     if not row:
         hidden = request.form.get('hidden', 'false')
 
         # Begin the dispatch process if it was a POST
         if request.method == 'POST':
-            try:
-                # Connect to the backend and initiate a scan
-                return requests.post(BACKEND_API_URL + '/analyze?host=' + hostname,
-                                     data={'site_id': site_id,
-                                           'hidden': hidden,
-                                           'apikey': API_KEY}
-                                     ).json()
-            except:
-                return {'error': 'scanner-backend-not-available-try-again-soon'}
+            row = database.insert_scan(site_id, hidden=hidden)
         else:
             return {'error': 'recent-scan-not-found'}
 
@@ -119,3 +109,36 @@ def api_get_scan_results():
         tests[test]['score_description'] = get_score_description(tests[test]['result'])
 
     return tests
+
+
+@api.route('/api/v1/private/massAnalyze', methods=['POST'])
+@add_response_headers()
+def api_post_mass_analyze():
+    # Abort if the API keys don't match
+    if request.form.get('apikey', 'notatrueapikey') != API_KEY or not API_KEY:
+        abort(403)
+
+    # Get the hostnames
+    try:
+        hostnames = request.form['hosts']
+    except KeyError:
+        return {'error': 'scan-missing-parameters'}
+
+    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
+    for host in hostnames.split(','):
+        hostname = valid_hostname(host) or valid_hostname('www.' + host)  # prepend www. if necessary
+
+        # We don't really care about hosts that can't be found
+        if not hostname:
+            continue
+
+        # Get the site's id number
+        try:
+            site_id = database.select_site_id(hostname)
+        except IOError:
+            return {'error': 'Unable to connect to database'}
+
+        # And enqueue the scan
+        database.insert_scan(site_id)
+
+    return jsonify({'state': 'OK'})
