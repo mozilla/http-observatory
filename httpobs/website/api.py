@@ -75,8 +75,8 @@ def api_get_grade_totals():
 def api_get_recent_scans():
     try:
         # Get the min and max scores, if they're there
-        min_score = int(request.args.get('min-score', 0))
-        max_score = int(request.args.get('max-score', 1000))
+        min_score = int(request.args.get('min', 0))
+        max_score = int(request.args.get('max', 1000))
 
         min_score = max(0, min_score)
         max_score = min(1000, max_score)
@@ -86,10 +86,10 @@ def api_get_recent_scans():
     return jsonify(database.select_scan_recent_finished_scans(min_score=min_score, max_score=max_score))
 
 
-@api.route('/api/v1/getScannerStats', methods=['GET', 'OPTIONS'])
+@api.route('/api/v1/getScannerStates', methods=['GET', 'OPTIONS'])
 @add_response_headers(cors=True)
 def api_get_scanner_stats():
-    return jsonify(database.select_scan_scanner_stats())
+    return jsonify(database.select_scan_scanner_states())
 
 
 @api.route('/api/v1/getScanResults', methods=['GET', 'OPTIONS'])
