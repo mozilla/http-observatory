@@ -167,7 +167,7 @@ def select_scan_grade_totals() -> dict:
         return dict(cur.fetchall())
 
 
-def select_scan_scanner_stats() -> dict:
+def select_scan_scanner_states() -> dict:
     with get_cursor() as cur:
         cur.execute('SELECT state, COUNT(*) as quantity FROM scans GROUP BY state;')
 

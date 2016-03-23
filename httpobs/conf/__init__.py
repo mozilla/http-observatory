@@ -17,7 +17,7 @@ def __exit_without(envvar: str) -> str:
 DEVELOPMENT_MODE = True if environ.get('HTTPOBS_DEV', False) == 'true' else False
 
 # Set the scanner cooldown speed
-COOLDOWN = 15 if DEVELOPMENT_MODE else 300
+COOLDOWN = 15 if DEVELOPMENT_MODE else 1200
 
 API_KEY = environ.get('HTTPOBS_API_KEY')
 API_URL = environ.get('HTTPOBS_API_URL',
