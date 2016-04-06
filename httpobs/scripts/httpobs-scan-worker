@@ -25,7 +25,7 @@ celery \
   --logfile='/var/log/httpobs/scanner.log' \
   --loglevel=$LOGLEVEL \
   --maxtasksperchild=1024 \
-  --pidfile='/var/run/httpobs/scanner.pid' \
+#  --pidfile='/var/run/httpobs/scanner.pid' \  # TODO: Kill the existing celery
   worker
 
 # Run the scanner
