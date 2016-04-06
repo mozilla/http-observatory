@@ -69,6 +69,9 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
             output['result'] = 'csp-implemented-with-unsafe-eval'
         elif '\'unsafe-inline\'' in csp.get('style-src') or 'data:' in csp.get('style-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
+        # TODO: give a bonus if default-src is 'none'?
+        elif csp.get('default-src') == ['\'none\'']:
+            output['result'] = 'csp-implemented-with-no-unsafe-default-src-none'
         else:
             output['result'] = 'csp-implemented-with-no-unsafe'
 
@@ -81,7 +84,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         output['result'] = 'csp-not-implemented'
 
     # Check to see if the test passed or failed
-    if expectation == output['result']:
+    if output['result'] in (expectation, 'csp-implemented-with-no-unsafe-default-src-none'):
         output['pass'] = True
 
     return output

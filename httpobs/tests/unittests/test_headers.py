@@ -78,7 +78,7 @@ class TestContentSecurityPolicy(TestCase):
             self.assertFalse(result['pass'])
 
     def test_no_unsafe(self):
-        values = ("default-src 'none'",
+        values = ("default-src https://mozilla.org",
                   "script-src https://mozilla.org; style-src https://mozilla.org; upgrade-insecure-requests;")
 
         for value in values:
@@ -88,6 +88,19 @@ class TestContentSecurityPolicy(TestCase):
 
             self.assertEquals('csp-implemented-with-no-unsafe', result['result'])
             self.assertTrue(result['pass'])
+
+    def test_no_unsafe_default_src_none(self):
+        values = ("default-src 'none'; script-src https://mozilla.org;"
+                  "style-src https://mozilla.org; upgrade-insecure-requests;",)
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+
+            result = content_security_policy(self.reqs)
+
+            self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+            self.assertTrue(result['pass'])
+
 
 
 class TestCookies(TestCase):

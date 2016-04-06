@@ -2,13 +2,11 @@ from bs4 import BeautifulSoup as bs
 from publicsuffixlist import PublicSuffixList
 from urllib.parse import urlparse
 
+from httpobs.conf import SCANNER_MOZILLA_DOMAINS
 from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import only_if_worse
 
 import json
-
-
-MOZILLA_DOMAINS = ('mozilla', 'allizom', 'browserid', 'firefox', 'persona', 'taskcluster', 'webmaker')
 
 
 @scored_test
@@ -64,7 +62,7 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
             else:
                 output['data'] = {}
 
-    elif urlparse(response.url).netloc.split('.')[-2] not in MOZILLA_DOMAINS:
+    elif urlparse(response.url).netloc.split('.')[-2] not in SCANNER_MOZILLA_DOMAINS:
         output['expectation'] = output['result'] = 'contribute-json-only-required-on-mozilla-properties'
     else:
         output['result'] = 'contribute-json-not-implemented'
