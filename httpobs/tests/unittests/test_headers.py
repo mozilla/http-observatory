@@ -102,7 +102,6 @@ class TestContentSecurityPolicy(TestCase):
             self.assertTrue(result['pass'])
 
 
-
 class TestCookies(TestCase):
     def setUp(self):
         self.reqs = empty_requests()

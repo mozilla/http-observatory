@@ -20,7 +20,8 @@ def main():
     while True:
         try:
             # If the load is higher than SCANNER_MAX_LOAD, let's sleep a bit and see if things have calmed down a bit
-            # If the load is 30 and the max load is 20, sleep 11 seconds. If the load is low, lets only sleep a little bit.
+            # If the load is 30 and the max load is 20, sleep 11 seconds. If the load is low, lets only sleep a little
+            # bit.
             headroom = SCANNER_MAX_LOAD - int(getloadavg()[0])
             if headroom <= 0:
                 sleep(abs(headroom))
