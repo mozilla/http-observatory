@@ -1,11 +1,11 @@
 from os import getloadavg
 from time import sleep
 
-from httpobs.conf import (SCANNER_MAX_LOAD,
+from httpobs.conf import (BROKER_URL,
                           SCANNER_BROKER_RECONNECTION_SLEEP_TIME,
                           SCANNER_CYCLE_SLEEP_TIME,
                           SCANNER_DATABASE_RECONNECTION_SLEEP_TIME,
-                          BROKER_URL)
+                          SCANNER_MAX_LOAD)
 from httpobs.database import (update_scans_abort_broken_scans,
                               update_scans_dequeue_scans)
 from httpobs.scanner.tasks import scan
@@ -18,11 +18,18 @@ def main():
     dequeue_loop_count = 0
 
     while True:
-        # If the load is higher than SCANNER_MAX_LOAD, let's sleep a bit and see if things have calmed down a bit
-        # If the load is 30 and the max load is 20, sleep 11 seconds. If the load is low, lets only sleep a little bit.
-        headroom = SCANNER_MAX_LOAD - int(getloadavg()[0])
-        if headroom <= 0:
-            sleep(abs(headroom))
+        try:
+            # If the load is higher than SCANNER_MAX_LOAD, let's sleep a bit and see if things have calmed down a bit
+            # If the load is 30 and the max load is 20, sleep 11 seconds. If the load is low, lets only sleep a little
+            # bit.
+            headroom = SCANNER_MAX_LOAD - int(getloadavg()[0])
+            if headroom <= 0:
+                sleep(abs(headroom))
+                continue
+        except:
+            # I've noticed that on laptops that Docker has a tendency to kill the scanner when the laptop sleeps; this
+            # is designed to catch that exception
+            sleep(1)
             continue
 
         # Every 900 or so scans, let's opportunistically clear out any PENDING scans that are older than 1800 seconds

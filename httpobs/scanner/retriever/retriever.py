@@ -1,6 +1,7 @@
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from urllib.parse import urlparse
 
+from httpobs.conf import RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_READ_TIMEOUT, RETRIEVER_USER_AGENT
 from httpobs.database import select_site_headers
 
 import requests
@@ -10,7 +11,7 @@ import requests
 # The default ConnectionTimeout is something like 75 seconds, which means that things like
 # tiles can take ~600s to timeout, since they have 8 DNS entries.  Setting it to lower
 # should hopefully keep requests from taking forever
-TIMEOUT = (6.05, 30)  # connect, read
+TIMEOUT = (RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_READ_TIMEOUT)
 
 
 # Create a session, returning the session and the HTTP response in a dictionary
@@ -26,7 +27,7 @@ def __create_session(url: str, headers=None) -> dict:
     # Override the User-Agent; some sites (like twitter) don't send the CSP header unless you have a modern
     # user agent
     s.headers.update({
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:45.0) Gecko/20100101 Firefox/45.0',
+        'User-Agent': RETRIEVER_USER_AGENT,
     })
 
     try:

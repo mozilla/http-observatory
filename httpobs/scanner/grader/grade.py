@@ -48,20 +48,24 @@ SCORE_TABLE = {
     },
 
     # CSP
+    'csp-implemented-with-no-unsafe-default-src-none': {
+        'description': 'Content Security Policy (CSP) implemented with default-src \'none\' and no \'unsafe\'',
+        'modifier': 10,
+    },
     'csp-implemented-with-no-unsafe': {
-        'description': 'Content Security Policy (CSP) implemented without unsafe-inline or unsafe-eval',
-        'modifier': 0,
+        'description': 'Content Security Policy (CSP) implemented without \'unsafe-inline\' or \'unsafe-eval\'',
+        'modifier': 5,
     },
     'csp-implemented-with-unsafe-inline-in-style-src-only': {
-        'description': 'Content Security Policy (CSP) implemented with unsafe-inline inside style-src directive',
-        'modifier': -5,
+        'description': 'Content Security Policy (CSP) implemented with \'unsafe-inline\' inside style-src',
+        'modifier': 0,
     },
     'csp-implemented-with-unsafe-eval': {
-        'description': 'Content Security Policy (CSP) implemented, but allows unsafe-eval',
+        'description': 'Content Security Policy (CSP) implemented, but allows \'unsafe-eval\'',
         'modifier': -10,
     },
     'csp-implemented-with-unsafe-inline': {
-        'description': 'Content Security Policy (CSP) implemented, but allows unsafe-inline',
+        'description': 'Content Security Policy (CSP) implemented, but allows \'unsafe-inline\' inside script-src',
         'modifier': -20,
     },
     'csp-implemented-with-insecure-scheme': {
