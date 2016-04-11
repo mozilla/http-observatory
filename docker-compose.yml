@@ -6,7 +6,6 @@ services:
     depends_on:
       - postgres
     environment:
-      - HTTPOBS_API_KEY=insertapikeyhere
       - HTTPOBS_BROKER_URL=redis://redis:6379/0
       - HTTPOBS_DATABASE_HOST=postgres
       - HTTPOBS_DATABASE_PASS=httpobsapipassword
