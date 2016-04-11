@@ -36,8 +36,8 @@ def main():
         # If it fails, we don't care. Of course, nobody reads the comments, so I should say that *I* don't care.
         try:
             if dequeue_loop_count % 900 == 0:
-                num = update_scans_abort_broken_scans(1800)
                 dequeue_loop_count = 0
+                num = update_scans_abort_broken_scans(1800)
 
             if num > 0:
                 print('INFO: Cleared {num} broken scan(s).'.format(file=sys.stderr, num=num))
