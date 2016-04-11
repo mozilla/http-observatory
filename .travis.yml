@@ -2,7 +2,7 @@ language: python
 python:
   - "3.5"
 env:
-  - HTTPOBS_API_KEY="fakeapikey" HTTPOBS_BROKER_URL="fakebrokerurl" HTTPOBS_DATABASE_HOST="fakehost" HTTPOBS_DATABASE_PASS="foo" HTTPOBS_DATABASE_USER="bar"
+  - HTTPOBS_BROKER_URL="fakebrokerurl" HTTPOBS_DATABASE_HOST="fakehost" HTTPOBS_DATABASE_PASS="foo" HTTPOBS_DATABASE_USER="bar"
 install:
   - pip install .
   - pip install -r requirements.txt

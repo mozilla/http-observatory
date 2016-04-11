@@ -1,4 +1,4 @@
-from httpobs.conf import API_KEY, COOLDOWN
+from httpobs.conf import COOLDOWN
 from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
@@ -77,13 +77,17 @@ def api_get_recent_scans():
         # Get the min and max scores, if they're there
         min_score = int(request.args.get('min', 0))
         max_score = int(request.args.get('max', 1000))
+        num_scans = int(request.args.get('num', 10))
 
         min_score = max(0, min_score)
         max_score = min(1000, max_score)
+        num_scans = min(25, num_scans)
     except ValueError:
         return {'error': 'invalid-parameters'}
 
-    return jsonify(database.select_scan_recent_finished_scans(min_score=min_score, max_score=max_score))
+    return jsonify(database.select_scan_recent_finished_scans(num_scans=num_scans,
+                                                              min_score=min_score,
+                                                              max_score=max_score))
 
 
 @api.route('/api/v1/getScannerStates', methods=['GET', 'OPTIONS'])
