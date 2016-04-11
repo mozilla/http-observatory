@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 from operator import itemgetter
+from os import environ
 from sys import exit
 
 import argparse
@@ -11,8 +12,8 @@ import requests
 import sys
 import time
 
-from httpobs.conf import API_URL
 
+API_URL = environ.get('HTTPOBS_API_URL', 'https://http.observatory.services.mozilla.com/api/v1')
 
 def analyze(host):
     global args
