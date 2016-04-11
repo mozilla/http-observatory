@@ -115,34 +115,35 @@ def api_get_scan_results():
     return tests
 
 
-@api.route('/api/v1/private/massAnalyze', methods=['POST'])
-@add_response_headers()
-def api_post_mass_analyze():
-    # Abort if the API keys don't match
-    if request.form.get('apikey', 'notatrueapikey') != API_KEY or not API_KEY:
-        abort(403)
-
-    # Get the hostnames
-    try:
-        hostnames = request.form['hosts']
-    except KeyError:
-        return {'error': 'scan-missing-parameters'}
-
-    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
-    for host in hostnames.split(','):
-        hostname = valid_hostname(host) or valid_hostname('www.' + host)  # prepend www. if necessary
-
-        # We don't really care about hosts that can't be found
-        if not hostname:
-            continue
-
-        # Get the site's id number
-        try:
-            site_id = database.select_site_id(hostname)
-        except IOError:
-            return {'error': 'Unable to connect to database'}
-
-        # And enqueue the scan
-        database.insert_scan(site_id)
-
-    return jsonify({'state': 'OK'})
+# TODO: reimplement someday
+# @api.route('/api/v1/private/massAnalyze', methods=['POST'])
+# @add_response_headers()
+# def api_post_mass_analyze():
+#     # Abort if the API keys don't match
+#     if request.form.get('apikey', 'notatrueapikey') != API_KEY or not API_KEY:
+#         abort(403)
+#
+#     # Get the hostnames
+#     try:
+#         hostnames = request.form['hosts']
+#     except KeyError:
+#         return {'error': 'scan-missing-parameters'}
+#
+#     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
+#     for host in hostnames.split(','):
+#         hostname = valid_hostname(host) or valid_hostname('www.' + host)  # prepend www. if necessary
+#
+#         # We don't really care about hosts that can't be found
+#         if not hostname:
+#             continue
+#
+#         # Get the site's id number
+#         try:
+#             site_id = database.select_site_id(hostname)
+#         except IOError:
+#             return {'error': 'Unable to connect to database'}
+#
+#         # And enqueue the scan
+#         database.insert_scan(site_id)
+#
+#     return jsonify({'state': 'OK'})
