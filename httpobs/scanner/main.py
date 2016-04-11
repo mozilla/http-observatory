@@ -41,6 +41,7 @@ def main():
 
             if num > 0:
                 print('INFO: Cleared {num} broken scan(s).'.format(file=sys.stderr, num=num))
+                num = 0
         except:
             pass
         finally:
