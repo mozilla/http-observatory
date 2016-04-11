@@ -3,7 +3,7 @@ from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
 
-from flask import abort, Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request
 
 import httpobs.database as database
 
