@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from httpobs.conf import API_KEY, API_URL
+from httpobs.conf import API_URL
 
 import os
 import requests
@@ -10,9 +10,9 @@ import sys
 import time
 
 if 'HTTPOBS_DEV' in os.environ:  # TODO: use httpobs.conf
-    MAX_QUEUE = 128
+    MAX_QUEUE = 64
 else:
-    MAX_QUEUE = 256
+    MAX_QUEUE = 128
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -35,7 +35,12 @@ if __name__ == '__main__':
         loop_time = time.time()
 
         # Get the queue availability
-        r = s.get(API_URL + '/getScannerStats').json()
+        try:
+            r = s.get(API_URL + '/getScannerStates').json()
+        except:
+            time.sleep(5)
+            continue
+
         available = MAX_QUEUE - r.get('PENDING', 0) - r.get('RUNNING', 0) - r.get('STARTING', 0)
 
         print('Queue availability: {queue_avail}. Total scanned: {total_scanned}. Pending: {pending}.'.format(
@@ -45,21 +50,20 @@ if __name__ == '__main__':
         if not hosts and r.get('PENDING', 0) == 0:
             break
 
-        # Start up a new mass scan
-        r = s.post(API_URL + '/private/massAnalyze', data={'hosts': ','.join(hosts[0:available]),
-                                                           'apikey': API_KEY})
+        if available > 0:
+            targets = hosts[:available]
 
-        if r.status_code == 403:
-            print('Invalid API key. Exiting.')
-            sys.exit(1)
+            # Start up a new mass scan
+            for host in targets:
+                try:
+                    s.post(API_URL + '/analyze?host=' + host)
+                except:
+                    time.sleep(5)
+                    continue
 
-        if hosts:
-            total_scanned += available
-
-        if len(hosts) < available:
-            hosts = []
-        else:
             hosts = hosts[available:]
+
+            total_scanned += available
 
         # If the previous loop completely quickly, cooldown a moment
         if time.time() - loop_time < 5:
