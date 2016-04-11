@@ -16,6 +16,9 @@ else
 fi
 
 # Execute celery
+kill `cat /var/run/httpobs/scanner.pid`
+rm -f /var/run/httpobs/scanner.pid
+
 celery \
   -A httpobs.scanner.tasks \
   --autoscale=$CONCURRENCY,4 \
@@ -25,8 +28,8 @@ celery \
   --logfile='/var/log/httpobs/scanner.log' \
   --loglevel=$LOGLEVEL \
   --maxtasksperchild=1024 \
-#  --pidfile='/var/run/httpobs/scanner.pid' \  # TODO: Kill the existing celery
-  worker
+  --pidfile='/var/run/httpobs/scanner.pid' \
+worker
 
 # Run the scanner
 python3 httpobs/scanner/main.py
