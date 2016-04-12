@@ -16,16 +16,10 @@ def heartbeat():
         # Check the database
         with get_cursor() as _:  # noqa
             pass
-
-        # Check redis
-        conn = kombu.Connection(BROKER_URL)
-        conn.connect()
-        conn.release()
-
     except:
         abort(500)
 
-    return ''
+    return jsonify({'database': 'OK'})
 
 
 @monitoring_api.route('/__lbheartbeat__')
