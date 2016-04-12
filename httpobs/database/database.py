@@ -3,7 +3,8 @@ from json import dumps
 from types import SimpleNamespace
 from os import getpid
 
-from httpobs.conf import (DATABASE_CA_CERT,
+from httpobs.conf import (API_CACHED_RESULT_TIME,
+                          DATABASE_CA_CERT,
                           DATABASE_DB,
                           DATABASE_HOST,
                           DATABASE_PASSWORD,
@@ -111,7 +112,7 @@ def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
         return dict(cur.fetchone())
 
 
-def insert_test_results(site_id: int, scan_id: int, tests: list) -> dict:
+def insert_test_results(site_id: int, scan_id: int, tests: list, response_headers: dict) -> dict:
     with get_cursor() as cur:
         tests_failed = tests_passed = 0
         score = 100
@@ -142,11 +143,11 @@ def insert_test_results(site_id: int, scan_id: int, tests: list) -> dict:
 
         # Update the scans table
         cur.execute("""UPDATE scans
-                         SET (end_time, tests_failed, tests_passed, grade, score, state) =
-                         (NOW(), %s, %s, %s, %s, %s)
+                         SET (end_time, tests_failed, tests_passed, grade, score, state, response_headers) =
+                         (NOW(), %s, %s, %s, %s, %s, %s)
                          WHERE id = %s
                          RETURNING *""",
-                    (tests_failed, tests_passed, grade, score, STATE_FINISHED, scan_id))
+                    (tests_failed, tests_passed, grade, score, STATE_FINISHED, dumps(response_headers), scan_id))
 
         row = dict(cur.fetchone())
 
@@ -194,7 +195,7 @@ def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) 
         return dict(cur.fetchall())
 
 
-def select_scan_recent_scan(site_id: int, recent_in_seconds=86400) -> dict:
+def select_scan_recent_scan(site_id: int, recent_in_seconds=API_CACHED_RESULT_TIME) -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT * FROM scans
                          WHERE site_id = (%s)

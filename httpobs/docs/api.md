@@ -143,6 +143,7 @@ Example:
 
 * `end_time` timestamp for when the scan completed
 * `grade` final grade assessed upon a completed scan
+* `response_headers` the entirety of the HTTP response headers
 * `scan_id` unique ID number assigned to the scan
 * `score` final score assessed upon a completed (`FINISHED`) scan
 * `start_time` timestamp for when the scan was first requested
@@ -164,6 +165,7 @@ Example:
 {
   "end_time": "Tue, 22 Mar 2016 21:51:41 GMT",
   "grade": "A",
+  "response_headers": { ... },
   "scan_id": 1,
   "score": 90,
   "start_time": "Tue, 22 Mar 2016 21:51:40 GMT",

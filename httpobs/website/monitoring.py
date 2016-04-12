@@ -1,10 +1,8 @@
 from flask import abort, Blueprint, jsonify
 
 from httpobs import SOURCE_URL, VERSION
-from httpobs.conf import BROKER_URL
 from httpobs.database import get_cursor
 
-import kombu
 
 monitoring_api = Blueprint('monitoring-api', __name__)
 
@@ -16,16 +14,10 @@ def heartbeat():
         # Check the database
         with get_cursor() as _:  # noqa
             pass
-
-        # Check redis
-        conn = kombu.Connection(BROKER_URL)
-        conn.connect()
-        conn.release()
-
     except:
         abort(500)
 
-    return ''
+    return jsonify({'database': 'OK'})
 
 
 @monitoring_api.route('/__lbheartbeat__')
