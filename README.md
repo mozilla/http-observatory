@@ -122,10 +122,7 @@ http_observatory=# \password httpobsscanner
 # vi /etc/postgresql/9.4/main/postgresql.conf (set max_connections = 512, shared_buffers = 256MB)
 # service postgresql restart
 
-# Create log and pid directories
-
-
-# Create the httpobs user and directories
+# Create the httpobs user, and log/pid directories
 # useradd -m httpobs
 # install -m 750 -o httpobs -g httpobs -d /var/run/httpobs /var/log/httpobs
 
