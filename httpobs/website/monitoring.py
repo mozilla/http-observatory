@@ -1,10 +1,8 @@
 from flask import abort, Blueprint, jsonify
 
 from httpobs import SOURCE_URL, VERSION
-from httpobs.conf import BROKER_URL
 from httpobs.database import get_cursor
 
-import kombu
 
 monitoring_api = Blueprint('monitoring-api', __name__)
 
