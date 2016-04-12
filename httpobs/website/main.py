@@ -2,7 +2,7 @@ import sys
 
 from flask import Flask
 
-from httpobs.conf import DEVELOPMENT_MODE, WEBSITE_PORT
+from httpobs.conf import DEVELOPMENT_MODE, API_PORT
 from httpobs.website import add_response_headers
 from httpobs.website.api import api
 from httpobs.website.monitoring import monitoring_api
@@ -25,4 +25,4 @@ def main() -> str:
 
 
 if __name__ == '__main__':
-    app.run(debug=DEVELOPMENT_MODE, port=WEBSITE_PORT)
+    app.run(debug=DEVELOPMENT_MODE, port=API_PORT)

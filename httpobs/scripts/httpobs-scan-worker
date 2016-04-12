@@ -15,10 +15,15 @@ else
   LOGLEVEL=warning
 fi
 
-# Execute celery
-kill `cat /var/run/httpobs/scanner.pid`
-rm -f /var/run/httpobs/scanner.pid
+# Kill the existing celery workers
+PID='/var/run/httpobs/scanner.pid'
+if [ -f $PID ];
+then
+    kill `cat $PID`
+    rm -f $PID
+fi
 
+# Execute celery
 celery \
   -A httpobs.scanner.tasks \
   --autoscale=$CONCURRENCY,4 \

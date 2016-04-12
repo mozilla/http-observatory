@@ -4,6 +4,7 @@ from __future__ import print_function
 
 from httpobs.conf import API_URL
 
+import grequests
 import os
 import requests
 import sys
@@ -12,7 +13,7 @@ import time
 if 'HTTPOBS_DEV' in os.environ:  # TODO: use httpobs.conf
     MAX_QUEUE = 64
 else:
-    MAX_QUEUE = 128
+    MAX_QUEUE = 256
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -52,18 +53,18 @@ if __name__ == '__main__':
 
         if available > 0:
             targets = hosts[:available]
+            urls = [API_URL + '/analyze?host=' + host for host in targets]
+            total_scanned += available
 
             # Start up a new mass scan
-            for host in targets:
-                try:
-                    s.post(API_URL + '/analyze?host=' + host)
-                except:
-                    time.sleep(5)
-                    continue
+            try:
+                rs = (grequests.post(u) for u in urls)
+                grequests.map(rs)
+            except:
+                time.sleep(5)
+                raise
 
             hosts = hosts[available:]
-
-            total_scanned += available
 
         # If the previous loop completely quickly, cooldown a moment
         if time.time() - loop_time < 5:
