@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS sites (
   id                                  SERIAL PRIMARY KEY,
   domain                              VARCHAR(255) NOT NULL,
   creation_time                       TIMESTAMP NOT NULL,
-  response_headers                    JSONB NULL,
   public_headers                      JSONB NULL,
   private_headers                     JSONB NULL
 );
@@ -26,6 +25,7 @@ CREATE TABLE IF NOT EXISTS scans (
   grade                               VARCHAR(2) NULL,
   score                               SMALLINT   NULL,
   error                               VARCHAR    NULL,
+  response_headers                    JSONB NULL,
   hidden                              BOOL       NOT NULL DEFAULT FALSE
 );
 
@@ -56,14 +56,14 @@ CREATE INDEX tests_pass_idx       ON tests (pass);
 
 CREATE USER httpobsscanner;
 GRANT SELECT on sites, scans, expectations, tests TO httpobsscanner;
-GRANT UPDATE (domain, response_headers) ON sites to httpobsscanner;  /* TODO: there's got to be a better way with SELECT ... FOR UPDATE */
+GRANT UPDATE (domain) ON sites to httpobsscanner;  /* TODO: there's got to be a better way with SELECT ... FOR UPDATE */
 GRANT UPDATE on scans TO httpobsscanner;
 GRANT INSERT on tests TO httpobsscanner;
 GRANT USAGE ON SEQUENCE tests_id_seq TO httpobsscanner;
 
 CREATE USER httpobsapi;
 GRANT SELECT ON expectations, scans, tests to httpobsapi;
-GRANT SELECT (id, domain, creation_time, response_headers, public_headers) ON sites TO httpobsapi;
+GRANT SELECT (id, domain, creation_time, public_headers) ON sites TO httpobsapi;
 GRANT INSERT ON sites, scans TO httpobsapi;
 GRANT UPDATE (public_headers, private_headers) ON sites TO httpobsapi;
 GRANT UPDATE ON scans TO httpobsapi;

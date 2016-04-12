@@ -7,6 +7,7 @@ from httpobs.database import (insert_test_results,
 from httpobs.scanner import celeryconfig, STATE_ABORTED, STATE_FAILED, STATE_RUNNING
 from httpobs.scanner.analyzer import tests
 from httpobs.scanner.retriever import retrieve_all
+from httpobs.scanner.utils import sanitize_headers
 
 import sys
 
@@ -35,7 +36,8 @@ def scan(hostname: str, site_id: int, scan_id: int):
         # TODO: Get overridden expectations
         insert_test_results(site_id,
                             scan_id,
-                            [test(reqs) for test in tests])
+                            [test(reqs) for test in tests],
+                            sanitize_headers(reqs['responses']['auto'].headers))
 
     # catch the celery timeout, which will almost certainly occur in retrieve_all()
     except (SoftTimeLimitExceeded, TimeLimitExceeded):

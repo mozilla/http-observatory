@@ -1,6 +1,21 @@
 import socket
 
 
+def sanitize_headers(headers: dict) -> dict:
+    """
+    :param headers: raw headers object from a request's response
+    :return: that same header, after sanitization
+    """
+    try:
+        if len(str(headers)) <= 16384:
+            return dict(headers)
+        else:
+            return None
+
+    except:
+        return None
+
+
 def valid_hostname(hostname: str):
     """
     :param hostname: The hostname requested in the scan

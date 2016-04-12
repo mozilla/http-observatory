@@ -34,9 +34,9 @@ def __conf(section, param, type=None):
 
 DEVELOPMENT_MODE = True if environ.get('HTTPOBS_DEV') == 'yes' else False or __conf('global', 'development', bool)
 
-# Set the api cooldown speed
-COOLDOWN = int(environ.get('HTTPOBS_API_COOLDOWN') or __conf('api', 'cooldown', int))
-
+# API configuration
+API_CACHED_RESULT_TIME = int(environ.get('HTTPOBS_API_CACHED_RESULT_TIME') or __conf('api', 'cached_result_time'))
+API_COOLDOWN = int(environ.get('HTTPOBS_API_COOLDOWN') or __conf('api', 'cooldown', int))
 API_PORT = int(environ.get('HTTPOBS_API_PORT') or __conf('api', 'port', int))
 API_URL = environ.get('HTTPOBS_API_URL') or __conf('api', 'url')
 

@@ -1,4 +1,4 @@
-from httpobs.conf import COOLDOWN
+from httpobs.conf import API_COOLDOWN
 from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
@@ -37,7 +37,7 @@ def api_post_scan_hostname():
     # Setting rescan shortens what "recent" means
     rescan = True if request.form.get('rescan', 'false') == 'true' else False
     if rescan:
-        row = database.select_scan_recent_scan(site_id, COOLDOWN)
+        row = database.select_scan_recent_scan(site_id, API_COOLDOWN)
     else:
         row = database.select_scan_recent_scan(site_id)
 
