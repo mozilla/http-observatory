@@ -1,5 +1,6 @@
 from os import getloadavg
 from time import sleep
+from urllib.parse import urlparse
 
 from httpobs.conf import (BROKER_URL,
                           SCANNER_BROKER_RECONNECTION_SLEEP_TIME,
@@ -10,12 +11,19 @@ from httpobs.database import (update_scans_abort_broken_scans,
                               update_scans_dequeue_scans)
 from httpobs.scanner.tasks import scan
 
-import kombu
+import redis
 import sys
 
 
 def main():
     dequeue_loop_count = 0
+
+    # Parse the BROKER_URL
+    broker_url = urlparse(BROKER_URL)
+
+    if broker_url.scheme.lower() != 'redis':  # Currently the de-queuer only support redis
+        print('Sorry, the scanner currently only supports redis.', file=sys.stderr)
+        sys.exit(1)
 
     while True:
         try:
@@ -49,9 +57,14 @@ def main():
 
         # Verify that the broker is still up; if it's down, let's sleep and try again later
         try:
-            conn = kombu.Connection(BROKER_URL)
+            conn = redis.Connection(host=broker_url.hostname,
+                                    port=broker_url.port or 6379,
+                                    db=int(broker_url.path[1:]),
+                                    password=broker_url.password)
             conn.connect()
-            conn.release()
+            conn.can_read()
+            conn.disconnect()
+            del conn
         except:
             sleep(SCANNER_BROKER_RECONNECTION_SLEEP_TIME)
             continue

@@ -324,4 +324,4 @@ def update_scans_dequeue_scans(num_to_dequeue: int = 0) -> dict:
                          RETURNING sub.domain, sub.site_id, sub.scan_id""",
                     (STATE_STARTING, STATE_PENDING, num_to_dequeue))
 
-        return cur.fetchall()
+        return dict(cur.fetchall())
