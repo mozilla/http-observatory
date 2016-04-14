@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import print_function
 from operator import itemgetter
@@ -13,7 +13,7 @@ import sys
 import time
 
 
-API_URL = environ.get('HTTPOBS_API_URL', 'https://http.observatory.services.mozilla.com/api/v1')
+API_URL = environ.get('HTTPOBS_API_URL', 'https://http-observatory.security.mozilla.com/api/v1')
 
 def analyze(host):
     global args
