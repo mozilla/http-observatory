@@ -71,6 +71,7 @@ GRANT USAGE ON SEQUENCE sites_id_seq TO httpobsapi;
 GRANT USAGE ON SEQUENCE scans_id_seq TO httpobsapi;
 GRANT USAGE ON SEQUENCE expectations_id_seq TO httpobsapi;
 
+CREATE INDEX scans_site_id_finished_state_end_time_idx ON scans (site_id, state, end_time DESC) WHERE state = 'FINISHED';
 CREATE MATERIALIZED VIEW latest_scans
   AS SELECT latest_scans.site_id, latest_scans.scan_id, s.domain, latest_scans.state,
     latest_scans.start_time, latest_scans.end_time, latest_scans.tests_failed, latest_scans.tests_passed,
