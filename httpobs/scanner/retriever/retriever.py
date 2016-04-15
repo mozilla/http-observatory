@@ -122,7 +122,8 @@ def retrieve_all(hostname: str) -> dict:
         retrievals['resources']['/'] = __get_page_text(retrievals['responses']['auto'])
 
         # Do a CORS preflight request
-        retrievals['responses']['cors'] = __get(retrievals['session'], headers={'Origin': 'https://www.httplabs.org'})
+        retrievals['responses']['cors'] = __get(retrievals['session'],
+                                                headers={'Origin': 'https://http-observatory.security.mozilla.org'})
 
         # Store all the files we retrieve
         for resource in resources:

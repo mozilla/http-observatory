@@ -11,7 +11,7 @@ The HTTP Observatory API is based on HTTP and JSON. All requests are either done
 
 ## Protocol Calls
 
-The primary endpoint of the HTTP Observatory is https://tbd.com/api/v1/.
+The primary endpoint of the HTTP Observatory is [https://http-observatory.security.mozilla.org/api/v1](https://http-observatory.security.mozilla.org/api/v1).
 
 ### Invoke assessment
 
