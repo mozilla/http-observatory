@@ -58,6 +58,8 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         for directive in ['script-src', 'style-src']:
             csp[directive] = csp.get(directive) if directive in csp else csp.get('default-src')
 
+        # TODO: remove 'unsafe-inline' or 'unsafe-eval' if nonce or hash are used
+
         # Do all of our tests
         if '\'unsafe-inline\'' in csp.get('script-src') or 'data:' in csp.get('script-src'):
             output['result'] = 'csp-implemented-with-unsafe-inline'
