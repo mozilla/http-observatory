@@ -26,7 +26,7 @@ setup(
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Natural Language :: English',
         'Programming Language :: Python :: 3 :: Only',
-        'Topic :: Internet :: HTTP Servers',
+        'Topic :: Internet :: WWW/HTTP :: HTTP Servers',
         'Topic :: Security',
         'Topic :: Software Development :: Quality Assurance',
     ],
@@ -34,8 +34,7 @@ setup(
     author_email='april@mozilla.com',
     packages=find_packages(),
     include_package_data=True,
-    scripts=['httpobs/scripts/httpobs',
-             'httpobs/scripts/httpobs-mass-scan',
+    scripts=['httpobs/scripts/httpobs-mass-scan',
              'httpobs/scripts/httpobs-scan-worker'],
     zip_safe=False,
 )
