@@ -156,13 +156,10 @@ def insert_test_results(site_id: int, scan_id: int, tests: list, response_header
 
 def select_scan_grade_totals() -> dict:
     with get_cursor() as cur:
-        cur.execute("""SELECT totals.grade, COUNT(*) AS quantity
-                         FROM
-                           (SELECT site_id, grade
-                              FROM scans
-                              WHERE state = %s
-                              GROUP BY site_id, grade) totals
-                         GROUP BY totals.grade""",
+        cur.execute("""SELECT grade, count(*)
+                         FROM scans
+                         WHERE state = %s
+                         GROUP BY grade""",
                     (STATE_FINISHED,))
 
         return dict(cur.fetchall())
