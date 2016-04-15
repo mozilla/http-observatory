@@ -158,7 +158,7 @@ def select_scan_grade_totals() -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT totals.grade, COUNT(*) AS quantity
                          FROM
-                           (SELECT site_id, grade, MAX(end_time) AS et
+                           (SELECT site_id, grade
                               FROM scans
                               WHERE state = %s
                               GROUP BY site_id, grade) totals
