@@ -47,6 +47,8 @@ def main():
                 dequeue_loop_count = 0
                 num = update_scans_abort_broken_scans(1800)
 
+                # TODO: REFRESH MATERIALIZED VIEW grade_distribution;
+
             if num > 0:
                 print('INFO: Cleared {num} broken scan(s).'.format(file=sys.stderr, num=num))
                 num = 0
