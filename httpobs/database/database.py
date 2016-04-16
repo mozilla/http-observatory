@@ -173,21 +173,24 @@ def select_scan_scanner_states() -> dict:
 
 
 def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) -> dict:
+    # TODO: Fix from: https://gist.github.com/marumari/61efa9ff197828bf5ab13e5a00be9138
     with get_cursor() as cur:
-        cur.execute("""SELECT sites.domain, scans.grade
+        cur.execute("""SELECT sites.domain, s2.grade
                          FROM
-                           (SELECT site_id, grade, MAX(end_time) AS et
-                             FROM scans
-                             WHERE state = 'FINISHED'
-                             AND score >= %s
-                             AND score <= %s
-                             AND hidden = FALSE
-                             GROUP BY site_id, grade
-                             ORDER BY et DESC
-                             LIMIT %s) scans
-                         INNER JOIN sites
-                           ON (sites.id = scans.site_id)""",
-                    (min_score, max_score, num_scans))
+                           (SELECT DISTINCT ON (s1.site_id) s1.site_id, s1.grade, s1.end_time
+                              FROM
+                                (SELECT site_id, grade, end_time
+                                  FROM scans
+                                    WHERE state = %s
+                                    AND NOT hidden
+                                    AND score >= %s
+                                    AND score <= %s
+                                    ORDER BY end_time
+                                    DESC LIMIT %s) s1
+                                  ORDER BY s1.site_id, s1.end_time DESC) s2
+                                  INNER JOIN sites ON (sites.id = s2.site_id)
+                                ORDER BY s2.end_time DESC LIMIT %s;""",
+                    (STATE_FINISHED, min_score, max_score, num_scans * 2, num_scans))
 
         return dict(cur.fetchall())
 
