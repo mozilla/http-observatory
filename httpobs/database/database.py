@@ -155,12 +155,9 @@ def insert_test_results(site_id: int, scan_id: int, tests: list, response_header
 
 
 def select_scan_grade_totals() -> dict:
+    # Used for /api/v1/getGradeDistribution
     with get_cursor() as cur:
-        cur.execute("""SELECT grade, count(*)
-                         FROM scans
-                         WHERE state = %s
-                         GROUP BY grade""",
-                    (STATE_FINISHED,))
+        cur.execute('SELECT * FROM grade_distribution;')
 
         return dict(cur.fetchall())
 
@@ -173,6 +170,7 @@ def select_scan_scanner_states() -> dict:
 
 
 def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) -> dict:
+    # Used for /api/v1/getRecentScans
     # TODO: Fix from: https://gist.github.com/marumari/61efa9ff197828bf5ab13e5a00be9138
     with get_cursor() as cur:
         cur.execute("""SELECT sites.domain, s2.grade

@@ -87,3 +87,12 @@ CREATE MATERIALIZED VIEW latest_tests
   INNER JOIN latest_scans
   ON (latest_scans.scan_id = tests.scan_id);
 COMMENT ON MATERIALIZED VIEW latest_tests IS 'Test results from all the most recent scans';
+
+CREATE MATERIALIZED VIEW grade_distribution
+  AS SELECT grade, count(*)
+    FROM scans
+    WHERE state = 'FINISHED'
+    GROUP BY grade;
+COMMENT ON MATERIALIZED VIEW grade_distribution IS 'The grades and how many scans have that score';
+GRANT SELECT ON grade_distribution TO httpobsapi;
+ALTER MATERIALIZED VIEW grade_distribution OWNER TO httpobsscanner;  /* so it can refresh */
