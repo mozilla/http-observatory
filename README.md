@@ -77,7 +77,7 @@ $ HTTPOBS_DATABASE_USER="httpobsscanner" HTTPOBS_DATABASE_PASS="....." \
 # Start the API (in another terminal)
 # HTTPOBS_DATABASE_USER="httpobsapi" HTTPOBS_DATABASE_PASS="....." \
     uwsgi --http :57001 --wsgi-file httpobs/website/main.py --processes 8 --callable app --master
-
+```
 
 ## Authors
 
