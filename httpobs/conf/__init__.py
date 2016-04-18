@@ -68,12 +68,16 @@ RETRIEVER_READ_TIMEOUT = float(environ.get('HTTPOBS_RETRIEVER_READ_TIMEOUT') or
 RETRIEVER_USER_AGENT = environ.get('HTTPOBS_RETRIEVER_USER_AGENT') or __conf('retriever', 'user_agent')
 
 # Scanner configuration
+SCANNER_ABORT_SCAN_TIME = int(environ.get('HTTPOBS_SCANNER_ABORT_SCAN_TIME') or
+                              __conf('scanner', 'abort_scan_time'))
 SCANNER_BROKER_RECONNECTION_SLEEP_TIME = float(environ.get('HTTPOBS_SCANNER_BROKER_RECONNECTION_SLEEP_TIME') or
                                                __conf('scanner', 'broker_reconnection_sleep_time'))
 SCANNER_CYCLE_SLEEP_TIME = float(environ.get('HTTPOBS_SCANNER_CYCLE_SLEEP_TIME') or
                                  __conf('scanner', 'cycle_sleep_time'))
 SCANNER_DATABASE_RECONNECTION_SLEEP_TIME = float(environ.get('HTTPOBS_SCANNER_DATABASE_RECONNECTION_SLEEP_TIME') or
                                                  __conf('scanner', 'database_reconnection_sleep_time'))
+SCANNER_MAINTENANCE_CYCLE_FREQUENCY = int(environ.get('HTTPOBS_MAINTENANCE_CYCLE_FREQUENCY') or
+                                          __conf('scanner', 'maintenance_cycle_frequency'))
 SCANNER_MAX_LOAD_RATIO = int(environ.get('HTTPOBS_SCANNER_MAX_LOAD_RATIO_PER_CPU') or
                              __conf('scanner', 'max_load_ratio_per_cpu'))
 SCANNER_MAX_LOAD = cpu_count() * SCANNER_MAX_LOAD_RATIO

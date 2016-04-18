@@ -10,7 +10,8 @@ from httpobs.conf import (API_CACHED_RESULT_TIME,
                           DATABASE_PASSWORD,
                           DATABASE_PORT,
                           DATABASE_SSL_MODE,
-                          DATABASE_USER)
+                          DATABASE_USER,
+                          SCANNER_ABORT_SCAN_TIME)
 from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_STARTING
 from httpobs.scanner.analyzer import NUM_TESTS
 from httpobs.scanner.grader import get_grade_for_score
@@ -154,6 +155,28 @@ def insert_test_results(site_id: int, scan_id: int, tests: list, response_header
     return row
 
 
+def periodic_maintenance() -> int:
+    """
+    Update all scans that are stuck. The hard time limit for celery is 1129, so if something isn't aborted, finished,
+    or failed, we should just mark it as aborted.
+    :return: the number of scans that were closed out
+    """
+    with get_cursor() as cur:
+        # Update the grade distribution table
+        cur.execute("REFRESH MATERIALIZED VIEW grade_distribution;")
+
+        # Mark all scans that have been sitting unfinished for at least SCANNER_ABORT_SCAN_TIME as ABORTED
+        cur.execute("""UPDATE scans
+                         SET (state, end_time) = (%s, NOW())
+                         WHERE state != %s
+                           AND state != %s
+                           AND state != %s
+                           AND start_time < NOW() - INTERVAL '%s seconds';""",
+                    (STATE_ABORTED, STATE_ABORTED, STATE_FAILED, STATE_FINISHED, SCANNER_ABORT_SCAN_TIME))
+
+        return cur.rowcount
+
+
 def select_scan_grade_totals() -> dict:
     # Used for /api/v1/getGradeDistribution
     with get_cursor() as cur:
@@ -287,24 +310,6 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
             row = dict(cur.fetchone())
 
     return row
-
-
-def update_scans_abort_broken_scans(num_seconds=1800) -> int:
-    """
-    Update all scans that are stuck. The hard time limit for celery is 1129, so if something isn't aborted, finished,
-    or failed, we should just mark it as aborted.
-    :return: the number of scans that were closed out
-    """
-    with get_cursor() as cur:
-        cur.execute("""UPDATE scans
-                         SET (state, end_time) = (%s, NOW())
-                         WHERE state != %s
-                           AND state != %s
-                           AND state != %s
-                           AND start_time < NOW() - INTERVAL '%s seconds'""",
-                    (STATE_ABORTED, STATE_ABORTED, STATE_FAILED, STATE_FINISHED, num_seconds))
-
-        return cur.rowcount
 
 
 def update_scans_dequeue_scans(num_to_dequeue: int = 0) -> dict:
