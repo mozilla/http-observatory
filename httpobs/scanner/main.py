@@ -6,8 +6,9 @@ from httpobs.conf import (BROKER_URL,
                           SCANNER_BROKER_RECONNECTION_SLEEP_TIME,
                           SCANNER_CYCLE_SLEEP_TIME,
                           SCANNER_DATABASE_RECONNECTION_SLEEP_TIME,
+                          SCANNER_MAINTENANCE_CYCLE_FREQUENCY,
                           SCANNER_MAX_LOAD)
-from httpobs.database import (update_scans_abort_broken_scans,
+from httpobs.database import (periodic_maintenance,
                               update_scans_dequeue_scans)
 from httpobs.scanner.tasks import scan
 
@@ -40,14 +41,13 @@ def main():
             sleep(1)
             continue
 
-        # Every 900 or so scans, let's opportunistically clear out any PENDING scans that are older than 1800 seconds
+        # Every so many scans, let's opportunistically clear out any PENDING scans that are older than 1800 seconds
+        # Also update the grade_distribution table
         # If it fails, we don't care. Of course, nobody reads the comments, so I should say that *I* don't care.
         try:
-            if dequeue_loop_count % 900 == 0:
+            if dequeue_loop_count % SCANNER_MAINTENANCE_CYCLE_FREQUENCY == 0:
                 dequeue_loop_count = 0
-                num = update_scans_abort_broken_scans(1800)
-
-                # TODO: REFRESH MATERIALIZED VIEW grade_distribution;
+                num = periodic_maintenance()
 
             if num > 0:
                 print('INFO: Cleared {num} broken scan(s).'.format(file=sys.stderr, num=num))

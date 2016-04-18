@@ -2,6 +2,7 @@ from .database import (get_cursor,
                        insert_scan,
                        insert_scan_grade,
                        insert_test_results,
+                       periodic_maintenance,
                        select_scan_grade_totals,
                        select_scan_recent_finished_scans,
                        select_scan_recent_scan,
@@ -10,9 +11,7 @@ from .database import (get_cursor,
                        select_site_id,
                        select_test_results,
                        update_scan_state,
-                       update_scans_abort_broken_scans,
                        update_scans_dequeue_scans)
-from .tasks import abort_broken_scans
 
 __all__ = [
     'abort_broken_scans',
@@ -28,6 +27,6 @@ __all__ = [
     'select_site_id',
     'select_test_results',
     'update_scan_state',
-    'update_scans_abort_broken_scans',
+    'periodic_maintenance',
     'update_scans_dequeue_scans',
 ]
