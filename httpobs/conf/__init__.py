@@ -38,6 +38,8 @@ DEVELOPMENT_MODE = True if environ.get('HTTPOBS_DEV') == 'yes' else False or __c
 API_CACHED_RESULT_TIME = int(environ.get('HTTPOBS_API_CACHED_RESULT_TIME') or __conf('api', 'cached_result_time'))
 API_COOLDOWN = int(environ.get('HTTPOBS_API_COOLDOWN') or __conf('api', 'cooldown', int))
 API_PORT = int(environ.get('HTTPOBS_API_PORT') or __conf('api', 'port', int))
+API_PROPAGATE_EXCEPTIONS = (True if environ.get('HTTPOBS_PROPAGATE_EXCEPTIONS') == 'yes' else False or
+                            __conf('api', 'propagate_exceptions', bool))
 API_URL = environ.get('HTTPOBS_API_URL') or __conf('api', 'url')
 
 # Broker configuration
