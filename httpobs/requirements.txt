@@ -21,4 +21,4 @@ pytz==2016.3
 redis==2.10.5
 requests==2.9.1
 uwsgi==2.0.12
-Werkzeug==0.11.5
+Werkzeug==0.11.8
