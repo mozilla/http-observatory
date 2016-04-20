@@ -15,7 +15,7 @@ The primary endpoint of the HTTP Observatory is [https://http-observatory.securi
 
 ### Invoke assessment
 
-Used to invoke a new scan of a website. By default, the HTTP Observatory will return a cached site result if the site has been scanned anytime in the previous 24 hours. Regardless of the value of `rescan`, a site can not be scanned at a frequency greater than every 20 minutes. It will return a single [scan object](#scan) on success.
+Used to invoke a new scan of a website. By default, the HTTP Observatory will return a cached site result if the site has been scanned anytime in the previous 24 hours. Regardless of the value of `rescan`, a site can not be scanned at a frequency greater than every three minutes. It will return a single [scan object](#scan) on success.
 
 **API Call:** `analyze`<br>
 **API Method:** `POST`
