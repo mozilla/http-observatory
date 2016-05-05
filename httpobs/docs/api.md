@@ -60,7 +60,7 @@ Parameters:
 
 Example:
 
-* `/api/v1/getScanResults?scan_id=123456`
+* `/api/v1/getScanResults?scan=123456`
 
 ### Retrieve recent scans
 
