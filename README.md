@@ -1,8 +1,12 @@
-# Mozilla HTTP Observatory
+# Mozilla HTTP Observatory - [![Build Status](https://travis-ci.org/marumari/http-observatory.svg?branch=master)](https://travis-ci.org/marumari/http-observatory) [![Requirements Status](https://requires.io/github/mozilla/http-observatory/requirements.svg?branch=master)](https://requires.io/github/mozilla/http-observatory/requirements/?branch=master)
 
 The Mozilla HTTP Observatory is a set of tools to analyze your website and inform you if you are utilizing the many available methods to secure it.
 
-[![Build Status](https://travis-ci.org/marumari/http-observatory.svg?branch=master)](https://travis-ci.org/marumari/http-observatory) [![Requirements Status](https://requires.io/github/mozilla/http-observatory/requirements.svg?branch=master)](https://requires.io/github/mozilla/http-observatory/requirements/?branch=master)
+It is split into three projects:
+
+* [http-observatory](https://github.com/mozilla/http-observatory) - scanner/grader
+* [http-observatory-cli](https://github.com/mozilla/http-observatory) - command line interface
+* [http-observatory-website](https://github.com/mozilla/http-observatory-website) - web interface
 
 ## Scanning sites with the HTTP Observatory
 
