@@ -9,7 +9,7 @@ Note that although both the letter grade ranges and modifiers are essentially ar
 
 ## Grading Chart
 
-Range | Grade
+Scoring Range | Grade
 :---: | :---:
 100+ | &nbsp;A+
 90-99 | &nbsp;A&nbsp;
