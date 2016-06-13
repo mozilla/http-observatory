@@ -3,6 +3,31 @@
 **Last Updated:** 2016-06-13 april@mozilla.com<br>
 **Author:** april@mozilla.com
 
+All websites start with a baseline score of 100, and then receive penalties or bonuses from there. Although the minimum score is 0, there is no maximum score. Currently, the highest possible score in the HTTP Observatory is 130.
+
+Note that although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
+
+## Scoring Chart
+
+Range | Grade
+:---: | :---:
+100+ | &nbsp;A+
+90-99 | &nbsp;A&nbsp;
+85-89 | &nbsp;A-
+80-84 | &nbsp;B+
+70-79 | &nbsp;B&nbsp;
+65-69 | &nbsp;B-
+60-64 | &nbsp;C+
+55-59 | &nbsp;C&nbsp;
+50-54 | &nbsp;C-
+45-49 | &nbsp;D+
+40-44 | &nbsp;D&nbsp;
+35-39 | &nbsp;D-
+25-34 | &nbsp;E&nbsp;
+0-24 | &nbsp;F&nbsp;
+
+## Scoring Modifiers
+
 [Contribute.json](https://www.contributejson.org/) | Description | Modifier
 --- | --- | :---:
 contribute-json-only-required-on-mozilla-properties | Contribute.json isn't required on websites that don't belong to Mozilla | 0
