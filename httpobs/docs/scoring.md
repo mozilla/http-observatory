@@ -34,7 +34,7 @@ cross-origin-resource-sharing-<br>implemented-with-universal-access | Content is
 
 [Content Security Policy](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Content_Security_Policy) | Description | Modifier
 --- | --- | :---:
-csp-implemented-with-no-unsafe-default-src-none | Content Security Policy (CSP) implemented with `default-src 'none'` and no `'unsafe'` | 10
+csp-implemented-with-no-unsafe-default-src-none | Content Security Policy (CSP) implemented with `default-src 'none'` and without `'unsafe-inline'` or `'unsafe-inline'` | 10
 csp-implemented-with-no-unsafe | Content Security Policy (CSP) implemented without `'unsafe-inline'` or `'unsafe-eval'` | 5
 csp-implemented-with-unsafe-inline-in-style-src-only | Content Security Policy (CSP) implemented with `'unsafe-inline'` inside `style-src` | 0
 csp-implemented-with-unsafe-eval | Content Security Policy (CSP) implemented, but allows `'unsafe-eval'` | -10
