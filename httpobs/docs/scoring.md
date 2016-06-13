@@ -1,6 +1,6 @@
 # HTTP Observatory Scoring Methodology
 
-**Last Updated:** 2016-06-13 april@mozilla.com
+**Last Updated:** 2016-06-13 april@mozilla.com<br>
 **Author:** april@mozilla.com
 
 [Contribute.json](https://www.contributejson.org/) | Description | Modifier
@@ -10,16 +10,18 @@ contribute-json-with-required-keys | Contribute.json implemented with the requir
 contribute-json-missing-required-keys | Contribute.json exists, but is missing some of the required keys | -5
 contribute-json-invalid-json | Contribute.json file cannot be parsed | -10
 contribute-json-not-implemented | Contribute.json file missing from root of website | -10
+<br>
 
 [Cookies](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Cookies) | Description | Modifier
 --- | --- | :---:
 cookies-not-found | No cookies detected | 0
 cookies-secure-with-httponly-sessions | All cookies use the `Secure` flag and all session cookies use the `HttpOnly` flag | 0
-cookies-without-secure-flag-but-protected-by-hsts | Cookies set without using the `Secure` flag, but transmission over HTTP prevented by HSTS | -5
-cookies-session-without-secure-flag-but-protected-by-hsts | Session cookie set without the `Secure` flag, but transmission over HTTP prevented by HSTS | -10
+cookies-without-secure-flag-<br>but-protected-by-hsts | Cookies set without using the `Secure` flag, but transmission over HTTP prevented by HSTS | -5
+cookies-session-without-secure-flag-<br>but-protected-by-hsts | Session cookie set without the `Secure` flag, but transmission over HTTP prevented by HSTS | -10
 cookies-without-secure-flag | Cookies set without using the `Secure` flag or set over http | -20
 cookies-session-without-httponly-flag | Session cookie set without using the `HttpOnly` flag | -30
 cookies-session-without-secure-flag | Session cookie set without using the `Secure` flag or set over http | -40
+<br>
 
 [Cross-origin Resource Sharing (CORS)](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Cross-origin_Resource_Sharing) | Description | Modifier
 --- | --- | :---:
@@ -28,6 +30,7 @@ cross-origin-resource-sharing-<br>implemented-with-restricted-access | Content i
 cross-origin-resource-sharing-not-implemented | Content is not visible via cross-origin resource sharing (CORS) files or headers | 0
 xml-not-parsable | crossdomain.xml or clientaccesspolicy.xml claims to be xml, but cannot be parsed | -20
 cross-origin-resource-sharing-<br>implemented-with-universal-access | Content is visible via cross-origin resource sharing (CORS) file or headers | -50
+<br>
 
 [Content Security Policy](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Content_Security_Policy) | Description | Modifier
 --- | --- | :---:
@@ -39,24 +42,27 @@ csp-implemented-with-insecure-scheme | Content Security Policy (CSP) implemented
 csp-implemented-with-unsafe-inline | Content Security Policy (CSP) implemented, but allows `'unsafe-inline'` inside `script-src` | -20
 csp-not-implemented | Content Security Policy (CSP) header not implemented | -25
 csp-header-invalid | Content Security Policy (CSP) header cannot be parsed successfully | -25
+<br>
 
 [HTTP Public Key Pinning](https://wiki.mozilla.org/Security/Guidelines/Web_Security#HTTP_Public_Key_Pinning) | Description | Modifier
 --- | --- | :---:
 hpkp-preloaded | Preloaded via the HTTP Public Key Pinning (HPKP) preloading process | 5
-hpkp-implemented-max-age-at-least-fifteen-days | HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000) | 5
-hpkp-implemented-max-age-less-than-fifteen-days | HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000) | 1
+hpkp-implemented-<br>max-age-at-least-fifteen-days | HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000) | 5
+hpkp-implemented-<br>max-age-less-than-fifteen-days | HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000) | 1
 hpkp-header-invalid | HTTP Public Key Pinning (HPKP) header cannot be recognized | -5
 hpkp-not-implemented | HTTP Public Key Pinning (HPKP) header not implemented | 0
 hpkp-not-implemented-no-https | HTTP Public Key Pinning (HPKP) header can't be implemented without https | 0
+<br>
 
 [HTTP Strict Transport Security](https://wiki.mozilla.org/Security/Guidelines/Web_Security#HTTP_Strict_Transport_Security) | Description | Modifier
 --- | --- | :---:
 hsts-preloaded | Preloaded via the HTTP Strict Transport Security (HSTS) preloading process | 5
-hsts-implemented-max-age-at-least-six-months | HTTP Strict Transport Security (HSTS) header set to a minimum of six months (15768000) | 0
-hsts-implemented-max-age-less-than-six-months | HTTP Strict Transport Security (HSTS) header set to less than six months (15768000) | -10
+hsts-implemented-<br>max-age-at-least-six-months | HTTP Strict Transport Security (HSTS) header set to a minimum of six months (15768000) | 0
+hsts-implemented-<br>max-age-less-than-six-months | HTTP Strict Transport Security (HSTS) header set to less than six months (15768000) | -10
 hsts-not-implemented | HTTP Strict Transport Security (HSTS) header not implemented | -20
 hsts-not-implemented-no-https | HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over https | -20
 hsts-header-invalid | HTTP Strict Transport Security (HSTS) header cannot be recognized | -20
+<br>
 
 [Redirections](https://wiki.mozilla.org/Security/Guidelines/Web_Security#HTTP_Redirections) | Description | Modifier
 --- | --- | :---:
@@ -66,6 +72,7 @@ redirection-off-host-from-http | Initial redirection from http to https is to a 
 redirection-not-to-https-on-initial-redirection | Redirects to https eventually, but initial redirection is to another http URL | -10
 redirection-missing | Does not redirect to an https site | -20
 redirection-not-to-https | Redirects, but final destination is not an https URL | -20
+<br>
 
 [Subresource Integrity](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Subresource_Integrity) | Description | Modifier
 --- | --- | :---:
@@ -79,12 +86,14 @@ request-did-not-return-status-code-200 | / did not return a status code of 200 |
 sri-implemented-<br>but-external-scripts-not-loaded-securely | Subresource Integrity (SRI) implemented, but external scripts are loaded over http | -20
 html-not-parsable | Claims to be html, but cannot be parsed | -20
 sri-not-implemented-<br>and-external-scripts-not-loaded-securely | Subresource Integrity (SRI) is not implemented, and external scripts are loaded over http | -50
+<br>
 
 [X-Content-Type-Options](https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-Content-Type-Options) | Description | Modifier
 --- | --- | :---:
 x-content-type-options-nosniff | `X-Content-Type-Options` header set to `nosniff` | 0
 x-content-type-options-not-implemented | `X-Content-Type-Options` header not implemented | -5
 x-content-type-options-header-invalid | `X-Content-Type-Options` header cannot be recognized | -5
+<br>
 
 [X-Frame-Options](https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-Frame-Options) | Description | Modifier
 --- | --- | :---:
@@ -93,6 +102,7 @@ x-frame-options-allow-from-origin | `X-Frame-Options` (XFO) header uses `ALLOW-F
 x-frame-options-sameorigin-or-deny | `X-Frame-Options` (XFO) header set to `SAMEORIGIN` or `DENY` | 0
 x-frame-options-not-implemented | `X-Frame-Options` (XFO) header not implemented | -20
 x-frame-options-header-invalid | `X-Frame-Options` (XFO) header cannot be recognized | -20
+<br>
 
 [X-XSS-Protection](https://wiki.mozilla.org/Security/Guidelines/Web_Security#X-XSS-Protection) | Description | Modifier
 --- | --- | :---:
