@@ -7,7 +7,7 @@ All websites start with a baseline score of 100, and then receive penalties or b
 
 Note that although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
 
-## Scoring Chart
+## Grading Chart
 
 Range | Grade
 :---: | :---:
@@ -26,7 +26,7 @@ Range | Grade
 25-34 | &nbsp;E&nbsp;
 0-24 | &nbsp;F&nbsp;
 
-## Scoring Modifiers
+## Score Modifiers
 
 [Contribute.json](https://www.contributejson.org/) | Description | Modifier
 --- | --- | :---:
