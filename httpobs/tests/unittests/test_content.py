@@ -195,7 +195,7 @@ class TestSubResourceIntegrity(TestCase):
         self.reqs['resources']['/'] = """
         <html>
             <head>
-              <script src="https://www.mozilla.com/static/js/foo.js"></script>
+              <script src="https://www.mozilla.org/static/js/foo.js"></script>
             </head>
             <body></body>
         </html>

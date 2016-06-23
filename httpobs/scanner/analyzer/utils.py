@@ -1,3 +1,5 @@
+from httpobs.conf import SCANNER_PINNED_DOMAINS
+
 import requests
 import sys
 
@@ -29,6 +31,14 @@ try:
         'pinned': True if 'pins' in site else False,
     } for site in r['entries']}
 
+    # Add in the manually pinned domains
+    for pinned_domain in SCANNER_PINNED_DOMAINS:
+        hsts[pinned_domain] = {
+            'includeSubDomains': True,
+            'includeSubDomainsForPinning': True,
+            'mode': 'force-https',
+            'pinned': True
+        }
 except:
     print('Unable to download the Google HSTS Preload list; exiting', file=sys.stderr)
     exit(1)

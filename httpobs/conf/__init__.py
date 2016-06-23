@@ -83,3 +83,5 @@ SCANNER_MAX_LOAD_RATIO = int(environ.get('HTTPOBS_SCANNER_MAX_LOAD_RATIO_PER_CPU
 SCANNER_MAX_LOAD = cpu_count() * SCANNER_MAX_LOAD_RATIO
 SCANNER_MOZILLA_DOMAINS = [domain.strip() for domain in (environ.get('HTTPOBS_SCANNER_MOZILLA_DOMAINS') or
                                                          __conf('scanner', 'mozilla_domains')).split(',')]
+SCANNER_PINNED_DOMAINS = [domain.strip() for domain in (environ.get('HTTPOBS_SCANNER_PINNED_DOMAINS') or
+                                                        __conf('scanner', 'pinned_domains')).split(',')]

@@ -26,6 +26,12 @@ class TestPreloadPublicKeyPinning(TestCase):
         self.assertTrue(result['pinned'])
         self.assertTrue(result['includeSubDomainsForPinning'])
 
+        # this domain is manually pinned
+        result = is_hpkp_preloaded('aus4.mozilla.org')
+
+        self.assertTrue(result['pinned'])
+        self.assertTrue(result['includeSubDomainsForPinning'])
+
 
 class TestPreloadStrictTransportSecurity(TestCase):
     def test_not_preloaded(self):
@@ -48,3 +54,9 @@ class TestPreloadStrictTransportSecurity(TestCase):
 
         self.assertEqual('force-https', result['mode'])
         self.assertFalse(result['includeSubDomains'])
+
+        # this domain is manually pinned
+        result = is_hsts_preloaded('aus4.mozilla.org')
+
+        self.assertTrue(result['pinned'])
+        self.assertTrue(result['includeSubDomainsForPinning'])
