@@ -5,7 +5,7 @@ from copy import deepcopy
 
 def empty_requests() -> dict:
     req = {
-        'hostname': 'http-observatory.services.mozilla.com',
+        'hostname': 'http-observatory.security.mozilla.org',
         'resources': {
             '/': None,
             '/clientaccesspolicy.xml': None,
@@ -29,7 +29,7 @@ def empty_requests() -> dict:
     req['responses']['auto'].request = UserDict()
     req['responses']['auto'].request.headers = UserDict()
     req['responses']['auto'].status_code = 200
-    req['responses']['auto'].url = 'https://http-observatory.services.mozilla.com/'
+    req['responses']['auto'].url = 'https://http-observatory.security.mozilla.org/'
 
     req['session'].cookies = CookieJar()
 
