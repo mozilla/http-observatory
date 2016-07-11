@@ -18,12 +18,11 @@ Scoring Range | Grade
 70-79 | &nbsp;B&nbsp;
 65-69 | &nbsp;B-
 60-64 | &nbsp;C+
-55-59 | &nbsp;C&nbsp;
-50-54 | &nbsp;C-
-45-49 | &nbsp;D+
-40-44 | &nbsp;D&nbsp;
-35-39 | &nbsp;D-
-25-34 | &nbsp;E&nbsp;
+50-59 | &nbsp;C&nbsp;
+45-49 | &nbsp;C-
+40-44 | &nbsp;D+
+30-39 | &nbsp;D&nbsp;
+25-29 | &nbsp;D-
 0-24 | &nbsp;F&nbsp;
 
 ## Score Modifiers
