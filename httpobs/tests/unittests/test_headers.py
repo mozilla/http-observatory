@@ -75,7 +75,7 @@ class TestContentSecurityPolicy(TestCase):
             result = content_security_policy(self.reqs)
 
             self.assertEquals('csp-implemented-with-unsafe-inline-in-style-src-only', result['result'])
-            self.assertFalse(result['pass'])
+            self.assertTrue(result['pass'])
 
     def test_no_unsafe(self):
         values = ("default-src https://mozilla.org",
