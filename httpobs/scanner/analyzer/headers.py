@@ -85,7 +85,9 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         output['result'] = 'csp-not-implemented'
 
     # Check to see if the test passed or failed
-    if output['result'] in (expectation, 'csp-implemented-with-no-unsafe-default-src-none'):
+    if output['result'] in (expectation,
+                            'csp-implemented-with-no-unsafe-default-src-none',
+                            'csp-implemented-with-unsafe-inline-in-style-src-only'):
         output['pass'] = True
 
     return output
