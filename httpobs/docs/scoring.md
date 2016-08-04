@@ -32,8 +32,8 @@ Scoring Range | Grade
 contribute-json-only-required-on-mozilla-properties | Contribute.json isn't required on websites that don't belong to Mozilla | 0
 contribute-json-with-required-keys | Contribute.json implemented with the required contact information | 0
 contribute-json-missing-required-keys | Contribute.json exists, but is missing some of the required keys | -5
+contribute-json-not-implemented | Contribute.json file missing from root of website | -5
 contribute-json-invalid-json | Contribute.json file cannot be parsed | -10
-contribute-json-not-implemented | Contribute.json file missing from root of website | -10
 <br>
 
 [Cookies](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Cookies) | Description | Modifier

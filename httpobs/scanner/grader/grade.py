@@ -40,7 +40,7 @@ SCORE_TABLE = {
     },
     'contribute-json-not-implemented': {
         'description': 'Contribute.json file missing from root of website',
-        'modifier': -10,
+        'modifier': -5,
     },
     'contribute-json-invalid-json': {
         'description': 'Contribute.json file cannot be parsed',
@@ -227,7 +227,7 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'sri-not-implemented-but-all-scripts-loaded-from-secure-origin': {
-        'description': 'Subresource Integrity (SRI) not implemented as all scripts are loaded from a similar origin',
+        'description': 'Subresource Integrity (SRI) not implemented, but all scripts are loaded from a similar origin',
         'modifier': 0,
     },
     'sri-not-implemented-but-external-scripts-loaded-securely': {
