@@ -9,6 +9,11 @@ from httpobs.scanner.analyzer.utils import only_if_worse
 import json
 
 
+# Compat between Python 3.4 and Python 3.5 (see: https://github.com/mozilla/http-observatory-website/issues/14)
+if not hasattr(json, 'JSONDecodeError'):
+    json.JSONDecodeError = ValueError
+
+
 @scored_test
 def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> dict:
     """
