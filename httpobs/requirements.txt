@@ -1,5 +1,6 @@
 amqp==1.4.9
 anyjson==0.3.3
+beautifulsoup4==4.5.1
 billiard==3.3.0.23
 celery==3.1.23
 click==6.6
@@ -19,4 +20,5 @@ pyflakes==1.2.3
 pytz==2016.6.1
 redis==2.10.5
 requests==2.11.0
+uWSGI==2.0.13.1
 Werkzeug==0.11.10
