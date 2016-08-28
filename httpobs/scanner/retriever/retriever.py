@@ -1,7 +1,7 @@
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from urllib.parse import urlparse
 
-from httpobs.conf import RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_READ_TIMEOUT, RETRIEVER_USER_AGENT
+from httpobs.conf import RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_READ_TIMEOUT, RETRIEVER_USER_AGENT, RETRIEVER_CORS_ORIGIN
 from httpobs.database import select_site_headers
 
 import requests
@@ -123,7 +123,7 @@ def retrieve_all(hostname: str) -> dict:
 
         # Do a CORS preflight request
         retrievals['responses']['cors'] = __get(retrievals['session'],
-                                                headers={'Origin': 'https://http-observatory.security.mozilla.org'})
+                                                headers={'Origin': RETRIEVER_CORS_ORIGIN})
 
         # Store all the files we retrieve
         for resource in resources:
