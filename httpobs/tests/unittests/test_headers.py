@@ -78,8 +78,12 @@ class TestContentSecurityPolicy(TestCase):
             self.assertTrue(result['pass'])
 
     def test_no_unsafe(self):
+        # See https://github.com/mozilla/http-observatory/issues/88 for 'unsafe-inline' + hash/nonce
         values = ("default-src https://mozilla.org",
-                  "script-src https://mozilla.org; style-src https://mozilla.org; upgrade-insecure-requests;")
+                  "script-src https://mozilla.org; style-src https://mozilla.org; upgrade-insecure-requests;",
+                  "script-src 'unsafe-inline' 'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBA='" +
+                  'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBB=',
+                  "script-src 'unsafe-inline' 'nonce-abc123' 'unsafe-inline'")
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
