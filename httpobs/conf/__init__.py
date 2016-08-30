@@ -66,6 +66,7 @@ RETRIEVER_CONNECT_TIMEOUT = float(environ.get('HTTPOBS_RETRIEVER_CONNECT_TIMEOUT
 RETRIEVER_READ_TIMEOUT = float(environ.get('HTTPOBS_RETRIEVER_READ_TIMEOUT') or
                                __conf('retriever', 'read_timeout'))
 RETRIEVER_USER_AGENT = environ.get('HTTPOBS_RETRIEVER_USER_AGENT') or __conf('retriever', 'user_agent')
+RETRIEVER_CORS_ORIGIN = environ.get('HTTPOBS_RETRIEVER_CORS_ORIGIN') or __conf('retriever', 'cors_origin')
 
 # Scanner configuration
 SCANNER_ABORT_SCAN_TIME = int(environ.get('HTTPOBS_SCANNER_ABORT_SCAN_TIME') or
