@@ -312,6 +312,7 @@ class TestCookies(TestCase):
         self.assertEquals('cookies-session-without-secure-flag', result['result'])
         self.assertFalse(result['pass'])
 
+
 class TestPublicKeyPinning(TestCase):
     def setUp(self):
         self.reqs = empty_requests()
