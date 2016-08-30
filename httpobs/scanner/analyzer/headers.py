@@ -58,7 +58,11 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         for directive in ['script-src', 'style-src']:
             csp[directive] = csp.get(directive) if directive in csp else csp.get('default-src')
 
-        # TODO: remove 'unsafe-inline' or 'unsafe-eval' if nonce or hash are used
+        # Remove 'unsafe-inline' if nonce or hash are used are in script-src
+        # See: https://github.com/mozilla/http-observatory/issues/88
+        if any(source.startswith(('\'sha256-', '\'sha384-', '\'sha512-', '\'nonce-'))
+               for source in csp.get('script-src', ())):
+            csp['script-src'] = [source for source in csp['script-src'] if source != '\'unsafe-inline\'']
 
         # Do all of our tests
         if '\'unsafe-inline\'' in csp.get('script-src') or 'data:' in csp.get('script-src'):
