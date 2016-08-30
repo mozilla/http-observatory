@@ -124,8 +124,8 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     goodness = ['cookies-without-secure-flag-but-protected-by-hsts',
                 'cookies-without-secure-flag',
                 'cookies-session-without-secure-flag-but-protected-by-hsts',
-                'cookies-session-without-secure-flag',
-                'cookies-session-without-httponly-flag']
+                'cookies-session-without-httponly-flag',
+                'cookies-session-without-secure-flag']
 
     # Get their HTTP Strict Transport Security status, which can help when cookies are set without Secure
     hsts = strict_transport_security(reqs)['pass']
