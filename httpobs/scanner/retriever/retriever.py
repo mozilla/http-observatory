@@ -1,7 +1,10 @@
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 from urllib.parse import urlparse
 
-from httpobs.conf import RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_READ_TIMEOUT, RETRIEVER_USER_AGENT, RETRIEVER_CORS_ORIGIN
+from httpobs.conf import (RETRIEVER_CONNECT_TIMEOUT,
+                          RETRIEVER_CORS_ORIGIN,
+                          RETRIEVER_READ_TIMEOUT,
+                          RETRIEVER_USER_AGENT)
 from httpobs.database import select_site_headers
 
 import requests
