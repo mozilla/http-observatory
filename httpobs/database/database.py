@@ -14,7 +14,7 @@ from httpobs.conf import (API_CACHED_RESULT_TIME,
                           SCANNER_ABORT_SCAN_TIME)
 from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_STARTING
 from httpobs.scanner.analyzer import NUM_TESTS
-from httpobs.scanner.grader import get_grade_for_score
+from httpobs.scanner.grader import get_grade_and_likelihood_for_score
 
 import psycopg2
 import psycopg2.extras
@@ -140,15 +140,17 @@ def insert_test_results(site_id: int, scan_id: int, tests: list, response_header
                         (site_id, scan_id, name, expectation, result, passed, dumps(test), score_modifier))
 
         # Now we need to update the scans table
-        score, grade = get_grade_for_score(score)
+        score, grade, likelihood_indicator = get_grade_and_likelihood_for_score(score)
 
         # Update the scans table
         cur.execute("""UPDATE scans
-                         SET (end_time, tests_failed, tests_passed, grade, score, state, response_headers) =
+                         SET (end_time, tests_failed, tests_passed, grade, score, likelihood_indicator,
+                         state, response_headers) =
                          (NOW(), %s, %s, %s, %s, %s, %s)
                          WHERE id = %s
                          RETURNING *""",
-                    (tests_failed, tests_passed, grade, score, STATE_FINISHED, dumps(response_headers), scan_id))
+                    (tests_failed, tests_passed, grade, score, likelihood_indicator, STATE_FINISHED,
+                        dumps(response_headers), scan_id))
 
         row = dict(cur.fetchone())
 

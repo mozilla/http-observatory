@@ -146,6 +146,7 @@ Example:
 * `response_headers` the entirety of the HTTP response headers
 * `scan_id` unique ID number assigned to the scan
 * `score` final score assessed upon a completed (`FINISHED`) scan
+* `likelihood_indicator` Mozilla risk likelihod indicator that is the equivalent of the grade [https://wiki.mozilla.org/Security/Standard_Levels] (https://wiki.mozilla.org/Security/Standard_Levels)
 * `start_time` timestamp for when the scan was first requested
 * `state` the current state of the scan
 * `tests_failed` the number of subtests that were assigned a fail result
@@ -168,6 +169,7 @@ Example:
   "response_headers": { ... },
   "scan_id": 1,
   "score": 90,
+  "likelihood_indicator": "LOW",
   "start_time": "Tue, 22 Mar 2016 21:51:40 GMT",
   "state": "FINISHED",
   "tests_failed": 2,
