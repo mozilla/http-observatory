@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS scans (
   tests_quantity                      SMALLINT   NOT NULL,
   grade                               VARCHAR(2) NULL,
   score                               SMALLINT   NULL,
+  likelihood_indicator                VARCHAR(8) NULL,
   error                               VARCHAR    NULL,
   response_headers                    JSONB NULL,
   hidden                              BOOL       NOT NULL DEFAULT FALSE
@@ -105,3 +106,9 @@ ALTER MATERIALIZED VIEW grade_distribution OWNER TO httpobsscanner;  /* so it ca
 ALTER TABLE sites ADD COLUMN cookies JSONB NULL;
 GRANT UPDATE (cookies) ON sites TO httpobsapi;
  */
+
+/* Update to add likelihood indicator */
+/*
+ALTER TABLE scans ADD COLUMN likelihood_indicator VARCHAR(8) NULL;
+GRANT UPDATE (likelihood_indicator) on scans to httpobsapi;
+*/
