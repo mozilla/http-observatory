@@ -105,6 +105,16 @@ def api_get_scan_results():
     if not scan_id:
         return {'error': 'scan-not-found'}
 
+    # Check for invalid scan_id numbers
+    try:
+        scan_id = int(scan_id)
+
+        # <3 :atoll
+        if scan_id < 0 or scan_id > 2147483646:  # the first rule of autoincrement club
+            raise ValueError
+    except ValueError:
+        return {'error': 'invalid-scan-id'}
+
     # Get all the test results for the given scan id
     tests = dict(database.select_test_results(scan_id))
 
