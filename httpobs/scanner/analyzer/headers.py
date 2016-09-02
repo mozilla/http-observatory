@@ -344,6 +344,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
 
     # If they're in the preloaded list, this overrides most anything else
     # TODO: Check to see if all redirect domains are preloaded
+    # TODO: Check every redirect along the way for HSTS
     if response is not None:
         preloaded = is_hsts_preloaded(urlparse(response.url).netloc)
         if preloaded:
