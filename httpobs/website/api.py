@@ -110,7 +110,7 @@ def api_get_scan_results():
         scan_id = int(scan_id)
 
         # <3 :atoll
-        if scan_id < 0 or scan_id > 2147483646:  # the first rule of autoincrement club
+        if scan_id < 1 or scan_id > 2147483646:  # the first rule of autoincrement club
             raise ValueError
     except ValueError:
         return {'error': 'invalid-scan-id'}
