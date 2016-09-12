@@ -48,7 +48,7 @@ $ docker-compose up -d
 
 # Clone the repo
 # cd /opt
-# apt-get clone https://github.com/mozilla/http-observatory.git
+# git clone https://github.com/mozilla/http-observatory.git
 # cd http-observatory
 
 # Install the observatory and scanner
