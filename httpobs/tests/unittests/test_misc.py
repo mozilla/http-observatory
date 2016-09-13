@@ -200,3 +200,21 @@ class TestRedirection(TestCase):
 
         self.assertEquals('redirection-off-host-from-http', result['result'])
         self.assertFalse(result['pass'])
+
+    def test_all_redirections_preloaded(self):
+        self.reqs['responses']['http'].url = 'https://www.pokeinthe.io/foo/bar'
+
+        for url in ('http://pokeinthe.io/',
+                    'https://pokeinthe.io/',
+                    'https://www.pokeinthe.io/',
+                    'https://baz.pokeinthe.io/foo'):
+            history = UserDict()
+            history.request = UserDict()
+            history.request.url = url
+
+            self.reqs['responses']['http'].history.append(history)
+
+        result = redirection(self.reqs)
+
+        self.assertEquals('redirection-all-redirects-preloaded', result['result'])
+        self.assertTrue(result['pass'])

@@ -14,7 +14,7 @@ hsts = {}
 
 # Download the Google HSTS Preload List
 try:
-    print('Retrieving the Google HSTS Preload list', file=sys.stderr)
+    print('Retrieving the Chromium HSTS preload list', file=sys.stderr)
     r = b64decode(requests.get(HSTS_URL).text).decode('utf-8').split('\n')
 
     # Remove all the comments
@@ -39,8 +39,11 @@ try:
             'mode': 'force-https',
             'pinned': True
         }
+
+    # Print confirmation that preload list has been successfully downloaded and parsed
+    print('Successfully downloaded and parsed the Chromium HSTS preload list', file=sys.stderr)
 except:
-    print('Unable to download the Google HSTS Preload list; exiting', file=sys.stderr)
+    print('Unable to download the Chromium HSTS preload list; exiting', file=sys.stderr)
     exit(1)
 
 

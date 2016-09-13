@@ -158,6 +158,10 @@ SCORE_TABLE = {
     },
 
     # Redirection
+    'redirection-all-redirects-preloaded': {
+        'description': 'All hosts redirected to are in the HTTP Strict Transport Security (HSTS) preload list',
+        'modifier': 0,
+    },
     'redirection-to-https': {
         'description': 'Initial redirection is to https on same host, final destination is https',
         'modifier': 0,
