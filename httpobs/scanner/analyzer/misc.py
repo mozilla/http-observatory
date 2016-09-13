@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup as bs
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
+from httpobs.scanner.analyzer.utils import is_hsts_preloaded
 
 
 def __parse_acao_xml_get_domains(xml, type='crossdomain') -> list:
@@ -134,8 +135,12 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
         output['route'] = [r.request.url for r in response.history] if response.history else []
         output['route'] += [response.url]
 
+        # Check to see if every redirection was covered by the preload list
+        if all([is_hsts_preloaded(url.netloc) for url in list(map(urlparse, output['route']))]):
+            output['result'] = 'redirection-all-redirects-preloaded'
+
         # No redirection, so you just stayed on the http website
-        if len(output['route']) == 1:
+        elif len(output['route']) == 1:
             output['redirects'] = False
             output['result'] = 'redirection-missing'
 
@@ -149,6 +154,7 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
 
         # If it's an http -> https redirection, make sure it redirects to the same host. If that's not done, then
         # HSTS cannot be properly set on the original host
+        # TODO: Check for redirections like: http://www.example.com -> https://example.com -> https://www.example.com
         elif (urlparse(output['route'][0]).scheme == 'http' and urlparse(output['route'][1]).scheme == 'https' and
               urlparse(output['route'][0]).netloc.lower() != urlparse(output['route'][1]).netloc.lower()):
             output['result'] = 'redirection-off-host-from-http'
@@ -161,7 +167,9 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
     output['status_code'] = output['status_code'] if len(str(output['status_code'])) < 5 else None
 
     # Check to see if the test passed or failed
-    if expectation == output['result'] or output['result'] == 'redirection-not-needed-no-http':
+    if output['result'] in ('redirection-not-needed-no-http',
+                            'redirection-all-redirects-preloaded',
+                            expectation):
         output['pass'] = True
 
     return output

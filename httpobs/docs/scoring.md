@@ -90,6 +90,7 @@ hsts-header-invalid | HTTP Strict Transport Security (HSTS) header cannot be rec
 
 [Redirections](https://wiki.mozilla.org/Security/Guidelines/Web_Security#HTTP_Redirections) | Description | Modifier
 --- | --- | :---:
+redirection-all-redirects-preloaded | All hosts redirected to are in the HTTP Strict Transport Security (HSTS) preload list | 0
 redirection-to-https | Initial redirection is to https on same host, final destination is https | 0
 redirection-not-needed-no-http | Not able to connect via http, so no redirection necessary | 0
 redirection-off-host-from-http | Initial redirection from http to https is to a different host, preventing HSTS | -5
