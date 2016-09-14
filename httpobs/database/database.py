@@ -234,8 +234,8 @@ def select_scan_recent_scan(site_id: int, recent_in_seconds=API_CACHED_RESULT_TI
 def select_site_headers(hostname: str) -> dict:
     # Return the site's headers
     with get_cursor() as cur:
-        cur.execute("""SELECT public_headers, private_headers FROM sites
-                         WHERE domain=(%s)
+        cur.execute("""SELECT public_headers, private_headers, cookies FROM sites
+                         WHERE domain = (%s)
                          ORDER BY creation_time DESC
                          LIMIT 1""",
                     (hostname,))
@@ -248,7 +248,10 @@ def select_site_headers(hostname: str) -> dict:
             private_headers = {} if row.get('private_headers') is None else row.get('private_headers')
             headers.update(private_headers)
 
-            return headers
+            return {
+                'headers': headers,
+                'cookies': {} if row.get('cookies') is None else row.get('cookies')
+            }
         else:
             return {}
 
