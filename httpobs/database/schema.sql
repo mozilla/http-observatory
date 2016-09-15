@@ -3,7 +3,8 @@ CREATE TABLE IF NOT EXISTS sites (
   domain                              VARCHAR(255) NOT NULL,
   creation_time                       TIMESTAMP NOT NULL,
   public_headers                      JSONB NULL,
-  private_headers                     JSONB NULL
+  private_headers                     JSONB NULL,
+  cookies                             JSONB NULL
 );
 
 CREATE TABLE IF NOT EXISTS expectations (
@@ -67,7 +68,7 @@ CREATE USER httpobsapi;
 GRANT SELECT ON expectations, scans, tests to httpobsapi;
 GRANT SELECT (id, domain, creation_time, public_headers) ON sites TO httpobsapi;
 GRANT INSERT ON sites, scans TO httpobsapi;
-GRANT UPDATE (public_headers, private_headers) ON sites TO httpobsapi;
+GRANT UPDATE (public_headers, private_headers, cookies) ON sites TO httpobsapi;
 GRANT UPDATE ON scans TO httpobsapi;
 GRANT USAGE ON SEQUENCE sites_id_seq TO httpobsapi;
 GRANT USAGE ON SEQUENCE scans_id_seq TO httpobsapi;
@@ -98,3 +99,9 @@ CREATE MATERIALIZED VIEW grade_distribution
 COMMENT ON MATERIALIZED VIEW grade_distribution IS 'The grades and how many scans have that score';
 GRANT SELECT ON grade_distribution TO httpobsapi;
 ALTER MATERIALIZED VIEW grade_distribution OWNER TO httpobsscanner;  /* so it can refresh */
+
+/* Update to add cookies */
+/*
+ALTER TABLE sites ADD COLUMN cookies JSONB NULL;
+GRANT UPDATE (cookies) ON sites TO httpobsapi;
+ */

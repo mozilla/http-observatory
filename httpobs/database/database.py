@@ -185,6 +185,29 @@ def select_scan_grade_totals() -> dict:
         return dict(cur.fetchall())
 
 
+def select_scan_host_history(site_id: int) -> list:
+    # Get all of the site's historic scans
+    with get_cursor() as cur:
+        cur.execute("""SELECT id, grade, score, end_time FROM scans
+                         WHERE site_id = (%s)
+                         AND NOT hidden
+                         AND state = (%s)
+                         ORDER BY end_time ASC;""",
+                    (site_id, STATE_FINISHED))
+
+    if cur.rowcount > 0:
+        return([
+            {
+                'scan_id': row['id'],
+                'grade': row['grade'],
+                'score': row['score'],
+                'end_time': row['end_time'],
+                'end_time_unix_timestamp': int(row['end_time'].timestamp())
+            } for row in cur.fetchall()])
+    else:
+        return []
+
+
 def select_scan_scanner_states() -> dict:
     with get_cursor() as cur:
         cur.execute('SELECT state, COUNT(*) as quantity FROM scans GROUP BY state;')
@@ -234,8 +257,8 @@ def select_scan_recent_scan(site_id: int, recent_in_seconds=API_CACHED_RESULT_TI
 def select_site_headers(hostname: str) -> dict:
     # Return the site's headers
     with get_cursor() as cur:
-        cur.execute("""SELECT public_headers, private_headers FROM sites
-                         WHERE domain=(%s)
+        cur.execute("""SELECT public_headers, private_headers, cookies FROM sites
+                         WHERE domain = (%s)
                          ORDER BY creation_time DESC
                          LIMIT 1""",
                     (hostname,))
@@ -248,7 +271,10 @@ def select_site_headers(hostname: str) -> dict:
             private_headers = {} if row.get('private_headers') is None else row.get('private_headers')
             headers.update(private_headers)
 
-            return headers
+            return {
+                'headers': headers,
+                'cookies': {} if row.get('cookies') is None else row.get('cookies')
+            }
         else:
             return {}
 

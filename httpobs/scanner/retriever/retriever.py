@@ -20,12 +20,19 @@ TIMEOUT = (RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_READ_TIMEOUT)
 # Create a session, returning the session and the HTTP response in a dictionary
 # Don't create the sessions if it can't connect and retrieve the root of the website
 # TODO: Allow people to scan a subdirectory instead of using '/' as the default path?
-def __create_session(url: str, headers=None) -> dict:
+def __create_session(url: str, headers=None, cookies=None) -> dict:
     s = requests.Session()
 
     # Add the headers to the session
     if headers:
         s.headers.update(headers)
+
+    # Set all the cookies and force them to be sent only over HTTPS; this might change in the future
+    if cookies:
+        s.cookies.update(cookies)
+
+        for cookie in s.cookies:
+            cookie.secure = True
 
     # Override the User-Agent; some sites (like twitter) don't send the CSP header unless you have a modern
     # user agent
@@ -48,12 +55,21 @@ def __create_session(url: str, headers=None) -> dict:
     return {'session': s, 'response': r}
 
 
-def __get(session, relative_path='/', headers=None):
+def __get(session, relative_path='/', headers=None, cookies=None):
+    if not headers:
+        headers = {}
+
+    if not cookies:
+        cookies = {}
+
     try:
         # TODO: limit the maximum size of the response, to keep malicious site operators from killing us
         # TODO: Perhaps we can naively do it for now by simply setting a timeout?
         # TODO: catch TLS errors instead of just setting it to None?
-        return session.get(session.url.scheme + '://' + session.url.netloc + relative_path, timeout=TIMEOUT)
+        return session.get(session.url.scheme + '://' + session.url.netloc + relative_path,
+                           headers=headers,
+                           cookies=cookies,
+                           timeout=TIMEOUT)
     # Let celery exceptions percolate upward
     except (SoftTimeLimitExceeded, TimeLimitExceeded):
         raise
@@ -97,13 +113,17 @@ def retrieve_all(hostname: str) -> dict:
         '/robots.txt'
     )
 
-    # Get the headers from the database
+    # Get the headers and cookies from the database
     # TODO: Allow headers to be overridden on a per-scan basis?
     headers = select_site_headers(hostname)
 
     # Create some reusable sessions, one for HTTP and one for HTTPS
-    http_session = __create_session('http://' + hostname + '/', headers=headers)
-    https_session = __create_session('https://' + hostname + '/', headers=headers)
+    http_session = __create_session('http://' + hostname + '/',
+                                    headers=headers['headers'],
+                                    cookies=headers['cookies'])
+    https_session = __create_session('https://' + hostname + '/',
+                                     headers=headers['headers'],
+                                     cookies=headers['cookies'])
 
     # If neither one works, then the site just can't be loaded
     if not http_session['session'] and not https_session['session']:
