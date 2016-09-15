@@ -70,6 +70,27 @@ def api_get_grade_totals():
     return jsonify(totals)
 
 
+@api.route('/api/v1/getHostHistory', methods=['GET', 'OPTIONS'])
+@add_response_headers(cors=True)
+def api_get_host_history():
+    # Get the hostname
+    hostname = request.args.get('host', '').lower()
+
+    # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
+    hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
+    if not hostname:
+        return {'error': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', ''))}
+
+    # Get the site's id number
+    try:
+        site_id = database.select_site_id(hostname)
+    except IOError:
+        return {'error': 'Unable to connect to database'}
+
+    # Return the host history
+    return jsonify(database.select_scan_host_history(site_id))
+
+
 @api.route('/api/v1/getRecentScans', methods=['GET', 'OPTIONS'])
 @add_response_headers(cors=True)
 def api_get_recent_scans():
