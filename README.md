@@ -83,6 +83,9 @@ $ HTTPOBS_DATABASE_USER="httpobsscanner" HTTPOBS_DATABASE_PASS="....." \
     uwsgi --http :57001 --wsgi-file httpobs/website/main.py --processes 8 --callable app --master
 ```
 
+### Documentation made by people extern of mozilla
+* [Installation on a Debian Jessie without docker, using systemd by Cédric BRINER](https://github.com/briner/tech-notes/blob/master/observatory_by_mozilla.md)
+ 
 ## Authors
 
 * April King
