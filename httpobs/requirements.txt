@@ -1,7 +1,7 @@
 amqp==2.1.0
 anyjson==0.3.3
 beautifulsoup4==4.5.1
-billiard==3.5.0.1
+billiard==3.3.0.23
 celery==3.1.23
 click==6.6
 coverage==4.2
