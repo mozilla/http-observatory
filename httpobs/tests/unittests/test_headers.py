@@ -44,7 +44,17 @@ class TestContentSecurityPolicy(TestCase):
         values = ("script-src 'unsafe-inline'",
                   "script-src data:",
                   "default-src 'unsafe-inline'",
-                  "upgrade-insecure-requests")
+                  "upgrade-insecure-requests",
+                  "script-src 'none'",
+                  "script-src https:",
+                  "script-src https://mozilla.org https:",
+                  "default-src https://mozilla.org https:",
+                  "default-src 'none'; script-src *",
+                  "default-src *; script-src *; object-src 'none'",
+                  "default-src 'none'; script-src 'none', object-src *",
+                  "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'",
+                  "default-src 'none'; script-src 'unsafe-inline' http:",
+                  "object-src https:; script-src 'none'")
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
@@ -55,7 +65,8 @@ class TestContentSecurityPolicy(TestCase):
             self.assertFalse(result['pass'])
 
     def test_unsafe_eval(self):
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "script-src 'unsafe-eval'"
+        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = \
+            "default-src 'none'; script-src 'unsafe-eval'"
 
         result = content_security_policy(self.reqs)
 
@@ -64,10 +75,12 @@ class TestContentSecurityPolicy(TestCase):
         self.assertFalse(result['pass'])
 
     def test_unsafe_inline_in_style_src_only(self):
-        values = ("script-src 'none'; style-src 'unsafe-inline'",
+        values = ("object-src 'none'; script-src 'none'; style-src 'unsafe-inline'",
                   "default-src 'none'; script-src https://mozilla.org; style-src 'unsafe-inline'",
-                  "default-src 'unsafe-inline'; script-src https://mozilla.org;",
-                  "default-src 'none'; style-src data:")
+                  "default-src 'unsafe-inline'; script-src https://mozilla.org",
+                  "default-src 'none'; style-src data:",
+                  "default-src 'none'; style-src *",
+                  "default-src 'none'; style-src https:")
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
@@ -80,10 +93,12 @@ class TestContentSecurityPolicy(TestCase):
     def test_no_unsafe(self):
         # See https://github.com/mozilla/http-observatory/issues/88 for 'unsafe-inline' + hash/nonce
         values = ("default-src https://mozilla.org",
-                  "script-src https://mozilla.org; style-src https://mozilla.org; upgrade-insecure-requests;",
-                  "script-src 'unsafe-inline' 'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBA='" +
-                  'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBB=',
-                  "script-src 'unsafe-inline' 'nonce-abc123' 'unsafe-inline'")
+                  "object-src 'none'; script-src https://mozilla.org; " +
+                  "style-src https://mozilla.org; upgrade-insecure-requests;",
+                  "object-src 'none'; script-src 'unsafe-inline' " +
+                  "'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBA='" +
+                  "'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBB='",
+                  "object-src 'none'; script-src 'unsafe-inline' 'nonce-abc123' 'unsafe-inline'")
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
@@ -95,7 +110,8 @@ class TestContentSecurityPolicy(TestCase):
 
     def test_no_unsafe_default_src_none(self):
         values = ("default-src 'none'; script-src https://mozilla.org;"
-                  "style-src https://mozilla.org; upgrade-insecure-requests;",)
+                  "style-src https://mozilla.org; upgrade-insecure-requests;",
+                  "default-src 'none'; object-src https://mozilla.org")
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
@@ -655,7 +671,7 @@ class TestXXSSProtection(TestCase):
         self.assertTrue(result['pass'])
 
     def test_enabled_via_csp(self):
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = 'script-src \'none\''
+        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "object-src 'none'; script-src 'none'"
 
         result = x_xss_protection(self.reqs)
 

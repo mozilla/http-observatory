@@ -34,12 +34,17 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # TODO: check for CSP meta tags
     # TODO: try to parse when there are multiple CSP headers
 
+    # Obviously you can get around it with things like https://*.org, but you're only hurting yourself
+    dangerously_broad = ['http:', 'https:', '*', 'http://*', 'http://*.*', 'https://*', 'https://*.*']
+    unsafe_inline = ['\'unsafe-inline\'', 'data:']
+
     # Check to see the state of the CSP header
     if 'Content-Security-Policy' in response.headers:
         # Decompose the CSP; could probably do this in one step, but it's complicated enough
         # Should look like:
         # {
         #   'default-src': ['\'none\''],
+        #   'object-src': ['\'none\''],
         #   'script-src': ['https://mozilla.org', '\'unsafe-inline\''],
         #   'style-src': ['\'self\', 'https://mozilla.org'],
         #   'upgrade-insecure-requests': [],
@@ -53,10 +58,10 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
             output['result'] = 'csp-header-invalid'
             return output
 
-        # Replicate default-src to script-src and style-src, if they don't exist and default-src does
-        csp['default-src'] = csp.get('default-src', '')
-        for directive in ['script-src', 'style-src']:
-            csp[directive] = csp.get(directive) if directive in csp else csp.get('default-src')
+        # Replicate default-src to object-src, script-src, and style-src, if they don't exist and default-src does
+        csp['default-src'] = csp.get('default-src', [])
+        for directive in ('object-src', 'script-src', 'style-src'):
+            csp[directive] = csp.get(directive, csp['default-src'])
 
         # Remove 'unsafe-inline' if nonce or hash are used are in script-src
         # See: https://github.com/mozilla/http-observatory/issues/88
@@ -64,17 +69,28 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
                for source in csp.get('script-src', ())):
             csp['script-src'] = [source for source in csp['script-src'] if source != '\'unsafe-inline\'']
 
-        # Do all of our tests
-        if '\'unsafe-inline\'' in csp.get('script-src') or 'data:' in csp.get('script-src'):
+        # Now to make the piggies squeal
+
+        # No 'unsafe-inline' or data: in script-src
+        # Also don't allow overly broad schemes such as https: in either object-src or script-src
+        # Likewise, if you don't have object-src or script-src defined, then all sources are allowed
+        if (any(source in csp['script-src'] for source in dangerously_broad + unsafe_inline)
+                or any(source in csp['object-src'] for source in dangerously_broad)
+                or not csp['object-src']
+                or not csp['script-src']):
             output['result'] = 'csp-implemented-with-unsafe-inline'
-        elif not csp.get('default-src') and not csp.get('script-src'):
-            output['result'] = 'csp-implemented-with-unsafe-inline'
+
+        # If the site is https, it shouldn't allow any http: as a source (passive or mixed content)
         elif urlparse(response.url).scheme == 'https' and 'http:' in header:
             output['result'] = 'csp-implemented-with-insecure-scheme'
-        elif '\'unsafe-eval\'' in csp.get('script-src') or '\'unsafe-eval\'' in csp.get('style-src'):
+        elif '\'unsafe-eval\'' in csp['script-src'] + csp['style-src']:
             output['result'] = 'csp-implemented-with-unsafe-eval'
-        elif '\'unsafe-inline\'' in csp.get('style-src') or 'data:' in csp.get('style-src'):
+
+        # Don't allow 'unsafe-inline', data:, or overly broad sources in style-src
+        elif any(source in csp['style-src'] for source in dangerously_broad + unsafe_inline):
             output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
+
+        # Only if default-src is 'none' and 'none' alone, since additional uris override 'none'
         elif csp.get('default-src') == ['\'none\'']:
             output['result'] = 'csp-implemented-with-no-unsafe-default-src-none'
         else:

@@ -57,7 +57,8 @@ SCORE_TABLE = {
         'modifier': 5,
     },
     'csp-implemented-with-unsafe-inline-in-style-src-only': {
-        'description': 'Content Security Policy (CSP) implemented with \'unsafe-inline\' inside style-src',
+        'description': ('Content Security Policy (CSP) implemented with unsafe sources inside style-src. '
+                        'This includes \'unsafe-inline\', data: or overly broad sources such as https:.'),
         'modifier': 0,
     },
     'csp-implemented-with-unsafe-eval': {
@@ -65,11 +66,15 @@ SCORE_TABLE = {
         'modifier': -10,
     },
     'csp-implemented-with-unsafe-inline': {
-        'description': 'Content Security Policy (CSP) implemented, but allows \'unsafe-inline\' inside script-src',
+        'description': ('Content Security Policy (CSP) implemented unsafely. '
+                        'This includes \'unsafe-inline\' or data: inside script-src, '
+                        'overly broad sources such as https: inside object-src or script-src, '
+                        'or not restricting the sources for object-src or script-src.'),
         'modifier': -20,
     },
     'csp-implemented-with-insecure-scheme': {
-        'description': 'Content Security Policy (CSP) implemented, but allows resources to be loaded from http',
+        'description': ('Content Security Policy (CSP) implemented, '
+                        'but secure site allows resources to be loaded from http'),
         'modifier': -20,
     },
     'csp-header-invalid': {
