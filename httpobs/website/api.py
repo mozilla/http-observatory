@@ -3,9 +3,10 @@ from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, make_response, request
 
 import httpobs.database as database
+import os.path
 
 
 api = Blueprint('api', __name__)
@@ -157,35 +158,16 @@ def api_get_scan_results():
     return tests
 
 
-# TODO: reimplement someday
-# @api.route('/api/v1/private/massAnalyze', methods=['POST'])
-# @add_response_headers()
-# def api_post_mass_analyze():
-#     # Abort if the API keys don't match
-#     if request.form.get('apikey', 'notatrueapikey') != API_KEY or not API_KEY:
-#         abort(403)
-#
-#     # Get the hostnames
-#     try:
-#         hostnames = request.form['hosts']
-#     except KeyError:
-#         return {'error': 'scan-missing-parameters'}
-#
-#     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
-#     for host in hostnames.split(','):
-#         hostname = valid_hostname(host) or valid_hostname('www.' + host)  # prepend www. if necessary
-#
-#         # We don't really care about hosts that can't be found
-#         if not hostname:
-#             continue
-#
-#         # Get the site's id number
-#         try:
-#             site_id = database.select_site_id(hostname)
-#         except IOError:
-#             return {'error': 'Unable to connect to database'}
-#
-#         # And enqueue the scan
-#         database.insert_scan(site_id)
-#
-#     return jsonify({'state': 'OK'})
+@api.route('/contribute.json', methods=['GET'])
+def contribute_json():
+    __dirname = os.path.abspath(os.path.dirname(__file__))
+    __filename = os.path.join(__dirname, '..', 'docs', 'contribute.json')
+
+    # Return the included contribute.json file
+    try:
+        with open(__filename, 'r') as f:
+            resp = make_response(f.read())
+            resp.mimetype = 'application/json'
+            return resp
+    except:
+        return jsonify({'error': 'no-contribute-json'})
