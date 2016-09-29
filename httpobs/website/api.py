@@ -159,6 +159,7 @@ def api_get_scan_results():
 
 
 @api.route('/contribute.json', methods=['GET'])
+@add_response_headers()
 def contribute_json():
     __dirname = os.path.abspath(os.path.dirname(__file__))
     __filename = os.path.join(__dirname, '..', 'docs', 'contribute.json')
