@@ -79,22 +79,24 @@ def api_get_host_history():
     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
     hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
     if not hostname:
-        return {'error': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', ''))}
+        return jsonify({'error': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', ''))})
 
     # Get the site's id number
     try:
         site_id = database.select_site_id(hostname)
     except IOError:
-        return {'error': 'Unable to connect to database'}
+        return jsonify({'error': 'Unable to connect to database'})
 
     # Get the host history
     history = database.select_scan_host_history(site_id)
-    pruned_history = [history[0]]
 
-    # Prune for when the score doesn't change; there's probably a more elegant way of doing this
-    for i in history[1:]:
-        if i['score'] != pruned_history[-1]['score']:
-            pruned_history.append(i)
+    # Gracefully handle when there's no history
+    if not history:
+        return jsonify({'error': 'No history found'})
+
+    # Prune for when the score doesn't change; thanks to chuck for the elegant list comprehension
+    pruned_history = [v for k, v in enumerate(history) if history[k].get('score') is not history[k-1].get('score')
+                      or k is 0]
 
     # Return the host history
     return jsonify(pruned_history)
