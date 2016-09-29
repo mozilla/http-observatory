@@ -87,8 +87,17 @@ def api_get_host_history():
     except IOError:
         return {'error': 'Unable to connect to database'}
 
+    # Get the host history
+    history = database.select_scan_host_history(site_id)
+    pruned_history = [history[0]]
+
+    # Prune for when the score doesn't change; there's probably a more elegant way of doing this
+    for i in history[1:]:
+        if i['score'] != pruned_history[-1]['score']:
+            pruned_history.append(i)
+
     # Return the host history
-    return jsonify(database.select_scan_host_history(site_id))
+    return jsonify(pruned_history)
 
 
 @api.route('/api/v1/getRecentScans', methods=['GET', 'OPTIONS'])
