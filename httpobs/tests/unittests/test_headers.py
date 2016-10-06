@@ -25,12 +25,17 @@ class TestContentSecurityPolicy(TestCase):
         self.assertFalse(result['pass'])
 
     def test_header_invalid(self):
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = '  '
+        values = ('  ',
+                  '\r\n',
+                  '')
 
-        result = content_security_policy(self.reqs)
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
 
-        self.assertEquals(result['result'], 'csp-header-invalid')
-        self.assertFalse(result['pass'])
+            result = content_security_policy(self.reqs)
+
+            self.assertEquals(result['result'], 'csp-header-invalid')
+            self.assertFalse(result['pass'])
 
     def test_insecure_scheme(self):
         self.reqs['responses']['auto'].headers['Content-Security-Policy'] = 'default-src http://mozilla.org'

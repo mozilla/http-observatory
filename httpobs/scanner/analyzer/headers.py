@@ -50,7 +50,12 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         #   'upgrade-insecure-requests': [],
         # }
         try:
-            header = response.headers['Content-Security-Policy']
+            header = response.headers['Content-Security-Policy'].strip().replace('\r', '').replace('\n', '')
+
+            # Return completely blank headers as invalid
+            if header.isspace() or not header:
+                raise ValueError
+
             csp = [directive.strip().split(maxsplit=1) for directive in header.split(';') if directive]
             csp = {directive[0].lower():
                    (directive[1].split() if len(directive) > 1 else []) for directive in csp}
