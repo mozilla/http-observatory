@@ -190,7 +190,6 @@ def select_scan_host_history(site_id: int) -> list:
     with get_cursor() as cur:
         cur.execute("""SELECT id, grade, score, end_time FROM scans
                          WHERE site_id = (%s)
-                         AND NOT hidden
                          AND state = (%s)
                          ORDER BY end_time ASC;""",
                     (site_id, STATE_FINISHED))
