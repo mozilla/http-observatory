@@ -22,6 +22,18 @@ GRADE_CHART = {
     0: 'F'
 }
 
+# See https://wiki.mozilla.org/Security/Standard_Levels for a definition of the risk levels
+# We cannot make an accurate decision on HIGH and MAXIMUM risk likelihood indicators with the current checks,
+# thus the likelihood indicator is currently at best (or worse) MEDIUM. Modifiers (A-A+B+B-, ... are normalized
+# A,B, ...) in the calling function.
+LIKELIHOOD_INDICATOR_CHART = {
+    'A': 'LOW',
+    'B': 'MEDIUM',
+    'C': 'MEDIUM',
+    'D': 'MEDIUM',
+    'F': 'MEDIUM'
+}
+
 GRADES = set(GRADE_CHART.values())
 
 SCORE_TABLE = {
@@ -330,10 +342,10 @@ SCORE_TABLE = {
 }
 
 
-def get_grade_for_score(score: int) -> tuple:
+def get_grade_and_likelihood_for_score(score: int) -> tuple:
     """
-    :param scan_id: the scan_id belonging to the tests to grade
-    :return: the overall test score and grade
+    :param score: raw score based on all of the tests
+    :return: the overall test score, grade and likelihood_indicator
     """
 
     score = max(score, 0)  # can't have scores below 0
@@ -341,7 +353,11 @@ def get_grade_for_score(score: int) -> tuple:
     # If it's >100, just use the grade for 100, otherwise round down to the nearest multiple of 5
     grade = GRADE_CHART[min(score - score % 5, 100)]
 
-    return score, grade
+    # If GRADE_CHART and LIKELIHOOD_INDICATOR_CHART are not synchronized during
+    # manual code updates, then default to UNKNOWN
+    likelihood_indicator = LIKELIHOOD_INDICATOR_CHART.get(grade[0], 'UNKNOWN')
+
+    return score, grade, likelihood_indicator
 
 
 def get_score_description(result) -> str:
