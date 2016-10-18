@@ -86,3 +86,4 @@ SCANNER_MOZILLA_DOMAINS = [domain.strip() for domain in (environ.get('HTTPOBS_SC
                                                          __conf('scanner', 'mozilla_domains')).split(',')]
 SCANNER_PINNED_DOMAINS = [domain.strip() for domain in (environ.get('HTTPOBS_SCANNER_PINNED_DOMAINS') or
                                                         __conf('scanner', 'pinned_domains')).split(',')]
+SCANNER_ALLOW_LOCAL = environ.get('HTTPOBS_ALLOW_LOCAL') == 'yes' or __conf('scanner', 'allow_local', bool)
