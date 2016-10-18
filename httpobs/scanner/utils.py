@@ -25,8 +25,7 @@ def valid_hostname(hostname: str):
     """
 
     # Block attempts to scan things like 'localhost'
-    if (not SCANNER_ALLOW_LOCAL and
-        '.' not in hostname or 'localhost' in hostname):
+    if not SCANNER_ALLOW_LOCAL and '.' not in hostname or 'localhost' in hostname:
         return False
 
     # First, let's try to see if it's an IPv4 address
