@@ -110,5 +110,4 @@ GRANT UPDATE (cookies) ON sites TO httpobsapi;
 /* Update to add likelihood indicator */
 /*
 ALTER TABLE scans ADD COLUMN likelihood_indicator VARCHAR NULL;
-GRANT UPDATE (likelihood_indicator) on scans to httpobsapi;
 */

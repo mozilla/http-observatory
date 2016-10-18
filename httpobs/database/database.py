@@ -146,7 +146,7 @@ def insert_test_results(site_id: int, scan_id: int, tests: list, response_header
         cur.execute("""UPDATE scans
                          SET (end_time, tests_failed, tests_passed, grade, score, likelihood_indicator,
                          state, response_headers) =
-                         (NOW(), %s, %s, %s, %s, %s, %s)
+                         (NOW(), %s, %s, %s, %s, %s, %s, %s)
                          WHERE id = %s
                          RETURNING *""",
                     (tests_failed, tests_passed, grade, score, likelihood_indicator, STATE_FINISHED,

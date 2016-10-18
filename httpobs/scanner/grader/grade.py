@@ -344,7 +344,7 @@ SCORE_TABLE = {
 
 def get_grade_and_likelihood_for_score(score: int) -> tuple:
     """
-    :param scan_id: the scan_id belonging to the tests to grade
+    :param score: raw score based on all of the tests
     :return: the overall test score, grade and likelihood_indicator
     """
 
