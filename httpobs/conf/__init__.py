@@ -71,6 +71,7 @@ RETRIEVER_CORS_ORIGIN = environ.get('HTTPOBS_RETRIEVER_CORS_ORIGIN') or __conf('
 # Scanner configuration
 SCANNER_ABORT_SCAN_TIME = int(environ.get('HTTPOBS_SCANNER_ABORT_SCAN_TIME') or
                               __conf('scanner', 'abort_scan_time'))
+SCANNER_ALLOW_LOCAL = environ.get('HTTPOBS_SCANNER_ALLOW_LOCAL') == 'yes' or __conf('scanner', 'allow_local', bool)
 SCANNER_BROKER_RECONNECTION_SLEEP_TIME = float(environ.get('HTTPOBS_SCANNER_BROKER_RECONNECTION_SLEEP_TIME') or
                                                __conf('scanner', 'broker_reconnection_sleep_time'))
 SCANNER_CYCLE_SLEEP_TIME = float(environ.get('HTTPOBS_SCANNER_CYCLE_SLEEP_TIME') or
@@ -86,4 +87,3 @@ SCANNER_MOZILLA_DOMAINS = [domain.strip() for domain in (environ.get('HTTPOBS_SC
                                                          __conf('scanner', 'mozilla_domains')).split(',')]
 SCANNER_PINNED_DOMAINS = [domain.strip() for domain in (environ.get('HTTPOBS_SCANNER_PINNED_DOMAINS') or
                                                         __conf('scanner', 'pinned_domains')).split(',')]
-SCANNER_ALLOW_LOCAL = environ.get('HTTPOBS_ALLOW_LOCAL') == 'yes' or __conf('scanner', 'allow_local', bool)

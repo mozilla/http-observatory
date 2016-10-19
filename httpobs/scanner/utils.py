@@ -24,8 +24,8 @@ def valid_hostname(hostname: str):
     :return: Hostname if it's valid, otherwise False
     """
 
-    # Block attempts to scan things like 'localhost'
-    if not SCANNER_ALLOW_LOCAL and '.' not in hostname or 'localhost' in hostname:
+    # Block attempts to scan things like 'localhost' if not allowed
+    if ('.' not in hostname or 'localhost' in hostname) and not SCANNER_ALLOW_LOCAL:
         return False
 
     # First, let's try to see if it's an IPv4 address
