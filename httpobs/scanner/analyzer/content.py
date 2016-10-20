@@ -44,6 +44,11 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
 
     response = reqs['responses']['auto']
 
+    # This finds the SLD ('mozilla' out of 'mozilla.org') if it exists
+    if '.' in urlparse(response.url).netloc:
+        second_level_domain = urlparse(response.url).netloc.split('.')[-2]
+    else:
+        second_level_domain = ''
     # If there's no contribute.json file
     if reqs['resources']['/contribute.json']:
         try:
@@ -67,7 +72,7 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
             else:
                 output['data'] = {}
 
-    elif urlparse(response.url).netloc.split('.')[-2] not in SCANNER_MOZILLA_DOMAINS:
+    elif second_level_domain not in SCANNER_MOZILLA_DOMAINS:
         output['expectation'] = output['result'] = 'contribute-json-only-required-on-mozilla-properties'
     else:
         output['result'] = 'contribute-json-not-implemented'
