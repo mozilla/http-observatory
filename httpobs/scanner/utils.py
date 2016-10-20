@@ -1,6 +1,6 @@
 import socket
 
-from httpobs.conf import SCANNER_ALLOW_LOCAL
+from httpobs.conf import SCANNER_ALLOW_LOCALHOST
 
 
 def sanitize_headers(headers: dict) -> dict:
@@ -25,7 +25,7 @@ def valid_hostname(hostname: str):
     """
 
     # Block attempts to scan things like 'localhost' if not allowed
-    if ('.' not in hostname or 'localhost' in hostname) and not SCANNER_ALLOW_LOCAL:
+    if ('.' not in hostname or 'localhost' in hostname) and not SCANNER_ALLOW_LOCALHOST:
         return False
 
     # First, let's try to see if it's an IPv4 address
