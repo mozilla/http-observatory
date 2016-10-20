@@ -1,4 +1,5 @@
 from unittest import TestCase
+from unittest.mock import patch
 
 from httpobs.scanner.utils import valid_hostname
 
@@ -17,3 +18,7 @@ class TestValidHostname(TestCase):
         self.assertFalse(valid_hostname('_spf.google.com'))  # no A records
         self.assertFalse(valid_hostname('127.0.0.1'))
         self.assertFalse(valid_hostname('2607:f8b0:4009:80b::200e'))
+
+    @patch('httpobs.scanner.utils.SCANNER_ALLOW_LOCAL', 'yes')
+    def test_valid_localhost(self):
+        self.assertTrue(valid_hostname('localhost'))
