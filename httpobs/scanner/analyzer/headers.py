@@ -542,3 +542,61 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
             output['result'] = 'x-xss-protection-not-needed-due-to-csp'
 
     return output
+
+
+@scored_test
+def http_referrer_policy(reqs: dict, expectation='referrer-header-enabled') -> dict:
+    """
+    :param reqs: dictionary containing all the request and response objects
+    :param expectation: test expectation
+        referrer-policy-header-enabled: HTTP Referrer-Policy header enabled
+        referrer-policy-header-unsafe-url: HTTP Referrer-Policy header set to "unsafe-url"
+        referrer-policy-header-not-implemented: HTTP Referrer-Policy header not implemented
+        referrer-policy-header-invalid
+    :return: dictionary with:
+        data: the raw HTTP Referrer-Policy header
+        expectation: test expectation
+        pass: whether the site's configuration met its expectation
+        result: short string describing the result of the test
+    """
+
+    output = {
+        'data': None,
+        'expectation': expectation,
+        'pass': False,
+        'result': None,
+    }
+
+    values = ['no-referrer',
+              'no-referrer-when-downgrade',
+              'origin',
+              'origin-when-cross-origin',
+              'same-origin',
+              'strict-origin',
+              'strict-origin-when-cross-origin',
+              'unsafe-url']
+
+    response = reqs['responses']['auto']
+
+    if 'Referrer-Policy' in response.headers:
+        output['data'] = response.headers['Referrer-Policy']
+        policy = output['data'].lower().strip()
+
+        if policy in values and policy != 'unsafe-url':
+            output['result'] = 'referrer-policy-header-enabled'
+        elif policy == 'unsafe-url':
+            output['result'] = 'referrer-policy-header-unsafe-url'
+        else:
+            output['result'] = 'referrer-policy-header-invalid'
+    else:
+        output['result'] = 'referrer-policy-header-not-implemented'
+
+
+    # Test passed or failed
+    if output['result'] in ['referrer-policy-header-enabled',
+                            'referrer-policy-header-not-implemented',
+                            expectation]:
+        output['pass'] = True
+
+    return output
+

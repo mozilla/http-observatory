@@ -326,6 +326,24 @@ SCORE_TABLE = {
         'modifier': -10,
     },
 
+    # HTTP Referrer Policy
+    'referrer-policy-header-enabled': {
+        'description': 'HTTP Referrer-Policy header enabled',
+        'modifier': +5,
+    },
+    'referrer-policy-header-not-implemented': {
+        'description': 'HTTP Referrer-Policy header not implemented',
+        'modifier': 0,
+    },
+    'referrer-policy-header-unsafe-url': {
+        'description': 'HTTP Referrer-Policy header set to "unsafe-url"',
+        'modifier': -5,
+    },
+    'referrer-policy-header-invalid': {
+        'description': 'HTTP Referrer-Policy header cannot be recognized',
+        'modifier': -5,
+    },
+
     # Generic results
     'html-not-parsable': {
         'description': 'Claims to be html, but cannot be parsed',
@@ -339,6 +357,7 @@ SCORE_TABLE = {
         'description': 'Claims to be xml, but cannot be parsed',
         'modifier': -20,  # can't run an ACAO check if the xml files can't be parsed
     }
+
 }
 
 
