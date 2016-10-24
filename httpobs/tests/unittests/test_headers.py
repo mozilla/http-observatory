@@ -396,6 +396,20 @@ class TestPublicKeyPinning(TestCase):
         self.assertEquals('hpkp-not-implemented-no-https', result['result'])
         self.assertTrue(result['pass'])
 
+    def test_invalid_cert(self):
+        self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
+            'max-age=15768000; '
+            'includeSubDomains; '
+            'pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="; '
+            'pin-sha256="LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="; '
+            'report-uri="http://example.com/pkp-report"')
+        self.reqs['responses']['https'].verified = False
+
+        result = public_key_pinning(self.reqs)
+
+        self.assertEquals('hpkp-invalid-cert', result['result'])
+        self.assertTrue(result['pass'])
+
     def test_max_age_too_low(self):
         self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
             'max-age=86400; '
@@ -492,6 +506,16 @@ class TestStrictTransportSecurity(TestCase):
         result = strict_transport_security(self.reqs)
 
         self.assertEquals('hsts-not-implemented-no-https', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_invalid_cert(self):
+        self.reqs['responses']['https'].headers['Strict-Transport-Security'] = \
+            'max-age=15768000; includeSubDomains; preload'
+        self.reqs['responses']['https'].verified = False
+
+        result = strict_transport_security(self.reqs)
+
+        self.assertEquals('hsts-invalid-cert', result['result'])
         self.assertFalse(result['pass'])
 
     def test_max_age_too_low(self):

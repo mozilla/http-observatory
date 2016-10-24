@@ -50,6 +50,7 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
         'result': 'cross-origin-resource-sharing-not-implemented',
     }
 
+    # TODO: Fix ACAO being null?
     acao = reqs['responses']['cors']
 
     if acao is not None:
@@ -130,6 +131,11 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
 
     if response is None:
         output['result'] = 'redirection-not-needed-no-http'
+
+    # If we encountered an invalid certificate during the redirection process, that's a no-go
+    elif not response.verified:
+        output['result'] = 'redirection-invalid-cert'
+
     else:
         # Construct the route
         output['route'] = [r.request.url for r in response.history] if response.history else []

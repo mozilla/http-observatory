@@ -30,6 +30,7 @@ def empty_requests() -> dict:
     req['responses']['auto'].request.headers = UserDict()
     req['responses']['auto'].status_code = 200
     req['responses']['auto'].url = 'https://http-observatory.security.mozilla.org/'
+    req['responses']['auto'].verified = True
 
     req['session'].cookies = CookieJar()
 

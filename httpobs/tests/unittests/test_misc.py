@@ -167,6 +167,21 @@ class TestRedirection(TestCase):
                            'https://http-observatory.security.mozilla.org/'], result['route'])
         self.assertTrue(result['pass'])
 
+    def test_redirects_invalid_cert(self):
+        history1 = UserDict()
+        history1.request = UserDict()
+        history1.request.url = 'http://http-observatory.security.mozilla.org/'
+
+        self.reqs['responses']['http'].history.append(history1)
+
+        # Mark it as verification failed
+        self.reqs['responses']['http'].verified = False
+
+        result = redirection(self.reqs)
+
+        self.assertEquals('redirection-invalid-cert', result['result'])
+        self.assertFalse(result['pass'])
+
     def test_first_redirection_still_http(self):
         self.reqs['responses']['http'].url = 'https://http-observatory.security.mozilla.org/foo'
 
