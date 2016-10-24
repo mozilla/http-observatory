@@ -43,3 +43,8 @@ class TestRetriever(TestCase):
         self.assertEquals(2, len(reqs['responses']['auto'].history))
         self.assertEquals(200, reqs['responses']['auto'].status_code)
         self.assertEquals('https://www.mozilla.org/en-US/', reqs['responses']['auto'].url)
+
+    def test_retrieve_invalid_cert(self):
+        reqs = retrieve_all('expired.badssl.com')
+
+        self.assertFalse(reqs['responses']['auto'].verified)

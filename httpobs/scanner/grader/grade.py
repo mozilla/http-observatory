@@ -169,6 +169,11 @@ SCORE_TABLE = {
         'description': 'HTTP Public Key Pinning (HPKP) header can\'t be implemented without https',
         'modifier': 0,
     },
+    'hpkp-invalid-cert': {
+        'description': ('HTTP Public Key Pinning (HPKP) header cannot be set, '
+                        'as site contains an invalid certificate chain'),
+        'modifier': 0,
+    },
     'hpkp-header-invalid': {
         'description': 'HTTP Public Key Pinning (HPKP) header cannot be recognized',
         'modifier': -5,
@@ -200,7 +205,11 @@ SCORE_TABLE = {
         'modifier': -20,
     },
     'redirection-missing': {
-        'description': 'Does not redirect to an https site',  # if there's no HTTPS at all, other tests will score -100
+        'description': 'Does not redirect to an https site',
+        'modifier': -20,
+    },
+    'redirection-invalid-cert': {
+        'description': 'Invalid certificate chain encountered during redirection',
         'modifier': -20,
     },
 
@@ -227,6 +236,11 @@ SCORE_TABLE = {
     },
     'hsts-not-implemented-no-https': {
         'description': 'HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over https',
+        'modifier': -20,
+    },
+    'hsts-invalid-cert': {
+        'description': ('HTTP Strict Transport Security (HSTS) header cannot be set, '
+                        'as site contains an invalid certificate chain'),
         'modifier': -20,
     },
 

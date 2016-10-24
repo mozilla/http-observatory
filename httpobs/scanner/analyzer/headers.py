@@ -255,6 +255,10 @@ def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
     if response is None:
         output['result'] = 'hpkp-not-implemented-no-https'
 
+    # Can't have HPKP without a valid certificate chain
+    elif not response.verified:
+        output['result'] = 'hpkp-invalid-cert'
+
     elif 'Public-Key-Pins' in response.headers:
         output['data'] = response.headers['Public-Key-Pins'][0:2048]  # code against malicious headers
 
@@ -333,6 +337,10 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     # If there's no HTTPS, we can't have HSTS
     if response is None:
         output['result'] = 'hsts-not-implemented-no-https'
+
+    # Also need a valid certificate chain for HSTS
+    elif not response.verified:
+        output['result'] = 'hsts-invalid-cert'
 
     elif 'Strict-Transport-Security' in response.headers:
         output['data'] = response.headers['Strict-Transport-Security'][0:1024]  # code against malicious headers
