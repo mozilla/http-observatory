@@ -10,6 +10,11 @@ from httpobs.database import select_site_headers
 import requests
 
 
+# Disable the requests InsecureRequestWarning -- we will track certificate errors manually when
+# verification is disabled
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
 # Maximum timeout for requests for all GET requests for anything but the TLS Observatory
 # The default ConnectionTimeout is something like 75 seconds, which means that things like
 # tiles can take ~600s to timeout, since they have 8 DNS entries.  Setting it to lower
@@ -43,14 +48,26 @@ def __create_session(url: str, headers=None, cookies=None) -> dict:
     try:
         r = s.get(url, timeout=TIMEOUT)
 
-        # Store the domain and scheme in the session
-        s.url = urlparse(r.url)
+        # No tls errors
+        r.verified = True
     # Let celery exceptions percolate upward
     except (SoftTimeLimitExceeded, TimeLimitExceeded):
         raise
+    # We can try again if there's an SSL error, making sure to note it in the session
+    except requests.exceptions.SSLError:
+        try:
+            r = s.get(url, timeout=TIMEOUT, verify=False)
+            r.verified = False
+        except:
+            r = None
+            s = None
     except:
         r = None
         s = None
+
+    # Store the domain name and scheme in the session
+    if r and s:
+        s.url = urlparse(r.url)
 
     return {'session': s, 'response': r}
 
