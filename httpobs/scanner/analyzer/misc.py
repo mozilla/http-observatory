@@ -108,6 +108,7 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
         redirection-missing: No redirection takes place, staying on HTTP
         redirection-not-needed-no-http: Site doesn't listen for HTTP requests at all
         redirection-off-host-from-http: Initial HTTP allowed to go from one host to another, still redirects to HTTPS
+        redirection-invalid-cert: Invalid certificate chain encountered
     :return: dictionary with:
         destination: final location of where GET / over HTTP ends
         expectation: test expectation

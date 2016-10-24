@@ -228,6 +228,7 @@ def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
       hpkp-implemented-max-age-at-least-fifteen-days
       hpkp-preloaded
       hpkp-header-invalid
+      hpkp-invalid-cert
     :return: dictionary with:
       data: the raw HPKP header
         includesubdomains: whether the includeSubDomains directive is set
@@ -312,6 +313,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         hsts-not-implemented-no-https: HSTS can't be implemented on http only sites
         hsts-not-implemented: HSTS not implemented
         hsts-header-invalid: HSTS header isn't parsable
+        hsts-invalid-cert: Invalid certificate chain
     :return: dictionary with:
         data: the raw HSTS header
         expectation: test expectation
