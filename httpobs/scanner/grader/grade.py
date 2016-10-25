@@ -169,6 +169,11 @@ SCORE_TABLE = {
         'description': 'HTTP Public Key Pinning (HPKP) header can\'t be implemented without https',
         'modifier': 0,
     },
+    'hpkp-invalid-cert': {
+        'description': ('HTTP Public Key Pinning (HPKP) header cannot be set, '
+                        'as site contains an invalid certificate chain'),
+        'modifier': 0,
+    },
     'hpkp-header-invalid': {
         'description': 'HTTP Public Key Pinning (HPKP) header cannot be recognized',
         'modifier': -5,
@@ -200,7 +205,11 @@ SCORE_TABLE = {
         'modifier': -20,
     },
     'redirection-missing': {
-        'description': 'Does not redirect to an https site',  # if there's no HTTPS at all, other tests will score -100
+        'description': 'Does not redirect to an https site',
+        'modifier': -20,
+    },
+    'redirection-invalid-cert': {
+        'description': 'Invalid certificate chain encountered during redirection',
         'modifier': -20,
     },
 
@@ -227,6 +236,11 @@ SCORE_TABLE = {
     },
     'hsts-not-implemented-no-https': {
         'description': 'HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over https',
+        'modifier': -20,
+    },
+    'hsts-invalid-cert': {
+        'description': ('HTTP Strict Transport Security (HSTS) header cannot be set, '
+                        'as site contains an invalid certificate chain'),
         'modifier': -20,
     },
 
@@ -327,20 +341,44 @@ SCORE_TABLE = {
     },
 
     # HTTP Referrer Policy
-    'referrer-policy-header-enabled': {
-        'description': 'HTTP Referrer-Policy header enabled',
-        'modifier': +5,
+    'referrer-policy-header-no-referrer': {
+        'description': 'HTTP Referrer Policy set to "no-referrer"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-no-referrer-when-downgrade': {
+        'description': 'HTTP Referrer Policy set to "no-referrer-when-downgrade"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-origin': {
+        'description': 'HTTP Referrer Policy set to "origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-origin-when-cross-origin': {
+        'description': 'HTTP Referrer Policy set to "origin-when-cross-origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-same-origin': {
+        'description': 'HTTP Referrer Policy set to "same-origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-strict-origin': {
+        'description': 'HTTP Referrer Policy set to "strict-origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-strict-origin-when-cross-origin': {
+        'description': 'HTTP Referrer Policy set to "strict-origin-when-cross-origin"',
+        'modifier': 5,
     },
     'referrer-policy-header-not-implemented': {
-        'description': 'HTTP Referrer-Policy header not implemented',
+        'description': 'HTTP Referrer Policy not implemented',
         'modifier': 0,
     },
     'referrer-policy-header-unsafe-url': {
-        'description': 'HTTP Referrer-Policy header set to "unsafe-url"',
+        'description': 'HTTP Referrer Policy set to "unsafe-url"',
         'modifier': -5,
     },
     'referrer-policy-header-invalid': {
-        'description': 'HTTP Referrer-Policy header cannot be recognized',
+        'description': 'HTTP Referrer Policy cannot be recognized',
         'modifier': -5,
     },
 
@@ -357,7 +395,6 @@ SCORE_TABLE = {
         'description': 'Claims to be xml, but cannot be parsed',
         'modifier': -20,  # can't run an ACAO check if the xml files can't be parsed
     }
-
 }
 
 

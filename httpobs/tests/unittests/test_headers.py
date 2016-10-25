@@ -4,6 +4,7 @@ from unittest import TestCase
 from httpobs.scanner.analyzer.headers import (content_security_policy,
                                               cookies,
                                               public_key_pinning,
+                                              referrer_policy,
                                               strict_transport_security,
                                               x_content_type_options,
                                               x_frame_options,
@@ -396,6 +397,20 @@ class TestPublicKeyPinning(TestCase):
         self.assertEquals('hpkp-not-implemented-no-https', result['result'])
         self.assertTrue(result['pass'])
 
+    def test_invalid_cert(self):
+        self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
+            'max-age=15768000; '
+            'includeSubDomains; '
+            'pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="; '
+            'pin-sha256="LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="; '
+            'report-uri="http://example.com/pkp-report"')
+        self.reqs['responses']['https'].verified = False
+
+        result = public_key_pinning(self.reqs)
+
+        self.assertEquals('hpkp-invalid-cert', result['result'])
+        self.assertTrue(result['pass'])
+
     def test_max_age_too_low(self):
         self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
             'max-age=86400; '
@@ -492,6 +507,16 @@ class TestStrictTransportSecurity(TestCase):
         result = strict_transport_security(self.reqs)
 
         self.assertEquals('hsts-not-implemented-no-https', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_invalid_cert(self):
+        self.reqs['responses']['https'].headers['Strict-Transport-Security'] = \
+            'max-age=15768000; includeSubDomains; preload'
+        self.reqs['responses']['https'].verified = False
+
+        result = strict_transport_security(self.reqs)
+
+        self.assertEquals('hsts-invalid-cert', result['result'])
         self.assertFalse(result['pass'])
 
     def test_max_age_too_low(self):
@@ -681,4 +706,90 @@ class TestXXSSProtection(TestCase):
         result = x_xss_protection(self.reqs)
 
         self.assertEquals('x-xss-protection-not-needed-due-to-csp', result['result'])
+        self.assertTrue(result['pass'])
+
+
+class TestReferrerPolicy(TestCase):
+    def setUp(self):
+        self.reqs = empty_requests()
+
+    def tearDown(self):
+        self.reqs = None
+
+    def test_missing(self):
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-not-implemented', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_invalid(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'whimsy'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-invalid', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_header_unsafe_url(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'unsafe-url'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-unsafe-url', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_header_no_referrer(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'no-referrer'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-no-referrer', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_no_referrer_when_downgrade(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-no-referrer-when-downgrade', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_origin(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-origin', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_origin_when_cross_origin(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin-when-cross-origin'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-origin-when-cross-origin', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_same_origin(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'same-origin'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-same-origin', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_strict_origin(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'strict-origin'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-strict-origin', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_strict_origin_when_cross_origin(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-strict-origin-when-cross-origin', result['result'])
         self.assertTrue(result['pass'])

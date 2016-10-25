@@ -228,6 +228,7 @@ def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
       hpkp-implemented-max-age-at-least-fifteen-days
       hpkp-preloaded
       hpkp-header-invalid
+      hpkp-invalid-cert
     :return: dictionary with:
       data: the raw HPKP header
         includesubdomains: whether the includeSubDomains directive is set
@@ -254,6 +255,10 @@ def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
     # If there's no HTTPS, we can't have HPKP
     if response is None:
         output['result'] = 'hpkp-not-implemented-no-https'
+
+    # Can't have HPKP without a valid certificate chain
+    elif not response.verified:
+        output['result'] = 'hpkp-invalid-cert'
 
     elif 'Public-Key-Pins' in response.headers:
         output['data'] = response.headers['Public-Key-Pins'][0:2048]  # code against malicious headers
@@ -308,6 +313,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
         hsts-not-implemented-no-https: HSTS can't be implemented on http only sites
         hsts-not-implemented: HSTS not implemented
         hsts-header-invalid: HSTS header isn't parsable
+        hsts-invalid-cert: Invalid certificate chain
     :return: dictionary with:
         data: the raw HSTS header
         expectation: test expectation
@@ -333,6 +339,10 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
     # If there's no HTTPS, we can't have HSTS
     if response is None:
         output['result'] = 'hsts-not-implemented-no-https'
+
+    # Also need a valid certificate chain for HSTS
+    elif not response.verified:
+        output['result'] = 'hsts-invalid-cert'
 
     elif 'Strict-Transport-Security' in response.headers:
         output['data'] = response.headers['Strict-Transport-Security'][0:1024]  # code against malicious headers
@@ -545,13 +555,20 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
 
 
 @scored_test
-def http_referrer_policy(reqs: dict, expectation='referrer-header-enabled') -> dict:
+def referrer_policy(reqs: dict, expectation='referrer-policy-header-no-referrer') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
-        referrer-policy-header-enabled: HTTP Referrer-Policy header enabled
-        referrer-policy-header-unsafe-url: HTTP Referrer-Policy header set to "unsafe-url"
-        referrer-policy-header-not-implemented: HTTP Referrer-Policy header not implemented
+        referrer-policy-header-no-referrer: HTTP Referrer Policy set to "no-referrer"
+        referrer-policy-header-no-referrer-when-downgrade: HTTP Referrer Policy set to "no-referrer-when-downgrade"
+        referrer-policy-header-origin: HTTP Referrer Policy set to "origin"
+        referrer-policy-header-origin-when-cross-origin: HTTP Referrer Policy set to "origin-when-cross-origin"
+        referrer-policy-header-same-origin: HTTP Referrer Policy set to "same-origin"
+        referrer-policy-header-strict-origin: HTTP Referrer Policy set to "strict-origin"
+        referrer-policy-header-strict-origin-when-cross-origin: HTTP Referrer Policy set to
+          "strict-origin-when-cross-origin"
+        referrer-policy-header-unsafe-url: HTTP Referrer Policy header set to "unsafe-url"
+        referrer-policy-header-not-implemented: HTTP Referrer Policy header not implemented
         referrer-policy-header-invalid
     :return: dictionary with:
         data: the raw HTTP Referrer-Policy header
@@ -567,23 +584,22 @@ def http_referrer_policy(reqs: dict, expectation='referrer-header-enabled') -> d
         'result': None,
     }
 
-    values = ['no-referrer',
-              'no-referrer-when-downgrade',
-              'origin',
-              'origin-when-cross-origin',
-              'same-origin',
-              'strict-origin',
-              'strict-origin-when-cross-origin',
-              'unsafe-url']
+    directives = {'no-referrer': 'referrer-policy-header-no-referrer',
+                  'no-referrer-when-downgrade': 'referrer-policy-header-no-referrer-when-downgrade',
+                  'origin': 'referrer-policy-header-origin',
+                  'origin-when-cross-origin': 'referrer-policy-header-origin-when-cross-origin',
+                  'same-origin': 'referrer-policy-header-same-origin',
+                  'strict-origin': 'referrer-policy-header-strict-origin',
+                  'strict-origin-when-cross-origin': 'referrer-policy-header-strict-origin-when-cross-origin'}
 
     response = reqs['responses']['auto']
 
     if 'Referrer-Policy' in response.headers:
-        output['data'] = response.headers['Referrer-Policy']
+        output['data'] = response.headers['Referrer-Policy'][0:256]  # Code defensively
         policy = output['data'].lower().strip()
 
-        if policy in values and policy != 'unsafe-url':
-            output['result'] = 'referrer-policy-header-enabled'
+        if policy in directives.keys():
+            output['result'] = directives[policy]
         elif policy == 'unsafe-url':
             output['result'] = 'referrer-policy-header-unsafe-url'
         else:
@@ -591,12 +607,8 @@ def http_referrer_policy(reqs: dict, expectation='referrer-header-enabled') -> d
     else:
         output['result'] = 'referrer-policy-header-not-implemented'
 
-
     # Test passed or failed
-    if output['result'] in ['referrer-policy-header-enabled',
-                            'referrer-policy-header-not-implemented',
-                            expectation]:
+    if output['result'] in list(directives.values()) + ['referrer-policy-header-not-implemented', expectation]:
         output['pass'] = True
 
     return output
-

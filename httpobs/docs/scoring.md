@@ -75,6 +75,7 @@ hpkp-implemented-<br>max-age-at-least-fifteen-days | HTTP Public Key Pinning (HP
 hpkp-implemented-<br>max-age-less-than-fifteen-days | HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000) | 1
 hpkp-header-invalid | HTTP Public Key Pinning (HPKP) header cannot be recognized | -5
 hpkp-not-implemented | HTTP Public Key Pinning (HPKP) header not implemented | 0
+hpkp-invalid-cert | HTTP Public Key Pinning (HPKP) header cannot be set, as site contains an invalid certificate chain | 0
 hpkp-not-implemented-no-https | HTTP Public Key Pinning (HPKP) header can't be implemented without https | 0
 <br>
 
@@ -85,6 +86,7 @@ hsts-implemented-<br>max-age-at-least-six-months | HTTP Strict Transport Securit
 hsts-implemented-<br>max-age-less-than-six-months | HTTP Strict Transport Security (HSTS) header set to less than six months (15768000) | -10
 hsts-not-implemented | HTTP Strict Transport Security (HSTS) header not implemented | -20
 hsts-not-implemented-no-https | HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over https | -20
+hsts-invalid-cert | HTTP Strict Transport Security (HSTS) header cannot be set, as site contains an invalid certificate chain | -20
 hsts-header-invalid | HTTP Strict Transport Security (HSTS) header cannot be recognized | -20
 <br>
 
@@ -97,6 +99,7 @@ redirection-off-host-from-http | Initial redirection from http to https is to a 
 redirection-not-to-https-on-initial-redirection | Redirects to https eventually, but initial redirection is to another http URL | -10
 redirection-missing | Does not redirect to an https site | -20
 redirection-not-to-https | Redirects, but final destination is not an https URL | -20
+redirection-invalid-cert | Invalid certificate chain encountered during redirection | -20
 <br>
 
 [Subresource Integrity](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Subresource_Integrity) | Description | Modifier
@@ -137,12 +140,17 @@ x-xss-protection-enabled | `X-XSS-Protection` header set to `1` | 0
 x-xss-protection-disabled | `X-XSS-Protection` header set to `0` (disabled) | -10
 x-xss-protection-not-implemented | `X-XSS-Protection` header not implemented | -10
 x-xss-protection-header-invalid | `X-XSS-Protection` header cannot be recognized | -10
-
 <br>
 
 [Referrer-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy) | Description | Modifier
 --- | --- | :---:
-referrer-policy-header-enabled | `Referrer-Policy` header enabled | 5
+referrer-policy-header-no-referrer | `Referrer-Policy` header set to `no-referrer` | 5
+referrer-policy-header-no-referrer-when-downgrade | `Referrer-Policy` header set to `no-referrer-when-downgrade` | 5
+referrer-policy-header-origin | `Referrer-Policy` header set to `origin` | 5
+referrer-policy-header-origin-when-cross-origin | `Referrer-Policy` header set to `origin-when-cross-origin` | 5
+referrer-policy-header-same-origin | `Referrer-Policy` header set to `same-origin` | 5
+referrer-policy-header-strict-origin | `Referrer-Policy` header set to `strict-origin` | 5
+referrer-policy-header-strict-origin-when-cross-origin | `Referrer-Policy` header set to `strict-origin-when-cross-origin` | 5
 referrer-policy-header-not-implemented | `Referrer-Policy` header not implemented | 0
 referrer-policy-header-unsafe-url | `Referrer-Policy` header set to `unsafe-url` | -5
 referrer-policy-header-invalid | `Referrer-Policy` header cannot be recognized | -5
