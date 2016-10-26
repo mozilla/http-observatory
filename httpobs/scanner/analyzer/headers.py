@@ -552,3 +552,63 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
             output['result'] = 'x-xss-protection-not-needed-due-to-csp'
 
     return output
+
+
+@scored_test
+def referrer_policy(reqs: dict, expectation='referrer-policy-header-no-referrer') -> dict:
+    """
+    :param reqs: dictionary containing all the request and response objects
+    :param expectation: test expectation
+        referrer-policy-header-no-referrer: HTTP Referrer Policy set to "no-referrer"
+        referrer-policy-header-no-referrer-when-downgrade: HTTP Referrer Policy set to "no-referrer-when-downgrade"
+        referrer-policy-header-origin: HTTP Referrer Policy set to "origin"
+        referrer-policy-header-origin-when-cross-origin: HTTP Referrer Policy set to "origin-when-cross-origin"
+        referrer-policy-header-same-origin: HTTP Referrer Policy set to "same-origin"
+        referrer-policy-header-strict-origin: HTTP Referrer Policy set to "strict-origin"
+        referrer-policy-header-strict-origin-when-cross-origin: HTTP Referrer Policy set to
+          "strict-origin-when-cross-origin"
+        referrer-policy-header-unsafe-url: HTTP Referrer Policy header set to "unsafe-url"
+        referrer-policy-header-not-implemented: HTTP Referrer Policy header not implemented
+        referrer-policy-header-invalid
+    :return: dictionary with:
+        data: the raw HTTP Referrer-Policy header
+        expectation: test expectation
+        pass: whether the site's configuration met its expectation
+        result: short string describing the result of the test
+    """
+
+    output = {
+        'data': None,
+        'expectation': expectation,
+        'pass': False,
+        'result': None,
+    }
+
+    directives = {'no-referrer': 'referrer-policy-header-no-referrer',
+                  'no-referrer-when-downgrade': 'referrer-policy-header-no-referrer-when-downgrade',
+                  'origin': 'referrer-policy-header-origin',
+                  'origin-when-cross-origin': 'referrer-policy-header-origin-when-cross-origin',
+                  'same-origin': 'referrer-policy-header-same-origin',
+                  'strict-origin': 'referrer-policy-header-strict-origin',
+                  'strict-origin-when-cross-origin': 'referrer-policy-header-strict-origin-when-cross-origin'}
+
+    response = reqs['responses']['auto']
+
+    if 'Referrer-Policy' in response.headers:
+        output['data'] = response.headers['Referrer-Policy'][0:256]  # Code defensively
+        policy = output['data'].lower().strip()
+
+        if policy in directives.keys():
+            output['result'] = directives[policy]
+        elif policy == 'unsafe-url':
+            output['result'] = 'referrer-policy-header-unsafe-url'
+        else:
+            output['result'] = 'referrer-policy-header-invalid'
+    else:
+        output['result'] = 'referrer-policy-header-not-implemented'
+
+    # Test passed or failed
+    if output['result'] in list(directives.values()) + ['referrer-policy-header-not-implemented', expectation]:
+        output['pass'] = True
+
+    return output

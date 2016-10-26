@@ -340,6 +340,48 @@ SCORE_TABLE = {
         'modifier': -10,
     },
 
+    # HTTP Referrer Policy
+    'referrer-policy-header-no-referrer': {
+        'description': 'HTTP Referrer Policy set to "no-referrer"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-no-referrer-when-downgrade': {
+        'description': 'HTTP Referrer Policy set to "no-referrer-when-downgrade"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-origin': {
+        'description': 'HTTP Referrer Policy set to "origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-origin-when-cross-origin': {
+        'description': 'HTTP Referrer Policy set to "origin-when-cross-origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-same-origin': {
+        'description': 'HTTP Referrer Policy set to "same-origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-strict-origin': {
+        'description': 'HTTP Referrer Policy set to "strict-origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-strict-origin-when-cross-origin': {
+        'description': 'HTTP Referrer Policy set to "strict-origin-when-cross-origin"',
+        'modifier': 5,
+    },
+    'referrer-policy-header-not-implemented': {
+        'description': 'HTTP Referrer Policy not implemented',
+        'modifier': 0,
+    },
+    'referrer-policy-header-unsafe-url': {
+        'description': 'HTTP Referrer Policy set to "unsafe-url"',
+        'modifier': -5,
+    },
+    'referrer-policy-header-invalid': {
+        'description': 'HTTP Referrer Policy cannot be recognized',
+        'modifier': -5,
+    },
+
     # Generic results
     'html-not-parsable': {
         'description': 'Claims to be html, but cannot be parsed',
