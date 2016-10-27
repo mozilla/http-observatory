@@ -3,7 +3,7 @@
 **Last Updated:** 2016-06-13 april@mozilla.com<br>
 **Author:** april@mozilla.com
 
-All websites start with a baseline score of 100, and then receive penalties or bonuses from there. Although the minimum score is 0, there is no maximum score. Currently, the highest possible score in the HTTP Observatory is 130.
+All websites start with a baseline score of 100, and then receive penalties or bonuses from there. Although the minimum score is 0, there is no maximum score. Currently, the highest possible score in the HTTP Observatory is 135.
 
 Note that although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
 
@@ -140,3 +140,14 @@ x-xss-protection-enabled | `X-XSS-Protection` header set to `1` | 0
 x-xss-protection-disabled | `X-XSS-Protection` header set to `0` (disabled) | -10
 x-xss-protection-not-implemented | `X-XSS-Protection` header not implemented | -10
 x-xss-protection-header-invalid | `X-XSS-Protection` header cannot be recognized | -10
+<br>
+
+[Referrer-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy) | Description | Modifier
+--- | --- | :---:
+referrer-policy-private | `Referrer-Policy` header set to `no-referrer` or `same-origin`, `strict-origin` or `strict-origin-when-cross-origin` | 5
+referrer-policy-no-referrer-when-downgrade | `Referrer-Policy` header set to `no-referrer-when-downgrade` | 0
+referrer-policy-not-implemented | `Referrer-Policy` header not implemented | 0
+referrer-policy-origin | `Referrer-Policy` header set to `origin` | -5
+referrer-policy-origin-when-cross-origin | `Referrer-Policy` header set to `origin-when-cross-origin` | -5
+referrer-policy-unsafe-url | `Referrer-Policy` header set to `unsafe-url` | -5
+referrer-policy-invalid | `Referrer-Policy` header cannot be recognized | -5

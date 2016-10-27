@@ -4,6 +4,7 @@ from unittest import TestCase
 from httpobs.scanner.analyzer.headers import (content_security_policy,
                                               cookies,
                                               public_key_pinning,
+                                              referrer_policy,
                                               strict_transport_security,
                                               x_content_type_options,
                                               x_frame_options,
@@ -706,3 +707,66 @@ class TestXXSSProtection(TestCase):
 
         self.assertEquals('x-xss-protection-not-needed-due-to-csp', result['result'])
         self.assertTrue(result['pass'])
+
+
+class TestReferrerPolicy(TestCase):
+    def setUp(self):
+        self.reqs = empty_requests()
+
+    def tearDown(self):
+        self.reqs = None
+
+    def test_header_private(self):
+        for policy in ['no-referrer', 'same-origin', 'strict-origin', 'strict-origin-when-cross-origin']:
+            self.reqs['responses']['auto'].headers['Referrer-Policy'] = policy
+
+            result = referrer_policy(self.reqs)
+
+            self.assertEquals('referrer-policy-private', result['result'])
+            self.assertTrue(result['pass'])
+
+    def test_header_no_referrer_when_downgrade(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-no-referrer-when-downgrade', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_missing(self):
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-not-implemented', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_invalid(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'whimsy'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-invalid', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_header_unsafe_url(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'unsafe-url'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-unsafe-url', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_header_origin(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-origin', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_header_origin_when_cross_origin(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin-when-cross-origin'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-origin-when-cross-origin', result['result'])
+        self.assertFalse(result['pass'])

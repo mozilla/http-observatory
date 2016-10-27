@@ -340,6 +340,37 @@ SCORE_TABLE = {
         'modifier': -10,
     },
 
+    # Referrer Policy
+    'referrer-policy-private': {
+        'description': ('HTTP Referrer Policy set to "no-referrer" or "same-origin", "strict-origin" or ',
+                        '"strict-origin-when-cross-origin"'),
+        'modifier': 5,
+    },
+    'referrer-policy-no-referrer-when-downgrade': {
+        'description': 'HTTP Referrer Policy set to "no-referrer-when-downgrade"',
+        'modifier': 0,
+    },
+    'referrer-policy-not-implemented': {
+        'description': 'HTTP Referrer Policy not implemented',
+        'modifier': 0,
+    },
+    'referrer-policy-origin': {
+        'description': 'HTTP Referrer Policy set to "origin"',
+        'modifier': -5,
+    },
+    'referrer-policy-origin-when-cross-origin': {
+        'description': 'HTTP Referrer Policy set to "origin-when-cross-origin"',
+        'modifier': -5,
+    },
+    'referrer-policy-unsafe-url': {
+        'description': 'HTTP Referrer Policy set to "unsafe-url"',
+        'modifier': -5,
+    },
+    'referrer-policy-invalid': {
+        'description': 'HTTP Referrer Policy cannot be recognized',
+        'modifier': -5,
+    },
+
     # Generic results
     'html-not-parsable': {
         'description': 'Claims to be html, but cannot be parsed',
