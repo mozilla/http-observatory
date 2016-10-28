@@ -102,6 +102,17 @@ redirection-not-to-https | Redirects, but final destination is not an https URL 
 redirection-invalid-cert | Invalid certificate chain encountered during redirection | -20
 <br>
 
+[Referrer-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy) | Description | Modifier
+--- | --- | :---:
+referrer-policy-private | `Referrer-Policy` header set to `no-referrer` or `same-origin`, `strict-origin` or `strict-origin-when-cross-origin` | 5
+referrer-policy-no-referrer-when-downgrade | `Referrer-Policy` header set to `no-referrer-when-downgrade` | 0
+referrer-policy-not-implemented | `Referrer-Policy` header not implemented | 0
+referrer-policy-origin | `Referrer-Policy` header set to `origin` | -5
+referrer-policy-origin-when-cross-origin | `Referrer-Policy` header set to `origin-when-cross-origin` | -5
+referrer-policy-unsafe-url | `Referrer-Policy` header set to `unsafe-url` | -5
+referrer-policy-header-invalid | `Referrer-Policy` header cannot be recognized | -5
+<br>
+
 [Subresource Integrity](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Subresource_Integrity) | Description | Modifier
 --- | --- | :---:
 sri-implemented-<br>and-all-scripts-loaded-securely | Subresource Integrity (SRI) is implemented and all scripts are loaded from a similar origin | 5
@@ -140,14 +151,3 @@ x-xss-protection-enabled | `X-XSS-Protection` header set to `1` | 0
 x-xss-protection-disabled | `X-XSS-Protection` header set to `0` (disabled) | -10
 x-xss-protection-not-implemented | `X-XSS-Protection` header not implemented | -10
 x-xss-protection-header-invalid | `X-XSS-Protection` header cannot be recognized | -10
-<br>
-
-[Referrer-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy) | Description | Modifier
---- | --- | :---:
-referrer-policy-private | `Referrer-Policy` header set to `no-referrer` or `same-origin`, `strict-origin` or `strict-origin-when-cross-origin` | 5
-referrer-policy-no-referrer-when-downgrade | `Referrer-Policy` header set to `no-referrer-when-downgrade` | 0
-referrer-policy-not-implemented | `Referrer-Policy` header not implemented | 0
-referrer-policy-origin | `Referrer-Policy` header set to `origin` | -5
-referrer-policy-origin-when-cross-origin | `Referrer-Policy` header set to `origin-when-cross-origin` | -5
-referrer-policy-unsafe-url | `Referrer-Policy` header set to `unsafe-url` | -5
-referrer-policy-invalid | `Referrer-Policy` header cannot be recognized | -5

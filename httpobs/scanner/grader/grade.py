@@ -213,6 +213,37 @@ SCORE_TABLE = {
         'modifier': -20,
     },
 
+    # Referrer Policy
+    'referrer-policy-private': {
+        'description': ('Referrer-Policy header set to "no-referrer" or "same-origin", "strict-origin" or ',
+                        '"strict-origin-when-cross-origin"'),
+        'modifier': 5,
+    },
+    'referrer-policy-no-referrer-when-downgrade': {
+        'description': 'Referrer-Policy header set to "no-referrer-when-downgrade"',
+        'modifier': 0,
+    },
+    'referrer-policy-not-implemented': {
+        'description': 'Referrer-Policy header not implemented',
+        'modifier': 0,
+    },
+    'referrer-policy-origin': {
+        'description': 'Referrer-Policy header set to "origin"',
+        'modifier': -5,
+    },
+    'referrer-policy-origin-when-cross-origin': {
+        'description': 'Referrer-Policy header set to "origin-when-cross-origin"',
+        'modifier': -5,
+    },
+    'referrer-policy-unsafe-url': {
+        'description': 'Referrer-Policy header set to "unsafe-url"',
+        'modifier': -5,
+    },
+    'referrer-policy-header-invalid': {
+        'description': 'Referrer-Policy header cannot be recognized',
+        'modifier': -5,
+    },
+
     # Strict Transport Security (HSTS)
     'hsts-preloaded': {
         'description': 'Preloaded via the HTTP Strict Transport Security (HSTS) preloading process',
@@ -338,37 +369,6 @@ SCORE_TABLE = {
     'x-xss-protection-header-invalid': {
         'description': 'X-XSS-Protection header cannot be recognized',
         'modifier': -10,
-    },
-
-    # Referrer Policy
-    'referrer-policy-private': {
-        'description': ('HTTP Referrer Policy set to "no-referrer" or "same-origin", "strict-origin" or ',
-                        '"strict-origin-when-cross-origin"'),
-        'modifier': 5,
-    },
-    'referrer-policy-no-referrer-when-downgrade': {
-        'description': 'HTTP Referrer Policy set to "no-referrer-when-downgrade"',
-        'modifier': 0,
-    },
-    'referrer-policy-not-implemented': {
-        'description': 'HTTP Referrer Policy not implemented',
-        'modifier': 0,
-    },
-    'referrer-policy-origin': {
-        'description': 'HTTP Referrer Policy set to "origin"',
-        'modifier': -5,
-    },
-    'referrer-policy-origin-when-cross-origin': {
-        'description': 'HTTP Referrer Policy set to "origin-when-cross-origin"',
-        'modifier': -5,
-    },
-    'referrer-policy-unsafe-url': {
-        'description': 'HTTP Referrer Policy set to "unsafe-url"',
-        'modifier': -5,
-    },
-    'referrer-policy-invalid': {
-        'description': 'HTTP Referrer Policy cannot be recognized',
-        'modifier': -5,
     },
 
     # Generic results
