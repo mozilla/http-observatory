@@ -134,7 +134,7 @@ class TestSubResourceIntegrity(TestCase):
         self.reqs = None
 
     def test_no_scripts(self):
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
             <head></head>
             <body></body>
@@ -148,7 +148,7 @@ class TestSubResourceIntegrity(TestCase):
 
     def test_not_html(self):
         # invalid html
-        self.reqs['resources']['/'] = '<![..]>'
+        self.reqs['resources']['__path__'] = '<![..]>'
 
         result = subresource_integrity(self.reqs)
 
@@ -157,7 +157,7 @@ class TestSubResourceIntegrity(TestCase):
 
         # json, like what an API might return
         self.reqs['responses']['auto'].headers['Content-Type'] = 'application/json'
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         {
             'foo': 'bar'
         }
@@ -177,7 +177,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertFalse(result['pass'])
 
     def test_same_origin(self):
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
             <head>
               <script src="/static/js/foo.js"></script>
@@ -192,7 +192,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
         # On the same second-level domain
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
             <head>
               <script src="https://www.mozilla.org/static/js/foo.js"></script>
@@ -208,7 +208,7 @@ class TestSubResourceIntegrity(TestCase):
 
     def test_implemented_external_scripts_https(self):
         # load from a remote site
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
           <head>
             <script src="/static/js/foo.js"></script>
@@ -227,7 +227,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
         # load from an intranet / localhost
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
           <head>
             <script src="/static/js/foo.js"></script>
@@ -246,7 +246,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
     def test_implemented_same_origin(self):
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
           <head>
             <script src="/static/js/react-0.14.7.min.js"
@@ -264,7 +264,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
     def test_not_implemented_external_scripts_https(self):
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
           <head>
             <script src="/static/js/foo.js"></script>
@@ -280,7 +280,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertFalse(result['pass'])
 
     def test_implemented_external_scripts_http(self):
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
           <head>
             <script src="/static/js/foo.js"></script>
@@ -301,7 +301,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertFalse(result['pass'])
 
     def test_not_implemented_external_scripts_http(self):
-        self.reqs['resources']['/'] = """
+        self.reqs['resources']['__path__'] = """
         <html>
           <head>
             <script src="/static/js/foo.js"></script>

@@ -3,6 +3,7 @@ from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 
 from httpobs.conf import DEVELOPMENT_MODE
 from httpobs.database import (insert_test_results,
+                              select_site_headers,
                               update_scan_state)
 from httpobs.scanner import celeryconfig, STATE_ABORTED, STATE_FAILED, STATE_RUNNING
 from httpobs.scanner.analyzer import tests
@@ -23,8 +24,11 @@ def scan(hostname: str, site_id: int, scan_id: int):
         # Once celery kicks off the task, let's update the scan state from PENDING to RUNNING
         update_scan_state(scan_id, STATE_RUNNING)
 
+        # Get the site's cookies and headers
+        headers = select_site_headers(hostname)
+
         # Attempt to retrieve all the resources
-        reqs = retrieve_all(hostname)
+        reqs = retrieve_all(hostname, cookies=headers['cookies'], headers=headers['headers'])
 
         # If we can't connect at all, let's abort the test
         if reqs['responses']['auto'] is None:

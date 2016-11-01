@@ -22,6 +22,26 @@ Sites can be scanned using:
 * Python 3
 * Git
 
+## Running a scan from the local codebase, without DB, for continuous integration
+```bash
+# Install the HTTP Observatory
+$ git clone https://github.com/mozilla/http-observatory.git
+$ cd http-observatory
+$ pip3 install .
+$ pip3 install -r requirements.txt
+```
+
+```python
+>>> from httpobs.scanner.local import scan
+>>> scan('observatory.mozilla.org')  # a scan with default options
+>>> scan('observatory.mozilla.org',  # all the custom options
+         http_port=8080,
+         https_port=8443,
+         path='/foo/bar',
+         cookies={'foo': 'bar'},
+         headers={'X-Foo': 'bar'})
+```
+
 ### Running a local scanner with Docker
 * Install [Docker Toolbox](https://www.docker.com/products/docker-toolbox) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
