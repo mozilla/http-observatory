@@ -17,6 +17,9 @@ def scan(hostname, **kwargs):
         http_port (int): port to scan for HTTP, instead of 80
         https_port (int): port to be scanned for HTTPS, instead of 443
         path (str): path to scan, instead of "/"
+        verify (bool): whether to enable or disable certificate verification,
+            enabled by default. This can allow tested sites to pass the HSTS
+            and HPKP tests, even with self-signed certificates.
 
         cookies (dict): Cookies sent to the system being scanned. Matches the
             requests cookie dict.
