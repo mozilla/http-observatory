@@ -6,7 +6,6 @@ from httpobs.scanner.retriever import retrieve_all
 
 
 def scan(hostname, **kwargs):
-    # Always allow localhost scans when run in this way
     """Performs an Observatory scan, but doesn't require any database/redis
     backing. Given the lowered security concerns due to not being a public
     API, you can use this to scan arbitrary ports and paths.
@@ -40,6 +39,7 @@ def scan(hostname, **kwargs):
             }
         }
     """
+    # Always allow localhost scans when run in this way
     httpobs.conf.SCANNER_ALLOW_LOCALHOST = True
 
     # Attempt to retrieve all the resources, not capturing exceptions
