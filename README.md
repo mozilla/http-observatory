@@ -47,7 +47,7 @@ $ pip3 install -r requirements.txt
 ### The same, but with the local CLI
 ```bash
 $ httpobs-local-scan --http-port 8080 --https-port 8443 --path '/foo/bar' \
-    --cookies '{"foo": "bar"}' --headers '{"X-Foo": "bar"} --no-verify mozilla.org
+    --cookies '{"foo": "bar"}' --headers '{"X-Foo": "bar"}' --no-verify mozilla.org
 ```
 
 ### Running a local scanner with Docker
