@@ -1,4 +1,3 @@
-from os import getloadavg
 from time import sleep
 from urllib.parse import urlparse
 
@@ -7,11 +6,14 @@ from httpobs.conf import (BROKER_URL,
                           SCANNER_CYCLE_SLEEP_TIME,
                           SCANNER_DATABASE_RECONNECTION_SLEEP_TIME,
                           SCANNER_MAINTENANCE_CYCLE_FREQUENCY,
+                          SCANNER_MAX_CPU_UTILIZATION,
                           SCANNER_MAX_LOAD)
 from httpobs.database import (periodic_maintenance,
                               update_scans_dequeue_scans)
 from httpobs.scanner.tasks import scan
 
+import datetime
+import psutil
 import redis
 import sys
 
@@ -26,15 +28,28 @@ def main():
         print('Sorry, the scanner currently only supports redis.', file=sys.stderr)
         sys.exit(1)
 
+    # Get the current CPU utilization and wait a second to begin the loop for the next reading
+    psutil.cpu_percent()
+    sleep(1)
+
     while True:
         try:
-            # If the load is higher than SCANNER_MAX_LOAD, let's sleep a bit and see if things have calmed down a bit
-            # If the load is 30 and the max load is 20, sleep 11 seconds. If the load is low, lets only sleep a little
-            # bit.
-            headroom = SCANNER_MAX_LOAD - int(getloadavg()[0])
+            # TODO: Document this madness and magic numbers, make it configurable
+            # If max cpu is 90 and current CPU is 50, that gives us a headroom of 8 scans
+            headroom = int((SCANNER_MAX_CPU_UTILIZATION - psutil.cpu_percent()) / 5)
+            dequeue_quantity = min(headroom, SCANNER_MAX_LOAD)
+
             if headroom <= 0:
-                sleep(abs(headroom))
+                # If the cycle sleep time is .5, sleep 2 seconds at a minimum, 10 seconds at a maximum
+                sleep_time = min(max(abs(headroom), SCANNER_CYCLE_SLEEP_TIME * 4), 10)
+                print('[{time}] WARNING: Load too high. Sleeping for {num} second(s).'.format(
+                    time=str(datetime.datetime.now()).split('.')[0],
+                    num=sleep_time),
+                    file=sys.stderr)
+
+                sleep(sleep_time)
                 continue
+
         except:
             # I've noticed that on laptops that Docker has a tendency to kill the scanner when the laptop sleeps; this
             # is designed to catch that exception
@@ -46,11 +61,18 @@ def main():
         # If it fails, we don't care. Of course, nobody reads the comments, so I should say that *I* don't care.
         try:
             if dequeue_loop_count % SCANNER_MAINTENANCE_CYCLE_FREQUENCY == 0:
+                print('[{time}] INFO: Performing periodic maintenance.'.format(
+                    time=str(datetime.datetime.now()).split('.')[0]),
+                    file=sys.stderr)
+
                 dequeue_loop_count = 0
                 num = periodic_maintenance()
 
             if num > 0:
-                print('INFO: Cleared {num} broken scan(s).'.format(file=sys.stderr, num=num))
+                print('[{time}] INFO: Cleared {num} broken scan(s).'.format(
+                    time=str(datetime.datetime.now()).split('.')[0],
+                    num=num),
+                    file=sys.stderr)
                 num = 0
         except:
             pass
@@ -68,24 +90,48 @@ def main():
             conn.disconnect()
             del conn
         except:
+            print('[{time}] ERROR: Unable to connect to to redis. Sleeping for {num} seconds.'.format(
+                time=str(datetime.datetime.now()).split('.')[0],
+                num=SCANNER_BROKER_RECONNECTION_SLEEP_TIME),
+                file=sys.stderr
+            )
             sleep(SCANNER_BROKER_RECONNECTION_SLEEP_TIME)
             continue
 
         # Get a list of sites that are pending
         try:
-            sites_to_scan = update_scans_dequeue_scans(headroom)
+            sites_to_scan = update_scans_dequeue_scans(dequeue_quantity)
         except IOError:
+            print('[{time}] ERROR: Unable to retrieve lists of sites to scan. Sleeping for {num} seconds.'.format(
+                time=str(datetime.datetime.now()).split('.')[0],
+                num=SCANNER_DATABASE_RECONNECTION_SLEEP_TIME),
+                file=sys.stderr
+            )
             sleep(SCANNER_DATABASE_RECONNECTION_SLEEP_TIME)
             continue
 
         try:
             if sites_to_scan:
+                print('[{time}] INFO: Dequeuing {num} site(s).'.format(
+                    time=str(datetime.datetime.now()).split('.')[0],
+                    num=len(sites_to_scan)),
+                    file=sys.stderr
+                )
+
                 for site in sites_to_scan:
                     scan.delay(*site)
+
+                # Always sleep at least some amount of time so that CPU utilization measurements can track
+                sleep(SCANNER_CYCLE_SLEEP_TIME / 2)
             else:  # If the queue was empty, lets sleep a little bit
                 sleep(SCANNER_CYCLE_SLEEP_TIME)
         except:  # this shouldn't trigger, but we don't want a scan breakage to kill the scanner
+            print('[{time}] ERROR: Unknown celery error.'.format(
+                time=str(datetime.datetime.now()).split('.')[0]),
+                file=sys.stderr)
+
             pass
+
 
 if __name__ == '__main__':
     main()

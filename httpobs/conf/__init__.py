@@ -81,6 +81,8 @@ SCANNER_DATABASE_RECONNECTION_SLEEP_TIME = float(environ.get('HTTPOBS_SCANNER_DA
                                                  __conf('scanner', 'database_reconnection_sleep_time'))
 SCANNER_MAINTENANCE_CYCLE_FREQUENCY = int(environ.get('HTTPOBS_MAINTENANCE_CYCLE_FREQUENCY') or
                                           __conf('scanner', 'maintenance_cycle_frequency'))
+SCANNER_MAX_CPU_UTILIZATION = int(environ.get('HTTPOBS_SCANNER_MAX_CPU_UTILIZATION') or
+                                  __conf('scanner', 'max_cpu_utilization'))
 SCANNER_MAX_LOAD_RATIO = int(environ.get('HTTPOBS_SCANNER_MAX_LOAD_RATIO_PER_CPU') or
                              __conf('scanner', 'max_load_ratio_per_cpu'))
 SCANNER_MAX_LOAD = cpu_count() * SCANNER_MAX_LOAD_RATIO
