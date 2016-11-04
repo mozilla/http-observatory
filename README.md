@@ -31,6 +31,7 @@ $ pip3 install .
 $ pip3 install -r requirements.txt
 ```
 
+### Using the local scanner function calls
 ```python
 >>> from httpobs.scanner.local import scan
 >>> scan('observatory.mozilla.org')  # a scan with default options
@@ -41,6 +42,12 @@ $ pip3 install -r requirements.txt
          cookies={'foo': 'bar'},     # set the "foo" cookie to "bar"
          headers={'X-Foo': 'bar'},   # send an X-Foo: bar HTTP header
          verify=False)               # treat self-signed certs as valid for tests like HSTS/HPKP
+```
+
+### The same, but with the local CLI
+```bash
+$ httpobs-local-scan --http-port 8080 --https-port 8443 --path '/foo/bar' \
+    --cookies '{"foo": "bar"}' --headers '{"X-Foo": "bar"} --no-verify mozilla.org
 ```
 
 ### Running a local scanner with Docker
