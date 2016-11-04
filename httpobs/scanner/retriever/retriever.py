@@ -5,7 +5,6 @@ from httpobs.conf import (RETRIEVER_CONNECT_TIMEOUT,
                           RETRIEVER_CORS_ORIGIN,
                           RETRIEVER_READ_TIMEOUT,
                           RETRIEVER_USER_AGENT)
-from httpobs.database import select_site_headers
 
 import requests
 
@@ -25,16 +24,20 @@ TIMEOUT = (RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_READ_TIMEOUT)
 # Create a session, returning the session and the HTTP response in a dictionary
 # Don't create the sessions if it can't connect and retrieve the root of the website
 # TODO: Allow people to scan a subdirectory instead of using '/' as the default path?
-def __create_session(url: str, headers=None, cookies=None) -> dict:
+def __create_session(url: str, **kwargs) -> dict:
     s = requests.Session()
 
+    # Allow certificate verification to be disabled on the initial request, which means that sites won't get
+    # penalized on things like HSTS, even for self-signed certificates
+    s.verify = kwargs['verify']
+
     # Add the headers to the session
-    if headers:
-        s.headers.update(headers)
+    if kwargs['headers']:
+        s.headers.update(kwargs['headers'])
 
     # Set all the cookies and force them to be sent only over HTTPS; this might change in the future
-    if cookies:
-        s.cookies.update(cookies)
+    if kwargs['cookies']:
+        s.cookies.update(kwargs['cookies'])
 
         for cookie in s.cookies:
             cookie.secure = True
@@ -108,7 +111,16 @@ def __get_page_text(response: requests.Response) -> str:
         return None
 
 
-def retrieve_all(hostname: str) -> dict:
+def retrieve_all(hostname, **kwargs):
+    kwargs['cookies'] = kwargs.get('cookies', {})   # HTTP cookies to send, instead of from the database
+    kwargs['headers'] = kwargs.get('headers', {})   # HTTP headers to send, instead of from the database
+
+    # This way of doing it keeps the urls tidy even if makes the code ugly
+    kwargs['http_port'] = ':' + str(kwargs.get('http_port', '')) if 'http_port' in kwargs else ''
+    kwargs['https_port'] = ':' + str(kwargs.get('https_port', '')) if 'https_port' in kwargs else ''
+    kwargs['path'] = kwargs.get('path', '/')
+    kwargs['verify'] = kwargs.get('verify', True)
+
     retrievals = {
         'hostname': hostname,
         'resources': {
@@ -130,17 +142,9 @@ def retrieve_all(hostname: str) -> dict:
         '/robots.txt'
     )
 
-    # Get the headers and cookies from the database
-    # TODO: Allow headers to be overridden on a per-scan basis?
-    headers = select_site_headers(hostname)
-
     # Create some reusable sessions, one for HTTP and one for HTTPS
-    http_session = __create_session('http://' + hostname + '/',
-                                    headers=headers['headers'],
-                                    cookies=headers['cookies'])
-    https_session = __create_session('https://' + hostname + '/',
-                                     headers=headers['headers'],
-                                     cookies=headers['cookies'])
+    http_session = __create_session('http://' + hostname + kwargs['http_port'] + kwargs['path'], **kwargs)
+    https_session = __create_session('https://' + hostname + kwargs['https_port'] + kwargs['path'], **kwargs)
 
     # If neither one works, then the site just can't be loaded
     if not http_session['session'] and not https_session['session']:
@@ -158,11 +162,12 @@ def retrieve_all(hostname: str) -> dict:
             retrievals['responses']['auto'] = http_session['response']
             retrievals['session'] = http_session['session']
 
-        # Store the contents of the base page
-        retrievals['resources']['/'] = __get_page_text(retrievals['responses']['auto'])
+        # Store the contents of the "base" page
+        retrievals['resources']['__path__'] = __get_page_text(retrievals['responses']['auto'])
 
         # Do a CORS preflight request
         retrievals['responses']['cors'] = __get(retrievals['session'],
+                                                kwargs['path'],
                                                 headers={'Origin': RETRIEVER_CORS_ORIGIN})
 
         # Store all the files we retrieve

@@ -25,7 +25,7 @@ class TestRetriever(TestCase):
         reqs = retrieve_all('mozilla.org')
 
         # Various things we know about mozilla.org
-        self.assertIsNotNone(reqs['resources']['/'])
+        self.assertIsNotNone(reqs['resources']['__path__'])
         self.assertIsNotNone(reqs['resources']['/contribute.json'])
         self.assertIsNotNone(reqs['resources']['/robots.txt'])
         self.assertIsNone(reqs['resources']['/clientaccesspolicy.xml'])

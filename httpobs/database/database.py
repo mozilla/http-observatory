@@ -113,6 +113,7 @@ def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
         return dict(cur.fetchone())
 
 
+# TODO: Separate out some of this logic so it doesn't need to be duplicated in local.scan()
 def insert_test_results(site_id: int, scan_id: int, tests: list, response_headers: dict) -> dict:
     with get_cursor() as cur:
         tests_failed = tests_passed = 0
@@ -273,8 +274,8 @@ def select_site_headers(hostname: str) -> dict:
             headers.update(private_headers)
 
             return {
-                'headers': headers,
-                'cookies': {} if row.get('cookies') is None else row.get('cookies')
+                'cookies': {} if row.get('cookies') is None else row.get('cookies'),
+                'headers': headers
             }
         else:
             return {}

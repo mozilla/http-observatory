@@ -22,7 +22,35 @@ Sites can be scanned using:
 * Python 3
 * Git
 
-### Running a local scanner with Docker
+## Running a scan from the local codebase, without DB, for continuous integration
+```bash
+# Install the HTTP Observatory
+$ git clone https://github.com/mozilla/http-observatory.git
+$ cd http-observatory
+$ pip3 install .
+$ pip3 install -r requirements.txt
+```
+
+### Using the local scanner function calls
+```python
+>>> from httpobs.scanner.local import scan
+>>> scan('observatory.mozilla.org')  # a scan with default options
+>>> scan('observatory.mozilla.org',  # all the custom options
+         http_port=8080,             # http server runs on port 8080
+         https_port=8443,            # https server runs on port 8443
+         path='/foo/bar',            # don't scan /, instead scan /foo/bar
+         cookies={'foo': 'bar'},     # set the "foo" cookie to "bar"
+         headers={'X-Foo': 'bar'},   # send an X-Foo: bar HTTP header
+         verify=False)               # treat self-signed certs as valid for tests like HSTS/HPKP
+```
+
+### The same, but with the local CLI
+```bash
+$ httpobs-local-scan --http-port 8080 --https-port 8443 --path '/foo/bar' \
+    --cookies '{"foo": "bar"}' --headers '{"X-Foo": "bar"}' --no-verify mozilla.org
+```
+
+## Running a local scanner with Docker
 * Install [Docker Toolbox](https://www.docker.com/products/docker-toolbox) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
 ```bash
@@ -44,7 +72,7 @@ $ eval $(docker-machine env http-observatory)
 $ docker-compose up -d
 ```
 
-### Creating a local installation (tested on Ubuntu 15)
+## Creating a local installation (tested on Ubuntu 15)
 ```
 # Install git, postgresql, and redis
 # sudo -s

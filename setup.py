@@ -34,7 +34,8 @@ setup(
     author_email='april@mozilla.com',
     packages=find_packages(),
     include_package_data=True,
-    scripts=['httpobs/scripts/httpobs-mass-scan',
+    scripts=['httpobs/scripts/httpobs-local-scan',
+             'httpobs/scripts/httpobs-mass-scan',
              'httpobs/scripts/httpobs-scan-worker'],
     zip_safe=False,
 )

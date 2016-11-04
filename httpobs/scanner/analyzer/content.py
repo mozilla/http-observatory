@@ -138,7 +138,7 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
     else:
         # Try to parse the HTML
         try:
-            soup = bs(reqs['resources']['/'], 'html.parser')
+            soup = bs(reqs['resources']['__path__'], 'html.parser')
         except:
             output['result'] = 'html-not-parsable'
             return output
