@@ -37,4 +37,4 @@ celery \
 worker
 
 # Run the scanner
-python3 httpobs/scanner/main.py 2>&1 >> /var/log/httpobs/scan-worker.log
+python3 -u httpobs/scanner/main.py >> /var/log/httpobs/scan-worker.log 2>&1
