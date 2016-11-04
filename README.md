@@ -50,7 +50,7 @@ $ httpobs-local-scan --http-port 8080 --https-port 8443 --path '/foo/bar' \
     --cookies '{"foo": "bar"}' --headers '{"X-Foo": "bar"}' --no-verify mozilla.org
 ```
 
-### Running a local scanner with Docker
+## Running a local scanner with Docker
 * Install [Docker Toolbox](https://www.docker.com/products/docker-toolbox) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
 ```bash
@@ -72,7 +72,7 @@ $ eval $(docker-machine env http-observatory)
 $ docker-compose up -d
 ```
 
-### Creating a local installation (tested on Ubuntu 15)
+## Creating a local installation (tested on Ubuntu 15)
 ```
 # Install git, postgresql, and redis
 # sudo -s
