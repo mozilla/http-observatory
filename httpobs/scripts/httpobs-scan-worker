@@ -32,7 +32,7 @@ celery \
   --hostname='scanner@%h' \
   --logfile='/var/log/httpobs/scanner.log' \
   --loglevel=$LOGLEVEL \
-  --maxtasksperchild=1024 \
+  --maxtasksperchild=16 \
   --pidfile='/var/run/httpobs/scanner.pid' \
 worker
 
