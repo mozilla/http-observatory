@@ -34,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('--headers',
                         default=argparse.SUPPRESS,
                         help='headers to send in scan (json formatted)',
-                        type=str)
+                        type=json.loads)
     parser.add_argument('--format',
                         default='json',
                         help='output format (json or report), default of json',

@@ -27,8 +27,8 @@ Sites can be scanned using:
 # Install the HTTP Observatory
 $ git clone https://github.com/mozilla/http-observatory.git
 $ cd http-observatory
-$ pip3 install .
-$ pip3 install -r requirements.txt
+$ pip3 install --upgrade .
+$ pip3 install --upgrade -r requirements.txt
 ```
 
 ### Using the local scanner function calls
