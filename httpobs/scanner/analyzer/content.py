@@ -49,7 +49,8 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
         second_level_domain = urlparse(response.url).netloc.split('.')[-2]
     else:
         second_level_domain = ''
-    # If there's no contribute.json file
+
+    # If there's a contribute.json file
     if reqs['resources']['/contribute.json']:
         try:
             contrib = json.loads(reqs['resources']['/contribute.json'])
