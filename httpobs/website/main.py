@@ -12,6 +12,7 @@ def __exit_with(msg: str) -> None:
     print(msg)
     sys.exit(1)
 
+
 # Register the application with flask
 app = Flask('http-observatory')
 app.config['PROPAGATE_EXCEPTIONS'] = API_PROPAGATE_EXCEPTIONS
