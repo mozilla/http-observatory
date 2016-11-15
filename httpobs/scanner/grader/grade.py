@@ -213,6 +213,37 @@ SCORE_TABLE = {
         'modifier': -20,
     },
 
+    # Referrer Policy
+    'referrer-policy-private': {
+        'description': ('Referrer-Policy header set to "no-referrer" or "same-origin", "strict-origin" or ',
+                        '"strict-origin-when-cross-origin"'),
+        'modifier': 5,
+    },
+    'referrer-policy-no-referrer-when-downgrade': {
+        'description': 'Referrer-Policy header set to "no-referrer-when-downgrade"',
+        'modifier': 0,
+    },
+    'referrer-policy-not-implemented': {
+        'description': 'Referrer-Policy header not implemented',
+        'modifier': 0,
+    },
+    'referrer-policy-origin': {
+        'description': 'Referrer-Policy header set to "origin"',
+        'modifier': -5,
+    },
+    'referrer-policy-origin-when-cross-origin': {
+        'description': 'Referrer-Policy header set to "origin-when-cross-origin"',
+        'modifier': -5,
+    },
+    'referrer-policy-unsafe-url': {
+        'description': 'Referrer-Policy header set to "unsafe-url"',
+        'modifier': -5,
+    },
+    'referrer-policy-header-invalid': {
+        'description': 'Referrer-Policy header cannot be recognized',
+        'modifier': -5,
+    },
+
     # Strict Transport Security (HSTS)
     'hsts-preloaded': {
         'description': 'Preloaded via the HTTP Strict Transport Security (HSTS) preloading process',

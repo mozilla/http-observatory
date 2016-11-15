@@ -304,6 +304,71 @@ def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
 
 
 @scored_test
+def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
+    """
+    :param reqs: dictionary containing all the request and response objects
+    :param expectation: test expectation
+        referrer-policy-private: Referrer-Policy header set to "no-referrer" or "same-origin", "strict-origin"
+          or "strict-origin-when-origin"
+        referrer-policy-no-referrer-when-downgrade: Referrer-Policy header set to "no-referrer-when-downgrade"
+        referrer-policy-origin: Referrer-Policy header set to "origin"
+        referrer-policy-origin-when-cross-origin: Referrer-Policy header set to "origin-when-cross-origin"
+        referrer-policy-unsafe-url: Referrer-Policy header set to "unsafe-url"
+        referrer-policy-not-implemented: Referrer-Policy header not implemented
+        referrer-policy-header-invalid
+    :return: dictionary with:
+        data: the raw HTTP Referrer-Policy header
+        expectation: test expectation
+        pass: whether the site's configuration met its expectation
+        result: short string describing the result of the test
+    """
+
+    output = {
+        'data': None,
+        'expectation': expectation,
+        'pass': False,
+        'result': None,
+    }
+
+    goodness = ['no-referrer',
+                'same-origin',
+                'strict-origin',
+                'strict-origin-when-cross-origin']
+
+    badness = {'origin': 'referrer-policy-origin',
+               'origin-when-cross-origin': 'referrer-policy-origin-when-cross-origin',
+               'unsafe-url': 'referrer-policy-unsafe-url'}
+
+    response = reqs['responses']['auto']
+
+    if 'Referrer-Policy' in response.headers:
+        output['data'] = response.headers['Referrer-Policy'][0:256]  # Code defensively
+        policy_tokens = list(map(str.strip, response.headers['Referrer-Policy'].lower().split(',')))
+        policy = next((token for token in policy_tokens[::-1] if token in goodness + list(badness) +
+                       ['no-referrer-when-downgrade']), None)
+
+        if policy in goodness:
+            output['result'] = 'referrer-policy-private'
+        elif policy == 'no-referrer-when-downgrade':
+            output['result'] = 'referrer-policy-no-referrer-when-downgrade'
+        elif policy in list(badness):
+            output['result'] = badness[policy]
+        else:
+            output['result'] = 'referrer-policy-header-invalid'
+    else:
+        output['result'] = 'referrer-policy-not-implemented'
+
+    # Test passed or failed
+    if output['result'] in ('referrer-policy-private',
+                            'referrer-policy-not-implemented',
+                            'referrer-policy-no-referrer-when-downgrade',
+                            expectation):
+        output['pass'] = True
+
+    return output
+
+
+@scored_test
 def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-at-least-six-months') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
