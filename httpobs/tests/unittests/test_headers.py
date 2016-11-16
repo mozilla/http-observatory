@@ -4,6 +4,7 @@ from unittest import TestCase
 from httpobs.scanner.analyzer.headers import (content_security_policy,
                                               cookies,
                                               public_key_pinning,
+                                              referrer_policy,
                                               strict_transport_security,
                                               x_content_type_options,
                                               x_frame_options,
@@ -466,6 +467,78 @@ class TestPublicKeyPinning(TestCase):
         self.assertTrue(result['includeSubDomains'])
         self.assertTrue(result['pass'])
         self.assertTrue(result['preloaded'])
+
+
+class TestReferrerPolicy(TestCase):
+    def setUp(self):
+        self.reqs = empty_requests()
+
+    def tearDown(self):
+        self.reqs = None
+
+    def test_header_private(self):
+        for policy in ['no-referrer', 'same-origin', 'strict-origin', 'strict-origin-when-cross-origin']:
+            self.reqs['responses']['auto'].headers['Referrer-Policy'] = policy
+
+            result = referrer_policy(self.reqs)
+
+            self.assertEquals('referrer-policy-private', result['result'])
+            self.assertTrue(result['pass'])
+
+    def test_header_no_referrer_when_downgrade(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'no-referrer-when-downgrade'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-no-referrer-when-downgrade', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_missing(self):
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-not-implemented', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_header_invalid(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'whimsy'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-invalid', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_header_unsafe(self):
+        for policy in ['origin', 'origin-when-cross-origin', 'unsafe-url']:
+            self.reqs['responses']['auto'].headers['Referrer-Policy'] = policy
+
+            result = referrer_policy(self.reqs)
+
+            self.assertEquals('referrer-policy-unsafe', result['result'])
+            self.assertFalse(result['pass'])
+
+    def test_multiple_value_header_all_valid(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin-when-cross-origin, no-referrer, unsafe-url'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-unsafe', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_multiple_value_header_mix(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'no-referrer, whimsy'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-private', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_multiple_value_header_invalid(self):
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'whimsy, whimsy1, whimsy2'
+
+        result = referrer_policy(self.reqs)
+
+        self.assertEquals('referrer-policy-header-invalid', result['result'])
+        self.assertFalse(result['pass'])
 
 
 class TestStrictTransportSecurity(TestCase):

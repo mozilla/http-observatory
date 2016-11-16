@@ -3,7 +3,7 @@
 **Last Updated:** 2016-06-13 april@mozilla.com<br>
 **Author:** april@mozilla.com
 
-All websites start with a baseline score of 100, and then receive penalties or bonuses from there. Although the minimum score is 0, there is no maximum score. Currently, the highest possible score in the HTTP Observatory is 130.
+All websites start with a baseline score of 100, and then receive penalties or bonuses from there. Although the minimum score is 0, there is no maximum score. Currently, the highest possible score in the HTTP Observatory is 135.
 
 Note that although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
 
@@ -100,6 +100,15 @@ redirection-not-to-https-on-initial-redirection | Redirects to https eventually,
 redirection-missing | Does not redirect to an https site | -20
 redirection-not-to-https | Redirects, but final destination is not an https URL | -20
 redirection-invalid-cert | Invalid certificate chain encountered during redirection | -20
+<br>
+
+[Referrer Policy](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Referrer_Policy) | Description | Modifier
+--- | --- | :---:
+referrer-policy-private | `Referrer-Policy` header set to `no-referrer` or `same-origin`, `strict-origin` or `strict-origin-when-cross-origin` | 5
+referrer-policy-no-referrer-when-downgrade | `Referrer-Policy` header set to `no-referrer-when-downgrade` | 0
+referrer-policy-not-implemented | `Referrer-Policy` header not implemented | 0
+referrer-policy-unsafe | Referrer-Policy header unsafely set to `origin`, `origin-when-cross-origin`, or `unsafe-url` | -5
+referrer-policy-header-invalid | `Referrer-Policy` header cannot be recognized | -5
 <br>
 
 [Subresource Integrity](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Subresource_Integrity) | Description | Modifier
