@@ -507,36 +507,21 @@ class TestReferrerPolicy(TestCase):
         self.assertEquals('referrer-policy-header-invalid', result['result'])
         self.assertFalse(result['pass'])
 
-    def test_header_unsafe_url(self):
-        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'unsafe-url'
+    def test_header_unsafe(self):
+        for policy in ['origin', 'origin-when-cross-origin', 'unsafe-url']:
+            self.reqs['responses']['auto'].headers['Referrer-Policy'] = policy
 
-        result = referrer_policy(self.reqs)
+            result = referrer_policy(self.reqs)
 
-        self.assertEquals('referrer-policy-unsafe-url', result['result'])
-        self.assertFalse(result['pass'])
-
-    def test_header_origin(self):
-        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin'
-
-        result = referrer_policy(self.reqs)
-
-        self.assertEquals('referrer-policy-origin', result['result'])
-        self.assertFalse(result['pass'])
-
-    def test_header_origin_when_cross_origin(self):
-        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin-when-cross-origin'
-
-        result = referrer_policy(self.reqs)
-
-        self.assertEquals('referrer-policy-origin-when-cross-origin', result['result'])
-        self.assertFalse(result['pass'])
+            self.assertEquals('referrer-policy-unsafe', result['result'])
+            self.assertFalse(result['pass'])
 
     def test_multiple_value_header_all_valid(self):
         self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin-when-cross-origin, no-referrer, unsafe-url'
 
         result = referrer_policy(self.reqs)
 
-        self.assertEquals('referrer-policy-unsafe-url', result['result'])
+        self.assertEquals('referrer-policy-unsafe', result['result'])
         self.assertFalse(result['pass'])
 
     def test_multiple_value_header_mix(self):

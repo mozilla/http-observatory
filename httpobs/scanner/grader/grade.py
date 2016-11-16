@@ -215,7 +215,7 @@ SCORE_TABLE = {
 
     # Referrer Policy
     'referrer-policy-private': {
-        'description': ('Referrer-Policy header set to "no-referrer" or "same-origin", "strict-origin" or ',
+        'description': ('Referrer-Policy header set to "no-referrer", "same-origin", "strict-origin" or '
                         '"strict-origin-when-cross-origin"'),
         'modifier': 5,
     },
@@ -227,16 +227,8 @@ SCORE_TABLE = {
         'description': 'Referrer-Policy header not implemented',
         'modifier': 0,
     },
-    'referrer-policy-origin': {
-        'description': 'Referrer-Policy header set to "origin"',
-        'modifier': -5,
-    },
-    'referrer-policy-origin-when-cross-origin': {
-        'description': 'Referrer-Policy header set to "origin-when-cross-origin"',
-        'modifier': -5,
-    },
-    'referrer-policy-unsafe-url': {
-        'description': 'Referrer-Policy header set to "unsafe-url"',
+    'referrer-policy-unsafe': {
+        'description': 'Referrer-Policy header set unsafely to "origin", "origin-when-cross-origin", or "unsafe-url"',
         'modifier': -5,
     },
     'referrer-policy-header-invalid': {

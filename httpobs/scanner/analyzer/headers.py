@@ -335,24 +335,27 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
                 'strict-origin',
                 'strict-origin-when-cross-origin']
 
-    badness = {'origin': 'referrer-policy-origin',
-               'origin-when-cross-origin': 'referrer-policy-origin-when-cross-origin',
-               'unsafe-url': 'referrer-policy-unsafe-url'}
+    badness = ['origin',
+               'origin-when-cross-origin',
+               'unsafe-url']
+
+    valid = goodness + badness + ['no-referrer-when-downgrade']
 
     response = reqs['responses']['auto']
 
     if 'Referrer-Policy' in response.headers:
         output['data'] = response.headers['Referrer-Policy'][0:256]  # Code defensively
-        policy_tokens = list(map(str.strip, response.headers['Referrer-Policy'].lower().split(',')))
-        policy = next((token for token in policy_tokens[::-1] if token in goodness + list(badness) +
-                       ['no-referrer-when-downgrade']), None)
+
+        # Find the last known valid policy value in the Referer Policy
+        policy = [token.strip().lower() for token in output['data'].split(',') if token in valid]
+        policy = policy.pop() if policy else None
 
         if policy in goodness:
             output['result'] = 'referrer-policy-private'
         elif policy == 'no-referrer-when-downgrade':
             output['result'] = 'referrer-policy-no-referrer-when-downgrade'
-        elif policy in list(badness):
-            output['result'] = badness[policy]
+        elif policy in badness:
+            output['result'] = 'referrer-policy-unsafe'
         else:
             output['result'] = 'referrer-policy-header-invalid'
     else:

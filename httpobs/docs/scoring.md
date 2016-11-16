@@ -102,14 +102,12 @@ redirection-not-to-https | Redirects, but final destination is not an https URL 
 redirection-invalid-cert | Invalid certificate chain encountered during redirection | -20
 <br>
 
-[Referrer-Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy) | Description | Modifier
+[Referrer Policy](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Referrer_Policy) | Description | Modifier
 --- | --- | :---:
 referrer-policy-private | `Referrer-Policy` header set to `no-referrer` or `same-origin`, `strict-origin` or `strict-origin-when-cross-origin` | 5
 referrer-policy-no-referrer-when-downgrade | `Referrer-Policy` header set to `no-referrer-when-downgrade` | 0
 referrer-policy-not-implemented | `Referrer-Policy` header not implemented | 0
-referrer-policy-origin | `Referrer-Policy` header set to `origin` | -5
-referrer-policy-origin-when-cross-origin | `Referrer-Policy` header set to `origin-when-cross-origin` | -5
-referrer-policy-unsafe-url | `Referrer-Policy` header set to `unsafe-url` | -5
+referrer-policy-unsafe | Referrer-Policy header unsafely set to `origin`, `origin-when-cross-origin`, or `unsafe-url` | -5
 referrer-policy-header-invalid | `Referrer-Policy` header cannot be recognized | -5
 <br>
 
