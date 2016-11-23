@@ -15,6 +15,7 @@ def add_response_headers(headers=None, default_headers=None, cors=False):
     if not default_headers:
         default_headers = {
             'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+            'Referrer-Policy': 'no-referrer',
             'Strict-Transport-Security': 'max-age=63072000',
             'X-Content-Type-Options': 'nosniff',
             'X-Frame-Options': 'DENY',

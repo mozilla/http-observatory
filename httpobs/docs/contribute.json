@@ -9,7 +9,7 @@
     "participate": {
         "home": "https://observatory.mozilla.org/",
         "docs": "https://github.com/mozilla/http-observatory/tree/master/httpobs/docs",
-        "irc": "irc://irc.mozilla.org/#infosec",
+        "irc": "irc://irc.mozilla.org/#observatory",
         "irc-contacts": [
             "April"
         ]
