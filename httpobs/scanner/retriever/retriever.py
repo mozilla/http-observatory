@@ -6,13 +6,16 @@ from httpobs.conf import (RETRIEVER_CONNECT_TIMEOUT,
                           RETRIEVER_READ_TIMEOUT,
                           RETRIEVER_USER_AGENT)
 
+import logging
 import requests
 
 
 # Disable the requests InsecureRequestWarning -- we will track certificate errors manually when
-# verification is disabled
+# verification is disabled. Also disable requests errors at levels lower than CRITICAL, see:
+# https://github.com/celery/celery/issues/3633 for crashy details
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+logging.getLogger('requests').setLevel(logging.CRITICAL)
 
 # Maximum timeout for requests for all GET requests for anything but the TLS Observatory
 # The default ConnectionTimeout is something like 75 seconds, which means that things like
