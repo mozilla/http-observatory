@@ -112,9 +112,10 @@ def main():
 
         try:
             if sites_to_scan:
-                print('[{time}] INFO: Dequeuing {num} site(s).'.format(
+                print('[{time}] INFO: Dequeuing {num} site(s): {sites}.'.format(
                     time=str(datetime.datetime.now()).split('.')[0],
-                    num=len(sites_to_scan)),
+                    num=len(sites_to_scan),
+                    sites=', '.join([site[0] for site in sites_to_scan])),
                     file=sys.stderr
                 )
 
