@@ -1,6 +1,55 @@
+import json
+import os.path
+import requests
 import socket
+import sys
 
-from httpobs.conf import SCANNER_ALLOW_LOCALHOST
+from base64 import b64decode
+from httpobs.conf import (SCANNER_ALLOW_LOCALHOST,
+                          SCANNER_PINNED_DOMAINS)
+
+
+HSTS_URL = ('https://chromium.googlesource.com/chromium'
+            '/src/net/+/master/http/transport_security_state_static.json?format=TEXT')
+
+
+def retrieve_store_hsts_preload_list():
+    # Download the Google HSTS Preload List
+    try:
+        r = b64decode(requests.get(HSTS_URL).text).decode('utf-8').split('\n')
+
+        # Remove all the comments
+        r = ''.join([line.split('// ')[0] for line in r if line.strip() != '//'])
+
+        r = json.loads(r)
+
+        # Mapping of site -> whether it includes subdomains
+        hsts = {site['name']: {
+            'includeSubDomains': site.get('include_subdomains', False),
+            'includeSubDomainsForPinning':
+                site.get('include_subdomains', False) or site.get('include_subdomains_for_pinning', False),
+            'mode': site.get('mode'),
+            'pinned': True if 'pins' in site else False,
+        } for site in r['entries']}
+
+        # Add in the manually pinned domains
+        for pinned_domain in SCANNER_PINNED_DOMAINS:
+            hsts[pinned_domain] = {
+                'includeSubDomains': True,
+                'includeSubDomainsForPinning': True,
+                'mode': 'force-https',
+                'pinned': True
+            }
+
+        # Write json file to disk
+        __dirname = os.path.abspath(os.path.dirname(__file__))
+        __filename = os.path.join(__dirname, '..', 'conf', 'hsts-preload.json')
+
+        with open(__filename, 'w') as f:
+            json.dump(hsts, f, indent=2, sort_keys=True)
+
+    except:
+        print('Unable to download the Chromium HSTS preload list.', file=sys.stderr)
 
 
 def sanitize_headers(headers: dict) -> dict:

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# cd to the top level directory of this archive
+dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
+cd $dir/../..
+
+# execute the regeneration script
+PYTHONPATH='.' python3 -c 'import httpobs.scanner.utils; httpobs.scanner.utils.retrieve_store_hsts_preload_list()'
