@@ -1,46 +1,13 @@
-from httpobs.conf import SCANNER_PINNED_DOMAINS
-
-import requests
-import sys
-
-from base64 import b64decode
-from json import loads
-from sys import exit
+import json
+import os.path
 
 
-HSTS_URL = ('https://chromium.googlesource.com/chromium'
-            '/src/net/+/master/http/transport_security_state_static.json?format=TEXT')
-hsts = {}
+# Load the HSTS list from disk
+__dirname = os.path.abspath(os.path.dirname(__file__))
+__filename = os.path.join(__dirname, '..', '..', 'conf', 'hsts-preload.json')
 
-# Download the Google HSTS Preload List
-try:
-    r = b64decode(requests.get(HSTS_URL).text).decode('utf-8').split('\n')
-
-    # Remove all the comments
-    r = ''.join([line.split('// ')[0] for line in r if line.strip() != '//'])
-
-    r = loads(r)
-
-    # Mapping of site -> whether it includes subdomains
-    hsts = {site['name']: {
-        'includeSubDomains': site.get('include_subdomains', False),
-        'includeSubDomainsForPinning':
-            site.get('include_subdomains', False) or site.get('include_subdomains_for_pinning', False),
-        'mode': site.get('mode'),
-        'pinned': True if 'pins' in site else False,
-    } for site in r['entries']}
-
-    # Add in the manually pinned domains
-    for pinned_domain in SCANNER_PINNED_DOMAINS:
-        hsts[pinned_domain] = {
-            'includeSubDomains': True,
-            'includeSubDomainsForPinning': True,
-            'mode': 'force-https',
-            'pinned': True
-        }
-except:
-    print('Unable to download the Chromium HSTS preload list; exiting', file=sys.stderr)
-    exit(1)
+with open(__filename, 'r') as f:
+    hsts = json.load(f)
 
 
 def is_hpkp_preloaded(hostname):
