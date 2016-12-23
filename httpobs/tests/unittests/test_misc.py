@@ -154,6 +154,7 @@ class TestRedirection(TestCase):
         self.assertFalse(result['pass'])
 
     def test_redirects_to_https(self):
+        # normal redirect to https
         history1 = UserDict()
         history1.request = UserDict()
         history1.request.url = 'http://http-observatory.security.mozilla.org/'
@@ -165,6 +166,23 @@ class TestRedirection(TestCase):
         self.assertEquals('redirection-to-https', result['result'])
         self.assertEquals(['http://http-observatory.security.mozilla.org/',
                            'https://http-observatory.security.mozilla.org/'], result['route'])
+        self.assertTrue(result['pass'])
+
+    def test_redirects_to_https_with_port_number(self):
+        # same thing, but with :443 on the URL, see issue #180
+        self.reqs['responses']['http'].url = 'https://http-observatory.security.mozilla.org:443/'
+
+        history1 = UserDict()
+        history1.request = UserDict()
+        history1.request.url = 'http://http-observatory.security.mozilla.org/'
+
+        self.reqs['responses']['http'].history.append(history1)
+
+        result = redirection(self.reqs)
+
+        self.assertEquals('redirection-to-https', result['result'])
+        self.assertEquals(['http://http-observatory.security.mozilla.org/',
+                           'https://http-observatory.security.mozilla.org:443/'], result['route'])
         self.assertTrue(result['pass'])
 
     def test_redirects_invalid_cert(self):
