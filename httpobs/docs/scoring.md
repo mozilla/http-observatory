@@ -63,7 +63,7 @@ csp-implemented-with-no-unsafe | Content Security Policy (CSP) implemented witho
 csp-implemented-with-unsafe-inline-in-style-src-only | Content Security Policy (CSP) implemented with unsafe directives inside `style-src`. This includes `'unsafe-inline'`, `data:`, or overly broad sources such as `https:`. | 0
 csp-implemented-with-unsafe-eval | Content Security Policy (CSP) implemented unsafely, with `'unsafe-eval'` | -10
 csp-implemented-with-insecure-scheme | Content Security Policy (CSP) implemented, but secure site allows resources to be loaded from http | -20
-csp-implemented-with-unsafe-inline | Content Security Policy (CSP) implemented unsafely. This includes `'unsafe-inline'` or `data:` inside `script-src`, overly broad sources such as `https:` inside `object-src` or `script-src`, or not restricting the sources for `object-src` or `script-src`. | -20
+csp-implemented-with-unsafe-inline | Content Security Policy (CSP) implemented unsafely. This includes: `'unsafe-inline'` or `data:` inside `script-src`; overly broad sources such as `https:` inside `object-src` or `script-src`; or not restricting the sources for `object-src` or `script-src`. | -20
 csp-not-implemented | Content Security Policy (CSP) header not implemented | -25
 csp-header-invalid | Content Security Policy (CSP) header cannot be parsed successfully | -25
 <br>
