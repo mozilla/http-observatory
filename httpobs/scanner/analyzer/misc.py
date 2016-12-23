@@ -142,8 +142,11 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
         output['route'] = [r.request.url for r in response.history] if response.history else []
         output['route'] += [response.url]
 
+        # Internally, we just use the port-trimmed urlparsed versions
+        route = [urlparse(url) for url in output['route']]
+
         # Check to see if every redirection was covered by the preload list
-        if all([is_hsts_preloaded(url.netloc) for url in list(map(urlparse, output['route']))]):
+        if all([is_hsts_preloaded(url.hostname) for url in route]):
             output['result'] = 'redirection-all-redirects-preloaded'
 
         # No redirection, so you just stayed on the http website
@@ -152,18 +155,18 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
             output['result'] = 'redirection-missing'
 
         # Final destination wasn't an https website
-        elif urlparse(output['route'][-1]).scheme != 'https':
+        elif route[-1].scheme != 'https':
             output['result'] = 'redirection-not-to-https'
 
         # http should never redirect to another http location -- should always go to https first
-        elif urlparse(output['route'][1]).scheme == 'http':
+        elif route[1].scheme == 'http':
             output['result'] = 'redirection-not-to-https-on-initial-redirection'
 
         # If it's an http -> https redirection, make sure it redirects to the same host. If that's not done, then
         # HSTS cannot be properly set on the original host
         # TODO: Check for redirections like: http://www.example.com -> https://example.com -> https://www.example.com
-        elif (urlparse(output['route'][0]).scheme == 'http' and urlparse(output['route'][1]).scheme == 'https' and
-              urlparse(output['route'][0]).netloc.lower() != urlparse(output['route'][1]).netloc.lower()):
+        elif (route[0].scheme == 'http' and route[1].scheme == 'https' and
+              route[0].hostname != route[1].hostname):
             output['result'] = 'redirection-off-host-from-http'
             output['status_code'] = response.history[-1].status_code
         else:
