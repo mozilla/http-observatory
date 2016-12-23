@@ -21,12 +21,12 @@ def api_post_scan_hostname():
     # TODO: Allow people to accidentally use https://mozilla.org and convert to mozilla.org
 
     # Get the hostname
-    hostname = request.args.get('host', '').lower()
+    orig_hostname = request.args.get('host', '').lower()
 
     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
-    hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
+    hostname = valid_hostname(orig_hostname) or valid_hostname('www.' + orig_hostname)  # prepend www. if necessary
     if not hostname:
-        return {'error': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', ''))}
+        return {'error': '{hostname} is an invalid hostname'.format(orig_hostname)}
 
     # Get the site's id number
     try:
@@ -75,12 +75,12 @@ def api_get_grade_totals():
 @add_response_headers(cors=True)
 def api_get_host_history():
     # Get the hostname
-    hostname = request.args.get('host', '').lower()
+    orig_hostname = request.args.get('host', '').lower()
 
     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
-    hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
+    hostname = valid_hostname(orig_hostname) or valid_hostname('www.' + orig_hostname)  # prepend www. if necessary
     if not hostname:
-        return jsonify({'error': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', ''))})
+        return jsonify({'error': '{hostname} is an invalid hostname'.format(orig_hostname)})
 
     # Get the site's id number
     try:
