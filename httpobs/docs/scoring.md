@@ -119,7 +119,7 @@ sri-not-implemented-<br>but-all-scripts-loaded-from-secure-origin | Subresource 
 sri-not-implemented-<br>but-no-scripts-loaded | Subresource Integrity (SRI) is not needed since site contains no script tags | 0
 sri-not-implemented-<br>response-not-html | Subresource Integrity (SRI) is only needed for html resources | 0
 sri-not-implemented-<br>but-external-scripts-loaded-securely | Subresource Integrity (SRI) not implemented, but all external scripts are loaded over https | -5
-request-did-not-return-status-code-200 | / did not return a status code of 200 | -5
+request-did-not-return-status-code-200 | Site did not return a status code of 200 | -5
 sri-implemented-<br>but-external-scripts-not-loaded-securely | Subresource Integrity (SRI) implemented, but external scripts are loaded over http | -20
 html-not-parsable | Claims to be html, but cannot be parsed | -20
 sri-not-implemented-<br>and-external-scripts-not-loaded-securely | Subresource Integrity (SRI) is not implemented, and external scripts are loaded over http | -50
