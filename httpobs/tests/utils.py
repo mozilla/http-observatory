@@ -1,6 +1,6 @@
 from collections import UserDict
-from http.cookiejar import CookieJar
 from copy import deepcopy
+from requests.cookies import RequestsCookieJar
 
 
 def empty_requests() -> dict:
@@ -32,7 +32,7 @@ def empty_requests() -> dict:
     req['responses']['auto'].url = 'https://http-observatory.security.mozilla.org/'
     req['responses']['auto'].verified = True
 
-    req['session'].cookies = CookieJar()
+    req['session'].cookies = RequestsCookieJar()
 
     req['responses']['cors'] = deepcopy(req['responses']['auto'])
     req['responses']['http'] = deepcopy(req['responses']['auto'])
