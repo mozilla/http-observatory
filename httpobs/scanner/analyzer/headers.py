@@ -162,6 +162,11 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     else:
         jar = {}
 
+        # Ignore the CloudFlare __cfduid tracking cookies. They *are* actually bad, but it is out of a site's
+        # control.  See https://github.com/mozilla/http-observatory/issues/121 for additional details. Hopefully
+        # this will eventually be fixed on CloudFlare's end.
+        del(session.cookies['__cfduid'])
+
         for cookie in session.cookies:
             # The httponly functionality is a bit broken
             if not hasattr(cookie, 'httponly'):

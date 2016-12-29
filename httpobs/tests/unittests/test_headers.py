@@ -181,6 +181,26 @@ class TestCookies(TestCase):
                         value='bar')
         self.reqs['session'].cookies.set_cookie(cookie)
 
+        # See: https://github.com/mozilla/http-observatory/issues/121 for the __cfduid insanity
+        cookie = Cookie(name='__cfduid',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
         result = cookies(self.reqs)
 
         self.assertEquals('cookies-secure-with-httponly-sessions', result['result'])
