@@ -1,0 +1,3 @@
+psutil==5.0.0
+publicsuffixlist==0.4.1
+requests==2.12.2
