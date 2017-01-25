@@ -2,6 +2,7 @@ from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
+from re import search as reg_search
 
 
 @scored_test
@@ -31,7 +32,11 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     }
     response = reqs['responses']['auto']
 
-    # TODO: check for CSP meta tags
+    #Parse CSP in meta tags, drop it into the header response.
+    meta = reg_search(b'<meta\s+http\-equiv\s*=\s*\"Content-Security-Policy\"\s+content\s*\=\s*\"(.*)\">', response.content, re.IGNORECASE)
+    if meta:
+        response.headers['Content-Security-Policy'] = str(meta.group(1))
+
     # TODO: try to parse when there are multiple CSP headers
 
     # Obviously you can get around it with things like https://*.org, but you're only hurting yourself
