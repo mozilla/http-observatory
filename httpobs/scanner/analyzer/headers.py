@@ -352,7 +352,7 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
         output['data'] = response.headers['Referrer-Policy'][0:256]  # Code defensively
 
         # Find the last known valid policy value in the Referer Policy
-        policy = [token.strip().lower() for token in output['data'].split(',') if token in valid]
+        policy = [token.strip() for token in output['data'].lower().split(',') if token.strip() in valid]
         policy = policy.pop() if policy else None
 
         if policy in goodness:
