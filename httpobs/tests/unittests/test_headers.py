@@ -537,12 +537,15 @@ class TestReferrerPolicy(TestCase):
             self.assertFalse(result['pass'])
 
     def test_multiple_value_header_all_valid(self):
-        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'origin-when-cross-origin, no-referrer, unsafe-url'
+        valid_but_unsafe_policies = ['origin-when-cross-origin, no-referrer, unsafe-url',  # safe in the middle
+                                     'no-referrer, unsafe-url']  # safe at the beginning
+        for policy in valid_but_unsafe_policies:
+            self.reqs['responses']['auto'].headers['Referrer-Policy'] = policy
 
-        result = referrer_policy(self.reqs)
+            result = referrer_policy(self.reqs)
 
-        self.assertEquals('referrer-policy-unsafe', result['result'])
-        self.assertFalse(result['pass'])
+            self.assertEquals('referrer-policy-unsafe', result['result'])
+            self.assertFalse(result['pass'])
 
     def test_multiple_value_header_mix(self):
         self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'no-referrer, whimsy'
