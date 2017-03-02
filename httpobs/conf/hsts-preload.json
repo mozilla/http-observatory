@@ -9059,12 +9059,6 @@
     "mode": "force-https",
     "pinned": false
   },
-  "avril4th.com": {
-    "includeSubDomains": true,
-    "includeSubDomainsForPinning": true,
-    "mode": "force-https",
-    "pinned": false
-  },
   "avso.pw": {
     "includeSubDomains": true,
     "includeSubDomainsForPinning": true,
@@ -15570,12 +15564,6 @@
     "pinned": false
   },
   "built.by": {
-    "includeSubDomains": true,
-    "includeSubDomainsForPinning": true,
-    "mode": "force-https",
-    "pinned": false
-  },
-  "builtritetrailerplans.com": {
     "includeSubDomains": true,
     "includeSubDomainsForPinning": true,
     "mode": "force-https",
@@ -56705,12 +56693,6 @@
     "mode": "force-https",
     "pinned": false
   },
-  "jf.duckdns.org": {
-    "includeSubDomains": true,
-    "includeSubDomainsForPinning": true,
-    "mode": "force-https",
-    "pinned": false
-  },
   "jfmel.com": {
     "includeSubDomains": true,
     "includeSubDomainsForPinning": true,
@@ -70242,12 +70224,6 @@
     "pinned": false
   },
   "medusa.wtf": {
-    "includeSubDomains": true,
-    "includeSubDomainsForPinning": true,
-    "mode": "force-https",
-    "pinned": false
-  },
-  "medwayindia.com": {
     "includeSubDomains": true,
     "includeSubDomainsForPinning": true,
     "mode": "force-https",
@@ -94439,12 +94415,6 @@
     "mode": "force-https",
     "pinned": false
   },
-  "safic.net": {
-    "includeSubDomains": true,
-    "includeSubDomainsForPinning": true,
-    "mode": "force-https",
-    "pinned": false
-  },
   "safing.me": {
     "includeSubDomains": true,
     "includeSubDomainsForPinning": true,
@@ -94980,12 +94950,6 @@
     "pinned": false
   },
   "sangwon.io": {
-    "includeSubDomains": true,
-    "includeSubDomainsForPinning": true,
-    "mode": "force-https",
-    "pinned": false
-  },
-  "sangwon.org": {
     "includeSubDomains": true,
     "includeSubDomainsForPinning": true,
     "mode": "force-https",
@@ -120053,12 +120017,6 @@
     "mode": "force-https",
     "pinned": false
   },
-  "whiskeyriver.co.uk": {
-    "includeSubDomains": true,
-    "includeSubDomainsForPinning": true,
-    "mode": "force-https",
-    "pinned": false
-  },
   "whiskynerd.ca": {
     "includeSubDomains": true,
     "includeSubDomainsForPinning": true,
@@ -122418,12 +122376,6 @@
     "pinned": false
   },
   "wzyboy.org": {
-    "includeSubDomains": true,
-    "includeSubDomainsForPinning": true,
-    "mode": "force-https",
-    "pinned": false
-  },
-  "x-case.de": {
     "includeSubDomains": true,
     "includeSubDomainsForPinning": true,
     "mode": "force-https",
