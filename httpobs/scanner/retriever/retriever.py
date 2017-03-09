@@ -64,9 +64,13 @@ def __create_session(url: str, **kwargs) -> dict:
         try:
             r = s.get(url, timeout=TIMEOUT, verify=False)
             r.verified = False
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             r = None
             s = None
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except:
         r = None
         s = None
@@ -95,6 +99,8 @@ def __get(session, relative_path='/', headers=None, cookies=None):
                            timeout=TIMEOUT)
     # Let celery exceptions percolate upward
     except (SoftTimeLimitExceeded, TimeLimitExceeded):
+        raise
+    except (KeyboardInterrupt, SystemExit):
         raise
     except:
         return None
