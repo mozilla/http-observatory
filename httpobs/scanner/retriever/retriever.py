@@ -8,7 +8,6 @@ from httpobs.conf import (RETRIEVER_CONNECT_TIMEOUT,
 
 import logging
 import requests
-import sys
 
 
 # Disable the requests InsecureRequestWarning -- we will track certificate errors manually when
