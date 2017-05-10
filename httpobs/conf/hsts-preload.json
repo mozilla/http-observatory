@@ -43045,7 +43045,7 @@
   },
   "facebook.com": {
     "includeSubDomains": false,
-    "includeSubDomainsForPinning": false,
+    "includeSubDomainsForPinning": true,
     "mode": "force-https",
     "pinned": true
   },
@@ -84148,6 +84148,12 @@
     "includeSubDomainsForPinning": true,
     "mode": "force-https",
     "pinned": false
+  },
+  "messenger.com": {
+    "includeSubDomains": false,
+    "includeSubDomainsForPinning": true,
+    "mode": "force-https",
+    "pinned": true
   },
   "messer24.ch": {
     "includeSubDomains": true,
@@ -144946,6 +144952,12 @@
     "includeSubDomainsForPinning": false,
     "mode": "force-https",
     "pinned": false
+  },
+  "www.messenger.com": {
+    "includeSubDomains": true,
+    "includeSubDomainsForPinning": true,
+    "mode": "force-https",
+    "pinned": true
   },
   "www.moneybookers.com": {
     "includeSubDomains": true,
