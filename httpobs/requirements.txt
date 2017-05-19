@@ -1,10 +1,10 @@
 amqp==2.1.4
 anyjson==0.3.3
-beautifulsoup4==4.5.3
+beautifulsoup4==4.6.0
 billiard==3.5.0.2
 celery==4.0.2
 click==6.7
-coverage==4.3.4
+coverage==4.4.1
 flake8==3.3.0
 httpobs-cli==1.0.2
 itsdangerous==0.24
