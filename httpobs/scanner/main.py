@@ -2,6 +2,8 @@ from time import sleep
 from urllib.parse import urlparse
 
 from httpobs.conf import (BROKER_URL,
+                          SCANNER_ALLOW_KICKSTART,
+                          SCANNER_ALLOW_KICKSTART_NUM_ABORTED,
                           SCANNER_BROKER_RECONNECTION_SLEEP_TIME,
                           SCANNER_CYCLE_SLEEP_TIME,
                           SCANNER_DATABASE_RECONNECTION_SLEEP_TIME,
@@ -15,6 +17,7 @@ from httpobs.scanner.tasks import scan
 import datetime
 import psutil
 import redis
+import subprocess
 import sys
 
 
@@ -74,7 +77,23 @@ def main():
                     num=num),
                     file=sys.stderr)
                 num = 0
-        except:
+
+            # Forcibly restart if things are going real bad, sleep for a bit to avoid flagging
+            if num > SCANNER_ALLOW_KICKSTART_NUM_ABORTED and SCANNER_ALLOW_KICKSTART:
+                sleep(10)
+                try:
+                    print('[{time}] ERROR: Celery appears to be hung. Attempting to kickstart the scanners.'.format(
+                        time=str(datetime.datetime.now()).split('.')[0]),
+                        file=sys.stderr)
+                    subprocess.call(['pkill', '-u', 'httpobs', '-f', 'httpobs-scan-worker'])
+                except FileNotFoundError:
+                    print('[{time}] ERROR: Tried to kickstart, but no pkill found.'.format(
+                        time=str(datetime.datetime.now()).split('.')[0]),
+                        file=sys.stderr)
+                except:
+                    print('[{time}] ERROR: Tried to kickstart, but failed for unknown reasons.'.format(
+                        time=str(datetime.datetime.now()).split('.')[0]),
+                        file=sys.stderr)
             pass
         finally:
             dequeue_loop_count += 1
