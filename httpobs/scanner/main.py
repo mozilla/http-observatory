@@ -94,6 +94,7 @@ def main():
                     print('[{time}] ERROR: Tried to kickstart, but failed for unknown reasons.'.format(
                         time=str(datetime.datetime.now()).split('.')[0]),
                         file=sys.stderr)
+        except:
             pass
         finally:
             dequeue_loop_count += 1
@@ -149,8 +150,6 @@ def main():
             print('[{time}] ERROR: Unknown celery error.'.format(
                 time=str(datetime.datetime.now()).split('.')[0]),
                 file=sys.stderr)
-
-            pass
 
 
 if __name__ == '__main__':
