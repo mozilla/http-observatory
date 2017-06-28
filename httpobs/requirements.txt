@@ -19,3 +19,6 @@ pyflakes==1.5.0
 pytz==2017.2
 vine==1.1.3
 Werkzeug==0.12.1
+-r httpobs/database/requirements.txt
+-r httpobs/scanner/requirements.txt
+-r httpobs/website/requirements.txt
