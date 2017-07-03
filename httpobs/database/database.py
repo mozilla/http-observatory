@@ -165,8 +165,12 @@ def periodic_maintenance() -> int:
     :return: the number of scans that were closed out
     """
     with get_cursor() as cur:
-        # Update the grade distribution table
+        # Update the various materialized views
         cur.execute("REFRESH MATERIALIZED VIEW grade_distribution;")
+        cur.execute("REFRESH MATERIALIZED VIEW latest_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW earliest_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW scan_score_difference_distribution;")
+        cur.execute("REFRESH MATERIALIZED VIEW scan_score_difference_distribution_summation;")
 
         # Mark all scans that have been sitting unfinished for at least SCANNER_ABORT_SCAN_TIME as ABORTED
         cur.execute("""UPDATE scans
@@ -180,10 +184,10 @@ def periodic_maintenance() -> int:
         return cur.rowcount
 
 
-def select_scan_grade_totals() -> dict:
-    # Used for /api/v1/getGradeDistribution
+def select_star_from(table: str) -> dict:
+    # Select all the rows in a given table. Note that this is specifically not parameterized.
     with get_cursor() as cur:
-        cur.execute('SELECT * FROM grade_distribution;')
+        cur.execute('SELECT * FROM {table}'.format(table=table))
 
         return dict(cur.fetchall())
 
@@ -210,11 +214,25 @@ def select_scan_host_history(site_id: int) -> list:
         return []
 
 
-def select_scan_scanner_states() -> dict:
+def select_scan_scanner_statistics() -> dict:
     with get_cursor() as cur:
+        # Get the scanner stats
         cur.execute('SELECT state, COUNT(*) as quantity FROM scans GROUP BY state;')
+        states = dict(cur.fetchall())
 
-        return dict(cur.fetchall())
+        # Get the recent scan count
+        cur.execute("""SELECT DATE_TRUNC('hour', end_time) AS hour, COUNT(*) as num_scans
+                         FROM scans
+                         WHERE (end_time < DATE_TRUNC('hour', NOW()))
+                           AND (end_time >= DATE_TRUNC('hour', NOW()) - INTERVAL '24 hours')
+                         GROUP BY hour
+                         ORDER BY hour DESC;""",
+                    (STATE_FINISHED,))
+
+        return {
+            'recent_scans': {str(k): v for (k, v) in dict(cur.fetchall()).items()},
+            'states': states
+        }
 
 
 def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) -> dict:
