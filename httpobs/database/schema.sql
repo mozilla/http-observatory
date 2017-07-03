@@ -84,6 +84,7 @@ CREATE MATERIALIZED VIEW latest_scans
   LATERAL ( SELECT id AS scan_id, site_id, state, start_time, end_time, tests_failed, tests_passed, grade, score, error
             FROM scans WHERE site_id = s.id AND state = 'FINISHED' ORDER BY end_time DESC LIMIT 1 ) latest_scans;
 COMMENT ON MATERIALIZED VIEW latest_scans IS 'Most recently completed scan for a given website';
+GRANT SELECT ON latest_scans TO httpobsapi;
 
 CREATE MATERIALIZED VIEW latest_tests
   AS SELECT latest_scans.domain, tests.site_id, tests.scan_id, name, result, pass, output
@@ -99,7 +100,6 @@ CREATE MATERIALIZED VIEW grade_distribution
     GROUP BY grade;
 COMMENT ON MATERIALIZED VIEW grade_distribution IS 'The grades and how many scans have that score';
 GRANT SELECT ON grade_distribution TO httpobsapi;
-ALTER MATERIALIZED VIEW grade_distribution OWNER TO httpobsscanner;  /* so it can refresh */
 
 /* Update to add cookies */
 /*
@@ -111,3 +111,43 @@ GRANT UPDATE (cookies) ON sites TO httpobsapi;
 /*
 ALTER TABLE scans ADD COLUMN likelihood_indicator VARCHAR NULL;
 */
+
+/* Update to frequently refresh latest_scans */
+/*
+GRANT SELECT ON latest_scans TO httpobsapi;
+ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsscanner;
+*/
+
+/* Update to add earliest scans and a way to compare earliest and latest */
+CREATE MATERIALIZED VIEW earliest_scans
+  AS SELECT earliest_scans.site_id, earliest_scans.scan_id, s.domain, earliest_scans.state,
+    earliest_scans.start_time, earliest_scans.end_time, earliest_scans.tests_failed, earliest_scans.tests_passed,
+    earliest_scans.grade, earliest_scans.score, earliest_scans.error
+  FROM sites s,
+  LATERAL ( SELECT id AS scan_id, site_id, state, start_time, end_time, tests_failed, tests_passed, grade, score, error
+            FROM scans WHERE site_id = s.id AND state = 'FINISHED' ORDER BY end_time ASC LIMIT 1 ) earliest_scans;
+COMMENT ON MATERIALIZED VIEW earliest_scans IS 'Oldest completed scan for a given website';
+GRANT SELECT ON earliest_scans TO httpobsapi;
+
+CREATE MATERIALIZED VIEW scan_score_difference_distribution
+  AS SELECT earliest_scans.site_id, earliest_scans.domain, earliest_scans.score AS before, latest_scans.score AS after,
+    (latest_scans.score - earliest_scans.score) AS difference
+  FROM earliest_scans, latest_scans
+  WHERE earliest_scans.site_id = latest_scans.site_id;
+COMMENT ON MATERIALIZED VIEW scan_score_difference_distribution IS 'How much score has changed since first scan';
+GRANT SELECT ON scan_score_difference_distribution TO httpobsapi;
+CREATE INDEX scan_score_difference_difference_distribution_idx ON scan_score_difference_distribution (difference);
+
+CREATE MATERIALIZED VIEW scan_score_difference_distribution_summation
+  AS SELECT DISTINCT difference, COUNT(difference) AS num_sites
+  FROM scan_score_difference_distribution
+  GROUP BY difference
+  ORDER BY difference DESC;
+COMMENT ON MATERIALIZED VIEW scan_score_difference_distribution_summation IS 'How many sites have improved by how many points';
+GRANT SELECT ON scan_score_difference_distribution_summation TO httpobsapi;
+
+ALTER MATERIALIZED VIEW grade_distribution OWNER TO httpobsscanner;  /* so it can refresh */
+ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsscanner;
+ALTER MATERIALIZED VIEW earliest_scans OWNER TO httpobsscanner;
+ALTER MATERIALIZED VIEW scan_score_difference_distribution OWNER TO httpobsscanner;
+ALTER MATERIALIZED VIEW scan_score_difference_distribution_summation OWNER TO httpobsscanner;
