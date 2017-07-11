@@ -214,24 +214,46 @@ def select_scan_host_history(site_id: int) -> list:
         return []
 
 
-def select_scan_scanner_statistics() -> dict:
+def select_scan_scanner_statistics(verbose: bool=False) -> dict:
+    # Get all the scanner statistics while minimizing the number of cursors needed
     with get_cursor() as cur:
-        # Get the scanner stats
-        cur.execute('SELECT state, COUNT(*) as quantity FROM scans GROUP BY state;')
-        states = dict(cur.fetchall())
+        # Get the grade distribution across all scans (periodically refreshed)
+        cur.execute('SELECT * FROM grade_distribution;')
+        grade_distribution = dict(cur.fetchall())
 
-        # Get the recent scan count
-        cur.execute("""SELECT DATE_TRUNC('hour', end_time) AS hour, COUNT(*) as num_scans
-                         FROM scans
-                         WHERE (end_time < DATE_TRUNC('hour', NOW()))
-                           AND (end_time >= DATE_TRUNC('hour', NOW()) - INTERVAL '24 hours')
-                         GROUP BY hour
-                         ORDER BY hour DESC;""",
-                    (STATE_FINISHED,))
+        # And the summation of grade differences
+        cur.execute('SELECT * FROM scan_score_difference_distribution_summation;')
+        scan_score_difference_distribution_summation = dict(cur.fetchall())
+
+        # And the total number of scans
+        cur.execute("""SELECT id FROM scans ORDER BY id DESC LIMIT 1;""")
+        scan_count = cur.fetchall()[0][0]
+
+        # Stats we only need if verbose is true, as these take a while to collect
+        if verbose:
+            # Get the scanner stats
+            cur.execute('SELECT state, COUNT(*) as quantity FROM scans GROUP BY state;')
+            states = dict(cur.fetchall())
+
+            # Get the recent scan count
+            cur.execute("""SELECT DATE_TRUNC('hour', end_time) AS hour, COUNT(*) as num_scans
+                             FROM scans
+                             WHERE (end_time < DATE_TRUNC('hour', NOW()))
+                               AND (end_time >= DATE_TRUNC('hour', NOW()) - INTERVAL '24 hours')
+                             GROUP BY hour
+                             ORDER BY hour DESC;""",
+                        (STATE_FINISHED,))
+            recent_scans = {str(k): v for (k, v) in dict(cur.fetchall()).items()}
+        else:
+            recent_scans = {}
+            states = {}
 
         return {
-            'recent_scans': {str(k): v for (k, v) in dict(cur.fetchall()).items()},
-            'states': states
+            'grade_distribution': grade_distribution,
+            'recent_scans': recent_scans,
+            'scan_count': scan_count,
+            'scan_score_difference_distribution_summation': scan_score_difference_distribution_summation,
+            'states': states,
         }
 
 
