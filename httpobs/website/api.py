@@ -134,36 +134,32 @@ def api_get_scanner_states():
 @api.route('/api/v1/__stats__', methods=['GET', 'OPTIONS'])
 @add_response_headers(cors=True)
 def api_get_scanner_stats():
-    # Get the grade distribution
-    grade_distribution = database.select_star_from('grade_distribution')
+    # Get the scanner statistics from the backend database, defaulting to the quick stats only
+    stats = database.select_scan_scanner_statistics(True if request.args.get('verbose', '').lower() == 'true'
+                                                    else False)
 
     # If a grade isn't in the database, return it with quantity 0
-    grade_distribution = {grade: grade_distribution.get(grade, 0) for grade in GRADES}
+    grade_distribution = {grade: stats['grade_distribution'].get(grade, 0) for grade in GRADES}
 
     # Get the number of grade improvements
-    grade_improvements_all = database.select_star_from('scan_score_difference_distribution_summation')
+    grade_improvements_all = stats['scan_score_difference_distribution_summation']
 
     # Make sure we only list the ones that are improvements, with a maximum of 5 letter grades
     grade_improvements = {k: 0 for k in range(0, 6)}
     for k, v in grade_improvements_all.items():
         grade_improvements[min(5, max(0, int(k / 20)))] += v
 
-    # Calculate state and list the recent scans only if requested
-    if request.args.get('verbose', False):
-        verbose_stats = database.select_scan_scanner_statistics()
-    else:
-        verbose_stats = {}
-
     return jsonify({
         'gradeDistribution': grade_distribution,
         'gradeImprovements': grade_improvements,
         'misc': {
             'numImprovedSites': sum([v for k, v in grade_improvements_all.items() if k > 0]),
-            'numScans': sum(grade_distribution.values()),
+            'numScans': stats['scan_count'],
+            'numSuccessfulScans': sum(grade_distribution.values()),
             'numUniqueSites': sum(grade_improvements_all.values())
         },
-        'recentScans': verbose_stats.get('recent_scans', {}),
-        'states': verbose_stats.get('states', {}),
+        'recentScans': stats.get('recent_scans', {}),
+        'states': stats.get('states', {}),
     })
 
 
