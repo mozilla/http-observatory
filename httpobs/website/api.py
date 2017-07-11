@@ -134,9 +134,10 @@ def api_get_scanner_states():
 @api.route('/api/v1/__stats__', methods=['GET', 'OPTIONS'])
 @add_response_headers(cors=True)
 def api_get_scanner_stats():
+    verbose = True if request.args.get('verbose', '').lower() == 'true' else False
+
     # Get the scanner statistics from the backend database, defaulting to the quick stats only
-    stats = database.select_scan_scanner_statistics(True if request.args.get('verbose', '').lower() == 'true'
-                                                    else False)
+    stats = database.select_scan_scanner_statistics(verbose)
 
     # If a grade isn't in the database, return it with quantity 0
     grade_distribution = {grade: stats['grade_distribution'].get(grade, 0) for grade in GRADES}
@@ -153,13 +154,14 @@ def api_get_scanner_stats():
         'gradeDistribution': grade_distribution,
         'gradeImprovements': grade_improvements,
         'misc': {
+            'numHoursWithoutScansInLast24Hours': 24 - len(stats['recent_scans']) if verbose else -1,
             'numImprovedSites': sum([v for k, v in grade_improvements_all.items() if k > 0]),
             'numScans': stats['scan_count'],
             'numSuccessfulScans': sum(grade_distribution.values()),
             'numUniqueSites': sum(grade_improvements_all.values())
         },
-        'recentScans': stats.get('recent_scans', {}),
-        'states': stats.get('states', {}),
+        'recentScans': stats['recent_scans'],
+        'states': stats['states'],
     })
 
 
