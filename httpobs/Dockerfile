@@ -9,11 +9,10 @@ RUN install -o app -g app -d /var/run/httpobs /var/log/httpobs
 
 WORKDIR /app
 
-COPY requirements.txt /app
-
-RUN pip install --upgrade --no-cache-dir -r requirements.txt
-
 COPY . httpobs
+
+RUN pip install --upgrade --no-cache-dir -r httpobs/requirements.txt
+
 ENV PYTHONPATH $PYTHONPATH:/app
 
 USER app
