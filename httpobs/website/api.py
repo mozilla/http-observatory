@@ -154,9 +154,11 @@ def api_get_scanner_stats():
         'gradeDistribution': grade_distribution,
         'gradeImprovements': grade_improvements,
         'misc': {
+            'mostRecentScanDate': stats['most_recent_scan_datetime'],
             'numHoursWithoutScansInLast24Hours': 24 - len(stats['recent_scans']) if verbose else -1,
             'numImprovedSites': sum([v for k, v in grade_improvements_all.items() if k > 0]),
             'numScans': stats['scan_count'],
+            'numScansLast24Hours': sum(stats['recent_scans'].values()) if verbose else -1,
             'numSuccessfulScans': sum(grade_distribution.values()),
             'numUniqueSites': sum(grade_improvements_all.values())
         },

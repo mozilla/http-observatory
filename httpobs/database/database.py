@@ -226,8 +226,8 @@ def select_scan_scanner_statistics(verbose: bool=False) -> dict:
         scan_score_difference_distribution_summation = dict(cur.fetchall())
 
         # And the total number of scans
-        cur.execute("""SELECT id FROM scans ORDER BY id DESC LIMIT 1;""")
-        scan_count = cur.fetchall()[0][0]
+        cur.execute("""SELECT id, start_time FROM scans ORDER BY id DESC LIMIT 1;""")
+        most_recent_scan = list(cur.fetchall())
 
         # Stats we only need if verbose is true, as these take a while to collect
         if verbose:
@@ -250,8 +250,9 @@ def select_scan_scanner_statistics(verbose: bool=False) -> dict:
 
         return {
             'grade_distribution': grade_distribution,
+            'most_recent_scan_datetime': most_recent_scan[0][1],
             'recent_scans': recent_scans,
-            'scan_count': scan_count,
+            'scan_count': most_recent_scan[0][0],
             'scan_score_difference_distribution_summation': scan_score_difference_distribution_summation,
             'states': states,
         }
