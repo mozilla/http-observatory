@@ -11,7 +11,11 @@ WORKDIR /app
 
 COPY . httpobs
 
-RUN pip install --upgrade --no-cache-dir -r httpobs/requirements.txt
+RUN pip install --upgrade --no-cache-dir \
+    -r httpobs/requirements.txt \
+    -r httpobs/database/requirements.txt \
+    -r httpobs/scanner/requirements.txt \
+    -r httpobs/website/requirements.txt
 
 ENV PYTHONPATH $PYTHONPATH:/app
 
