@@ -151,7 +151,7 @@ def insert_test_results(site_id: int, scan_id: int, tests: list, response_header
         score = score_with_extra_credit if uncurved_score >= MINIMUM_SCORE_FOR_EXTRA_CREDIT else uncurved_score
 
         # Now we need to update the scans table
-        score_with_extra_credit, grade, likelihood_indicator = get_grade_and_likelihood_for_score(score)
+        score, grade, likelihood_indicator = get_grade_and_likelihood_for_score(score)
 
         # Update the scans table
         cur.execute("""UPDATE scans
