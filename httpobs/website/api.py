@@ -164,9 +164,9 @@ def api_get_scanner_stats():
         },
         'recent': {
             'scans': {
-                'best': database.select_scan_recent_finished_scans(14, 90, 1000),   # 14, as there are 14 grades
-                'recent': database.select_scan_recent_finished_scans(14, 0, 1000),  # 14, as there are 14 grades
-                'worst': database.select_scan_recent_finished_scans(14, 0, 20),     # 14, as there are 14 grades
+                'best': database.select_scan_recent_finished_scans(13, 90, 1000),   # 13, as there are 13 grades
+                'recent': database.select_scan_recent_finished_scans(13, 0, 1000),  # 13, as there are 13 grades
+                'worst': database.select_scan_recent_finished_scans(13, 0, 20),     # 13, as there are 13 grades
                 'numPerHourLast24Hours': stats['recent_scans'],
             },
         },
