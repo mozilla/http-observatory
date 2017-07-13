@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS scans (
   state                               VARCHAR    NOT NULL,
   start_time                          TIMESTAMP  NOT NULL,
   end_time                            TIMESTAMP  NULL,
+  algorithm_version                   SMALLINT   NOT NULL DEFAULT 1,
   tests_failed                        SMALLINT   NOT NULL DEFAULT 0,
   tests_passed                        SMALLINT   NOT NULL DEFAULT 0,
   tests_quantity                      SMALLINT   NOT NULL,
@@ -43,20 +44,21 @@ CREATE TABLE IF NOT EXISTS tests (
   output                              JSONB    NOT NULL
 );
 
-CREATE INDEX sites_domain_idx     ON sites (domain);
+CREATE INDEX sites_domain_idx            ON sites (domain);
 
-CREATE INDEX scans_site_id_idx    ON scans (site_id);
-CREATE INDEX scans_state_idx      ON scans (state);
-CREATE INDEX scans_start_time_idx ON scans (start_time);
-CREATE INDEX scans_end_time_idx   ON scans (end_time);
-CREATE INDEX scans_grade_idx      ON scans (grade);
-CREATE INDEX scans_score_idx      ON scans (score);
-CREATE INDEX scans_hidden_idx     ON scans (hidden);
+CREATE INDEX scans_site_id_idx           ON scans (site_id);
+CREATE INDEX scans_state_idx             ON scans (state);
+CREATE INDEX scans_start_time_idx        ON scans (start_time);
+CREATE INDEX scans_end_time_idx          ON scans (end_time);
+CREATE INDEX scans_algorithm_version_idx ON scans (algorithm_version);
+CREATE INDEX scans_grade_idx             ON scans (grade);
+CREATE INDEX scans_score_idx             ON scans (score);
+CREATE INDEX scans_hidden_idx            ON scans (hidden);
 
-CREATE INDEX tests_scan_id_idx    ON tests (scan_id);
-CREATE INDEX tests_name_idx       ON tests (name);
-CREATE INDEX tests_result_idx     ON tests (result);
-CREATE INDEX tests_pass_idx       ON tests (pass);
+CREATE INDEX tests_scan_id_idx           ON tests (scan_id);
+CREATE INDEX tests_name_idx              ON tests (name);
+CREATE INDEX tests_result_idx            ON tests (result);
+CREATE INDEX tests_pass_idx              ON tests (pass);
 
 CREATE USER httpobsscanner;
 GRANT SELECT on sites, scans, expectations, tests TO httpobsscanner;
@@ -151,3 +153,9 @@ ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsscanner;
 ALTER MATERIALIZED VIEW earliest_scans OWNER TO httpobsscanner;
 ALTER MATERIALIZED VIEW scan_score_difference_distribution OWNER TO httpobsscanner;
 ALTER MATERIALIZED VIEW scan_score_difference_distribution_summation OWNER TO httpobsscanner;
+
+/* Database updates to allow us to track changes in scoring over time */
+/*
+ALTER TABLE scans ADD COLUMN algorithm_version SMALLINT NOT NULL DEFAULT 1;
+CREATE INDEX scans_algorithm_version_idx ON scans (algorithm_version);
+*/

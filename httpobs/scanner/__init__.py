@@ -1,3 +1,6 @@
+# Current algorithm version
+ALGORITHM_VERSION = 2
+
 # The various statuses
 STATE_ABORTED = 'ABORTED'
 STATE_FAILED = 'FAILED'
@@ -7,6 +10,7 @@ STATE_STARTING = 'STARTING'
 STATE_RUNNING = 'RUNNING'
 
 __all__ = [
+    'ALGORITHM_VERSION',
     'NUM_TESTS',
     'STATE_ABORTED',
     'STATE_FAILED',

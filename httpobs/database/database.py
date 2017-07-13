@@ -12,9 +12,14 @@ from httpobs.conf import (API_CACHED_RESULT_TIME,
                           DATABASE_SSL_MODE,
                           DATABASE_USER,
                           SCANNER_ABORT_SCAN_TIME)
-from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_PENDING, STATE_STARTING
+from httpobs.scanner import (ALGORITHM_VERSION,
+                             STATE_ABORTED,
+                             STATE_FAILED,
+                             STATE_FINISHED,
+                             STATE_PENDING,
+                             STATE_STARTING)
 from httpobs.scanner.analyzer import NUM_TESTS
-from httpobs.scanner.grader import get_grade_and_likelihood_for_score
+from httpobs.scanner.grader import get_grade_and_likelihood_for_score, MINIMUM_SCORE_FOR_EXTRA_CREDIT
 
 import psycopg2
 import psycopg2.extras
@@ -93,10 +98,10 @@ except IOError:
 
 def insert_scan(site_id: int, hidden: bool = False) -> dict:
     with get_cursor() as cur:
-        cur.execute("""INSERT INTO scans (site_id, state, start_time, tests_quantity, hidden)
-                         VALUES (%s, %s, NOW(), %s, %s)
+        cur.execute("""INSERT INTO scans (site_id, state, start_time, algorithm_version, tests_quantity, hidden)
+                         VALUES (%s, %s, NOW(), %s, %s, %s)
                          RETURNING *""",
-                    (site_id, STATE_PENDING, NUM_TESTS, hidden))
+                    (site_id, STATE_PENDING, ALGORITHM_VERSION, NUM_TESTS, hidden))
 
         return dict(cur.fetchone())
 
@@ -117,7 +122,7 @@ def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
 def insert_test_results(site_id: int, scan_id: int, tests: list, response_headers: dict) -> dict:
     with get_cursor() as cur:
         tests_failed = tests_passed = 0
-        score = 100
+        score_with_extra_credit = uncurved_score = 100
 
         for test in tests:
             name = test.pop('name')
@@ -133,12 +138,17 @@ def insert_test_results(site_id: int, scan_id: int, tests: list, response_header
                 tests_failed += 1
 
             # And keep track of the score
-            score += score_modifier
+            score_with_extra_credit += score_modifier
+            if score_modifier < 0:
+                uncurved_score += score_modifier
 
             # Insert test result to the database
             cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, pass, output, score_modifier)
                              VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
                         (site_id, scan_id, name, expectation, result, passed, dumps(test), score_modifier))
+
+        # Only record the full score if the uncurved score already receives an A
+        score = score_with_extra_credit if uncurved_score >= MINIMUM_SCORE_FOR_EXTRA_CREDIT else uncurved_score
 
         # Now we need to update the scans table
         score, grade, likelihood_indicator = get_grade_and_likelihood_for_score(score)
