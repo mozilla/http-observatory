@@ -270,7 +270,7 @@ def select_scan_scanner_statistics(verbose: bool=False) -> dict:
 
 def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) -> dict:
     # Used for /api/v1/getRecentScans
-    # TODO: Fix from: https://gist.github.com/marumari/61efa9ff197828bf5ab13e5a00be9138
+    # Fix from: https://gist.github.com/april/61efa9ff197828bf5ab13e5a00be9138
     with get_cursor() as cur:
         cur.execute("""SELECT sites.domain, s2.grade
                          FROM

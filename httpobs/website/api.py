@@ -162,7 +162,14 @@ def api_get_scanner_stats():
             'numSuccessfulScans': sum(grade_distribution.values()),
             'numUniqueSites': sum(grade_improvements_all.values())
         },
-        'recentScans': stats['recent_scans'],
+        'recent': {
+            'scans': {
+                'best': database.select_scan_recent_finished_scans(14, 90, 1000),   # 14, as there are 14 grades
+                'recent': database.select_scan_recent_finished_scans(14, 0, 1000),  # 14, as there are 14 grades
+                'worst': database.select_scan_recent_finished_scans(14, 0, 20),     # 14, as there are 14 grades
+                'numPerHourLast24Hours': stats['recent_scans'],
+            },
+        },
         'states': stats['states'],
     })
 
