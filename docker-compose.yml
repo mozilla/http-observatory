@@ -34,7 +34,6 @@ services:
       - redis
 
   postgres:
-    image: postgres
     build: ./httpobs/database
     environment:
       - POSTGRES_USER=httpobs
