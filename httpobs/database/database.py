@@ -47,7 +47,8 @@ class SimpleDatabaseConnection:
                 print('INFO: Connected to PostgreSQL', file=sys.stderr)
             self._connected = True
 
-        except:
+        except Exception as e:
+            print(e, file=sys.stderr)
             self._conn = SimpleNamespace(closed=1)
 
             if self._connected:
