@@ -24,15 +24,28 @@ def api_post_scan_hostname():
     hostname = request.args.get('host', '').lower()
 
     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
+    ip = True if valid_hostname(hostname) is None else False
     hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
-    if not hostname:
-        return {'error': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', ''))}
+
+    if ip:
+        return {
+            'error': 'invalid-hostname-ip',
+            'text': '{hostname} is an IP address, not hostname'.format(hostname=request.args.get('host', '')),
+        }
+    elif not hostname:
+        return {
+            'error': 'invalid-hostname',
+            'text': '{hostname} is an invalid hostname'.format(hostname=request.args.get('host', '')),
+        }
 
     # Get the site's id number
     try:
         site_id = database.select_site_id(hostname)
     except IOError:
-        return {'error': 'Unable to connect to database'}
+        return {
+            'error': 'database-down',
+            'text': 'Unable to connect to database',
+        }
 
     # Next, let's see if there's a recent scan; if there was a recent scan, let's just return it
     # Setting rescan shortens what "recent" means
@@ -50,11 +63,18 @@ def api_post_scan_hostname():
         if request.method == 'POST':
             row = database.insert_scan(site_id, hidden=hidden)
         else:
-            return {'error': 'recent-scan-not-found'}
+            return {
+                'error': 'recent-scan-not-found',
+                'text': 'Recently completed scan for {hostname} not found'.format(
+                    hostname=request.args.get('host', ''))
+            }
 
     # If there was a rescan attempt and it returned a row, it's because the rescan was done within the cooldown window
     elif rescan and request.method == 'POST':
-        return {'error': 'rescan-attempt-too-soon'}
+        return {
+            'error': 'rescan-attempt-too-soon',
+            'text': '{hostname} is on temporary cooldown'.format(hostname=request.args.get('host', ''))
+        }
 
     # Return the scan row
     return row
