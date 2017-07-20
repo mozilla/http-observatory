@@ -70,7 +70,7 @@ def sanitize_headers(headers: dict) -> dict:
 def valid_hostname(hostname: str):
     """
     :param hostname: The hostname requested in the scan
-    :return: Hostname if it's valid, otherwise False
+    :return: Hostname if it's valid, None if it's an IP address, otherwise False
     """
 
     # Block attempts to scan things like 'localhost' if not allowed
@@ -80,14 +80,14 @@ def valid_hostname(hostname: str):
     # First, let's try to see if it's an IPv4 address
     try:
         socket.inet_aton(hostname)  # inet_aton() will throw an exception if hostname is not a valid IP address
-        return False                # If we get this far, it's an IP address and therefore not a valid fqdn
+        return None                 # If we get this far, it's an IP address and therefore not a valid fqdn
     except:
         pass
 
     # And IPv6
     try:
         socket.inet_pton(socket.AF_INET6, hostname)  # same as inet_aton(), but for IPv6
-        return False
+        return None
     except:
         pass
 
