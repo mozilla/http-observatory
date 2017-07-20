@@ -30,7 +30,7 @@ def api_post_scan_hostname():
     if ip:
         return {
             'error': 'invalid-hostname-ip',
-            'text': '{hostname} is an IP address, not hostname'.format(hostname=request.args.get('host', '')),
+            'text': 'Cannot scan IP addresses',
         }
     elif not hostname:
         return {
