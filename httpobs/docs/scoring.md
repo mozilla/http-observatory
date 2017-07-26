@@ -1,11 +1,11 @@
 # HTTP Observatory Scoring Methodology
 
-**Last Updated:** 2016-06-13 april@mozilla.com<br>
+**Last Updated:** 2016-07-26 april@mozilla.com<br>
 **Author:** april@mozilla.com
 
-All websites start with a baseline score of 100, and then receive penalties or bonuses from there. Although the minimum score is 0, there is no maximum score. Currently, the highest possible score in the HTTP Observatory is 135.
+All websites start with a baseline score of 100, and receive penalties or bonuses from there. The minimum score is 0, but there is no maximum score. Bonus points are only awarded if the site's score without them is 90 (A) or greater. Currently, the highest possible score in the HTTP Observatory is 135.
 
-Note that although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
+Although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
 
 ## Grading Chart
 
