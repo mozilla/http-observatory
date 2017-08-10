@@ -259,14 +259,14 @@ def select_scan_scanner_statistics(verbose: bool=False) -> dict:
             recent_scans = {}
             states = {}
 
-        return {
-            'grade_distribution': grade_distribution,
-            'most_recent_scan_datetime': most_recent_scan[0][1],
-            'recent_scans': recent_scans,
-            'scan_count': most_recent_scan[0][0],
-            'scan_score_difference_distribution_summation': scan_score_difference_distribution_summation,
-            'states': states,
-        }
+    return {
+        'grade_distribution': grade_distribution,
+        'most_recent_scan_datetime': most_recent_scan[0][1],
+        'recent_scans': recent_scans,
+        'scan_count': most_recent_scan[0][0],
+        'scan_score_difference_distribution_summation': scan_score_difference_distribution_summation,
+        'states': states,
+    }
 
 
 def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) -> dict:
