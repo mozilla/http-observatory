@@ -177,9 +177,10 @@ def periodic_maintenance() -> int:
     """
     with get_cursor() as cur:
         # Update the various materialized views
-        cur.execute("REFRESH MATERIALIZED VIEW grade_distribution;")
         cur.execute("REFRESH MATERIALIZED VIEW latest_scans;")
         cur.execute("REFRESH MATERIALIZED VIEW earliest_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW grade_distribution;")
+        cur.execute("REFRESH MATERIALIZED VIEW grade_distribution_all_scans;")
         cur.execute("REFRESH MATERIALIZED VIEW scan_score_difference_distribution;")
         cur.execute("REFRESH MATERIALIZED VIEW scan_score_difference_distribution_summation;")
 
@@ -232,6 +233,10 @@ def select_scan_scanner_statistics(verbose: bool=False) -> dict:
         cur.execute('SELECT * FROM grade_distribution;')
         grade_distribution = dict(cur.fetchall())
 
+        # Get the grade distribution across all scans (periodically refreshed)
+        cur.execute('SELECT * FROM grade_distribution_all_scans;')
+        grade_distribution_all_scans = dict(cur.fetchall())
+
         # And the summation of grade differences
         cur.execute('SELECT * FROM scan_score_difference_distribution_summation;')
         scan_score_difference_distribution_summation = dict(cur.fetchall())
@@ -261,6 +266,7 @@ def select_scan_scanner_statistics(verbose: bool=False) -> dict:
 
     return {
         'grade_distribution': grade_distribution,
+        'grade_distribution_all_scans': grade_distribution_all_scans,
         'most_recent_scan_datetime': most_recent_scan[0][1],
         'recent_scans': recent_scans,
         'scan_count': most_recent_scan[0][0],

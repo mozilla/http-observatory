@@ -161,6 +161,7 @@ def api_get_scanner_stats():
 
     # If a grade isn't in the database, return it with quantity 0
     grade_distribution = {grade: stats['grade_distribution'].get(grade, 0) for grade in GRADES}
+    grade_distribution_all_scans = {grade: stats['grade_distribution_all_scans'].get(grade, 0) for grade in GRADES}
 
     # Get the number of grade improvements
     grade_improvements_all = stats['scan_score_difference_distribution_summation']
@@ -171,7 +172,10 @@ def api_get_scanner_stats():
         grade_improvements[min(5, max(0, int(k / 20)))] += v
 
     return jsonify({
-        'gradeDistribution': grade_distribution,
+        'gradeDistribution': {
+            'latest': grade_distribution,
+            'all': grade_distribution_all_scans,
+        },
         'gradeImprovements': grade_improvements,
         'misc': {
             'mostRecentScanDate': stats['most_recent_scan_datetime'],
