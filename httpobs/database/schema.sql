@@ -78,6 +78,7 @@ GRANT USAGE ON SEQUENCE scans_id_seq TO httpobsapi;
 GRANT USAGE ON SEQUENCE expectations_id_seq TO httpobsapi;
 
 CREATE INDEX scans_site_id_finished_state_end_time_idx ON scans (site_id, state, end_time DESC) WHERE state = 'FINISHED';
+
 CREATE MATERIALIZED VIEW latest_scans
   AS SELECT latest_scans.site_id, latest_scans.scan_id, s.domain, latest_scans.state,
     latest_scans.start_time, latest_scans.end_time, latest_scans.tests_failed, latest_scans.tests_passed,
@@ -97,11 +98,18 @@ COMMENT ON MATERIALIZED VIEW latest_tests IS 'Test results from all the most rec
 
 CREATE MATERIALIZED VIEW grade_distribution
   AS SELECT grade, count(*)
+    FROM latest_scans
+    GROUP BY grade;
+COMMENT ON MATERIALIZED VIEW grade_distribution IS 'The grades and how many latest scans have that score';
+GRANT SELECT ON grade_distribution TO httpobsapi;
+
+CREATE MATERIALIZED VIEW grade_distribution_all_scans
+  AS SELECT grade, count(*)
     FROM scans
     WHERE state = 'FINISHED'
     GROUP BY grade;
-COMMENT ON MATERIALIZED VIEW grade_distribution IS 'The grades and how many scans have that score';
-GRANT SELECT ON grade_distribution TO httpobsapi;
+COMMENT ON MATERIALIZED VIEW grade_distribution_all_scans IS 'The grades and how many scans have that score';
+GRANT SELECT ON grade_distribution_all_scans TO httpobsapi;
 
 /* Update to add cookies */
 /*
@@ -149,6 +157,7 @@ COMMENT ON MATERIALIZED VIEW scan_score_difference_distribution_summation IS 'Ho
 GRANT SELECT ON scan_score_difference_distribution_summation TO httpobsapi;
 
 ALTER MATERIALIZED VIEW grade_distribution OWNER TO httpobsscanner;  /* so it can refresh */
+ALTER MATERIALIZED VIEW grade_distribution_all_scans OWNER TO httpobsscanner;  /* so it can refresh */
 ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsscanner;
 ALTER MATERIALIZED VIEW earliest_scans OWNER TO httpobsscanner;
 ALTER MATERIALIZED VIEW scan_score_difference_distribution OWNER TO httpobsscanner;
