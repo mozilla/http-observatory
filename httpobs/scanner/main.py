@@ -1,3 +1,4 @@
+from random import randrange
 from time import sleep
 from urllib.parse import urlparse
 
@@ -22,7 +23,8 @@ import sys
 
 
 def main():
-    dequeue_loop_count = 0
+    # Start each scanner at a random point in the range to spread out database maintenance
+    dequeue_loop_count = randrange(0, SCANNER_MAINTENANCE_CYCLE_FREQUENCY)
 
     # Parse the BROKER_URL
     broker_url = urlparse(BROKER_URL)
