@@ -86,6 +86,7 @@ CREATE MATERIALIZED VIEW latest_scans
   FROM sites s,
   LATERAL ( SELECT id AS scan_id, site_id, state, start_time, end_time, tests_failed, tests_passed, grade, score, error
             FROM scans WHERE site_id = s.id AND state = 'FINISHED' ORDER BY end_time DESC LIMIT 1 ) latest_scans;
+CREATE UNIQUE INDEX latest_scans_scan_id_idx ON latest_scans (scan_id);
 COMMENT ON MATERIALIZED VIEW latest_scans IS 'Most recently completed scan for a given website';
 GRANT SELECT ON latest_scans TO httpobsapi;
 
@@ -100,6 +101,7 @@ CREATE MATERIALIZED VIEW grade_distribution
   AS SELECT grade, count(*)
     FROM latest_scans
     GROUP BY grade;
+CREATE UNIQUE INDEX grade_distribution_grade_idx ON grade_distribution (grade);
 COMMENT ON MATERIALIZED VIEW grade_distribution IS 'The grades and how many latest scans have that score';
 GRANT SELECT ON grade_distribution TO httpobsapi;
 
@@ -108,6 +110,7 @@ CREATE MATERIALIZED VIEW grade_distribution_all_scans
     FROM scans
     WHERE state = 'FINISHED'
     GROUP BY grade;
+CREATE UNIQUE INDEX grade_distribution_all_scans_grade_idx ON grade_distribution_all_scans (grade);
 COMMENT ON MATERIALIZED VIEW grade_distribution_all_scans IS 'The grades and how many scans have that score';
 GRANT SELECT ON grade_distribution_all_scans TO httpobsapi;
 
@@ -136,6 +139,7 @@ CREATE MATERIALIZED VIEW earliest_scans
   FROM sites s,
   LATERAL ( SELECT id AS scan_id, site_id, state, start_time, end_time, tests_failed, tests_passed, grade, score, error
             FROM scans WHERE site_id = s.id AND state = 'FINISHED' ORDER BY end_time ASC LIMIT 1 ) earliest_scans;
+CREATE UNIQUE INDEX earliest_scans_scan_id_idx ON earliest_scans (scan_id);
 COMMENT ON MATERIALIZED VIEW earliest_scans IS 'Oldest completed scan for a given website';
 GRANT SELECT ON earliest_scans TO httpobsapi;
 
@@ -146,6 +150,7 @@ CREATE MATERIALIZED VIEW scan_score_difference_distribution
   WHERE earliest_scans.site_id = latest_scans.site_id;
 COMMENT ON MATERIALIZED VIEW scan_score_difference_distribution IS 'How much score has changed since first scan';
 GRANT SELECT ON scan_score_difference_distribution TO httpobsapi;
+CREATE UNIQUE INDEX scan_score_difference_distribution_site_id_idx ON scan_score_difference_distribution (site_id);
 CREATE INDEX scan_score_difference_difference_distribution_idx ON scan_score_difference_distribution (difference);
 
 CREATE MATERIALIZED VIEW scan_score_difference_distribution_summation
@@ -153,6 +158,7 @@ CREATE MATERIALIZED VIEW scan_score_difference_distribution_summation
   FROM scan_score_difference_distribution
   GROUP BY difference
   ORDER BY difference DESC;
+CREATE UNIQUE INDEX scan_score_difference_distribution_summation_difference_idx ON scan_score_difference_distribution_summation (difference);
 COMMENT ON MATERIALIZED VIEW scan_score_difference_distribution_summation IS 'How many sites have improved by how many points';
 GRANT SELECT ON scan_score_difference_distribution_summation TO httpobsapi;
 

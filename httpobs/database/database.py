@@ -177,12 +177,12 @@ def periodic_maintenance() -> int:
     """
     with get_cursor() as cur:
         # Update the various materialized views
-        cur.execute("REFRESH MATERIALIZED VIEW latest_scans;")
-        cur.execute("REFRESH MATERIALIZED VIEW earliest_scans;")
-        cur.execute("REFRESH MATERIALIZED VIEW grade_distribution;")
-        cur.execute("REFRESH MATERIALIZED VIEW grade_distribution_all_scans;")
-        cur.execute("REFRESH MATERIALIZED VIEW scan_score_difference_distribution;")
-        cur.execute("REFRESH MATERIALIZED VIEW scan_score_difference_distribution_summation;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY latest_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY earliest_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY grade_distribution;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY grade_distribution_all_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY scan_score_difference_distribution;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY scan_score_difference_distribution_summation;")
 
         # Mark all scans that have been sitting unfinished for at least SCANNER_ABORT_SCAN_TIME as ABORTED
         cur.execute("""UPDATE scans
