@@ -5,12 +5,37 @@ import socket
 import sys
 
 from base64 import b64decode
+from bs4 import BeautifulSoup as bs
 from httpobs.conf import (SCANNER_ALLOW_LOCALHOST,
                           SCANNER_PINNED_DOMAINS)
+from requests.structures import CaseInsensitiveDict
 
 
 HSTS_URL = ('https://chromium.googlesource.com/chromium'
             '/src/net/+/master/http/transport_security_state_static.json?format=TEXT')
+
+
+def parse_http_equiv_headers(html: str) -> CaseInsensitiveDict:
+    http_equiv_headers = CaseInsensitiveDict()
+
+    # Try to parse the HTML
+    try:
+        soup = bs(html, 'html.parser')
+    except:
+        return http_equiv_headers
+
+    # Find all the meta tags
+    metas = soup.find_all('meta')
+
+    for meta in metas:
+        if meta.has_attr('http-equiv') and meta.has_attr('content'):
+            http_equiv_headers[meta.get('http-equiv')] = meta.get('content')
+
+        # Technically not HTTP Equiv, but I'm treating it that way
+        elif meta.get('name', '').lower().strip() == 'referrer' and meta.has_attr('content'):
+            http_equiv_headers['Referrer-Policy'] = meta.get('content')
+
+    return http_equiv_headers
 
 
 def retrieve_store_hsts_preload_list():
