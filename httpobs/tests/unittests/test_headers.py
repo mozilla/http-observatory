@@ -28,7 +28,8 @@ class TestContentSecurityPolicy(TestCase):
     def test_header_invalid(self):
         values = ('  ',
                   '\r\n',
-                  '')
+                  '',
+                  'defa')
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
@@ -50,6 +51,8 @@ class TestContentSecurityPolicy(TestCase):
         values = ("script-src 'unsafe-inline'",
                   "script-src data:",
                   "default-src 'unsafe-inline'",
+                  "default-src 'UNSAFE-INLINE'",
+                  "DEFAULT-SRC 'none'",  # See CSP bug report on case-sensitivity
                   "upgrade-insecure-requests",
                   "script-src 'none'",
                   "script-src https:",
@@ -101,10 +104,12 @@ class TestContentSecurityPolicy(TestCase):
         values = ("default-src https://mozilla.org",
                   "object-src 'none'; script-src https://mozilla.org; " +
                   "style-src https://mozilla.org; upgrade-insecure-requests;",
-                  "object-src 'none'; script-src 'unsafe-inline' " +
+                  "object-src 'none'; style-src 'self';" +
+                  "script-src 'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBA='",
+                  "object-src 'none'; style-src 'self'; script-src 'unsafe-inline' " +
                   "'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBA='" +
                   "'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBB='",
-                  "object-src 'none'; script-src 'unsafe-inline' 'nonce-abc123' 'unsafe-inline'")
+                  "object-src 'none'; script-src 'unsafe-inline' 'nonce-abc123' 'unsafe-inline'; style-src 'none'")
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
@@ -115,7 +120,8 @@ class TestContentSecurityPolicy(TestCase):
             self.assertTrue(result['pass'])
 
     def test_no_unsafe_default_src_none(self):
-        values = ("default-src 'none'; script-src https://mozilla.org;"
+        values = ("default-src",  # no value == 'none'
+                  "default-src 'none'; script-src https://mozilla.org;"
                   "style-src https://mozilla.org; upgrade-insecure-requests;",
                   "default-src 'none'; object-src https://mozilla.org")
 
@@ -125,7 +131,25 @@ class TestContentSecurityPolicy(TestCase):
             result = content_security_policy(self.reqs)
 
             self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+            self.assertTrue(result['http'])
+            self.assertFalse(result['meta'])
             self.assertTrue(result['pass'])
+
+        # Do the same with an HTTP equiv
+        self.reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
+        result = content_security_policy(self.reqs)
+        self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertFalse(result['http'])
+        self.assertTrue(result['meta'])
+        self.assertTrue(result['pass'])
+
+        # And that same thing, but with both a header and a CSP policy
+        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "script-src https://mozilla.org;"
+        result = content_security_policy(self.reqs)
+        self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertTrue(result['http'])
+        self.assertTrue(result['meta'])
+        self.assertTrue(result['pass'])
 
 
 class TestCookies(TestCase):
@@ -497,13 +521,37 @@ class TestReferrerPolicy(TestCase):
         self.reqs = None
 
     def test_header_private(self):
-        for policy in ['no-referrer', 'same-origin', 'strict-origin', 'strict-origin-when-cross-origin']:
+        for policy in ['no-referrer',
+                       'same-origin',
+                       'strict-origin',
+                       'STRICT-ORIGIN',
+                       'strict-origin-when-cross-origin']:
             self.reqs['responses']['auto'].headers['Referrer-Policy'] = policy
 
             result = referrer_policy(self.reqs)
 
             self.assertEquals('referrer-policy-private', result['result'])
+            self.assertTrue(result['http'])
+            self.assertFalse(result['meta'])
             self.assertTrue(result['pass'])
+
+        # Do that same test with a <meta> http-equiv
+        self.reqs = empty_requests('test_parse_http_equiv_headers_referrer1.html')
+        result = referrer_policy(self.reqs)
+        self.assertEquals('referrer-policy-private', result['result'])
+        self.assertEquals('no-referrer, same-origin', result['data'])
+        self.assertFalse(result['http'])
+        self.assertTrue(result['meta'])
+        self.assertTrue(result['pass'])
+
+        # Note that <meta> http-equiv comes before the HTTP header
+        self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'unsafe-url'
+        result = referrer_policy(self.reqs)
+        self.assertEquals('referrer-policy-private', result['result'])
+        self.assertEquals('unsafe-url, no-referrer, same-origin', result['data'])
+        self.assertTrue(result['http'])
+        self.assertTrue(result['meta'])
+        self.assertTrue(result['pass'])
 
     def test_header_no_referrer_when_downgrade(self):
         self.reqs['responses']['auto'].headers['Referrer-Policy'] = 'no-referrer-when-downgrade'

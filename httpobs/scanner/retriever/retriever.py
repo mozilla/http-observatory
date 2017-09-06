@@ -5,6 +5,7 @@ from httpobs.conf import (RETRIEVER_CONNECT_TIMEOUT,
                           RETRIEVER_CORS_ORIGIN,
                           RETRIEVER_READ_TIMEOUT,
                           RETRIEVER_USER_AGENT)
+from httpobs.scanner.utils import parse_http_equiv_headers
 
 import logging
 import requests
@@ -183,5 +184,13 @@ def retrieve_all(hostname, **kwargs):
         for resource in resources:
             resp = __get(retrievals['session'], resource)
             retrievals['resources'][resource] = __get_page_text(resp)
+
+    # Parse out the HTTP meta-equiv headers
+    if (retrievals['responses']['auto'].headers.get('Content-Type', '').split(';')[0]
+            in ('text/html', 'application/xhtml+xml')
+            and retrievals['resources']['__path__']):
+        retrievals['responses']['auto'].http_equiv = parse_http_equiv_headers(retrievals['resources']['__path__'])
+    else:
+        retrievals['responses']['auto'].http_equiv = {}
 
     return retrievals

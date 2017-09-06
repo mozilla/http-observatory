@@ -4,6 +4,54 @@ from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
 
 
+SHORTEST_DIRECTIVE = 'img-src'
+SHORTEST_DIRECTIVE_LENGTH = len(SHORTEST_DIRECTIVE) - 1  # the shortest policy accepted by the CSP test
+
+
+def __parse_csp(csp_string: str) -> dict:
+    """
+    Decompose the CSP; could probably do this in one step, but it's complicated enough
+    Should look like:
+    {
+      'default-src': {'\'none\''},
+      'object-src': {'\'none\''},
+      'script-src': {'https://mozilla.org', '\'unsafe-inline\''},
+      'style-src': {'\'self\', 'https://mozilla.org'},
+      'upgrade-insecure-requests': {},
+    }
+    """
+
+    # Clean out all the junk
+    csp_string = csp_string.replace('\r', '').replace('\n', '').strip()
+
+    # So technically the shortest directive is img-src, so lets just assume that
+    # anything super short is invalid
+    if len(csp_string) < SHORTEST_DIRECTIVE_LENGTH or csp_string.isspace():
+        raise ValueError('CSP policy does not meet minimum length requirements')
+
+    # It's actually rather up in the air if CSP is case sensitive or not for directives, see:
+    # https://github.com/w3c/webappsec-csp/issues/236
+    # For now, we shall treat it as case-sensitive, since it's the safer thing to do, even though
+    # Firefox, Safari, and Edge all treat them as case-insensitive.
+    csp = {}
+
+    for entry in [directive.strip().split(maxsplit=1) for directive in csp_string.split(';') if directive]:
+        directive = entry[0]
+
+        # Technically the path part of any source is case-sensitive, but since we don't test
+        # any paths, we can cheat a little bit here
+        values = set([source.lower() for source in entry[-1].split()]) if len(entry) > 1 else {'\'none\''}
+
+        # While technically valid in that you just use the first entry, we are saying that repeated
+        # directives are invalid so that people notice it
+        if directive in csp:
+            raise ValueError('Repeated policy directives are invalid')
+        else:
+            csp[directive] = values
+
+    return csp
+
+
 @scored_test
 def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-unsafe') -> dict:
     """
@@ -26,6 +74,8 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     output = {
         'data': None,
         'expectation': expectation,
+        'http': False,    # whether an HTTP header was available
+        'meta': False,    # whether an HTTP meta-equiv was available
         'pass': False,
         'result': None,
     }
@@ -38,76 +88,90 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     dangerously_broad = ['http:', 'https:', '*', 'http://*', 'http://*.*', 'https://*', 'https://*.*']
     unsafe_inline = ['\'unsafe-inline\'', 'data:']
 
-    # Check to see the state of the CSP header
-    if 'Content-Security-Policy' in response.headers:
-        # Decompose the CSP; could probably do this in one step, but it's complicated enough
-        # Should look like:
-        # {
-        #   'default-src': ['\'none\''],
-        #   'object-src': ['\'none\''],
-        #   'script-src': ['https://mozilla.org', '\'unsafe-inline\''],
-        #   'style-src': ['\'self\', 'https://mozilla.org'],
-        #   'upgrade-insecure-requests': [],
-        # }
-        try:
-            header = response.headers['Content-Security-Policy'].strip().replace('\r', '').replace('\n', '')
+    # First we need to combine the HTTP header and HTTP Equiv "header"
+    try:
+        headers = {
+            'http': __parse_csp(response.headers.get('Content-Security-Policy'))
+            if 'Content-Security-Policy' in response.headers else None,
+            'meta': __parse_csp(response.http_equiv.get('Content-Security-Policy'))
+            if 'Content-Security-Policy' in response.http_equiv else None,
+        }
+    except:
+        output['result'] = 'csp-header-invalid'
+        return output
 
-            # Return completely blank headers as invalid
-            if header.isspace() or not header:
-                raise ValueError
-
-            csp = [directive.strip().split(maxsplit=1) for directive in header.split(';') if directive]
-            csp = {directive[0].lower():
-                   (directive[1].split() if len(directive) > 1 else []) for directive in csp}
-        except:
-            output['result'] = 'csp-header-invalid'
-            return output
-
-        # Replicate default-src to object-src, script-src, and style-src, if they don't exist and default-src does
-        csp['default-src'] = csp.get('default-src', [])
-        for directive in ('object-src', 'script-src', 'style-src'):
-            csp[directive] = csp.get(directive, csp['default-src'])
-
-        # Remove 'unsafe-inline' if nonce or hash are used are in script-src
-        # See: https://github.com/mozilla/http-observatory/issues/88
-        if any(source.startswith(('\'sha256-', '\'sha384-', '\'sha512-', '\'nonce-'))
-               for source in csp.get('script-src', ())):
-            csp['script-src'] = [source for source in csp['script-src'] if source != '\'unsafe-inline\'']
-
-        # Now to make the piggies squeal
-
-        # No 'unsafe-inline' or data: in script-src
-        # Also don't allow overly broad schemes such as https: in either object-src or script-src
-        # Likewise, if you don't have object-src or script-src defined, then all sources are allowed
-        if (any(source in csp['script-src'] for source in dangerously_broad + unsafe_inline)
-                or any(source in csp['object-src'] for source in dangerously_broad)
-                or not csp['object-src']
-                or not csp['script-src']):
-            output['result'] = 'csp-implemented-with-unsafe-inline'
-
-        # If the site is https, it shouldn't allow any http: as a source (passive or mixed content)
-        elif urlparse(response.url).scheme == 'https' and 'http:' in header:
-            output['result'] = 'csp-implemented-with-insecure-scheme'
-        elif '\'unsafe-eval\'' in csp['script-src'] + csp['style-src']:
-            output['result'] = 'csp-implemented-with-unsafe-eval'
-
-        # Don't allow 'unsafe-inline', data:, or overly broad sources in style-src
-        elif any(source in csp['style-src'] for source in dangerously_broad + unsafe_inline):
-            output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
-
-        # Only if default-src is 'none' and 'none' alone, since additional uris override 'none'
-        elif csp.get('default-src') == ['\'none\'']:
-            output['result'] = 'csp-implemented-with-no-unsafe-default-src-none'
-        else:
-            output['result'] = 'csp-implemented-with-no-unsafe'
-
-        # TODO: allow a small bonus for upgrade-insecure-requests?
-
-        # Code defensively on the size of the data
-        output['data'] = csp if len(str(csp)) < 32768 else {}
-
-    else:
+    # If we have headers but they're blank, that should error out
+    if (any('Content-Security-Policy' in h for h in [response.headers, response.http_equiv])
+       and not any(headers.values())):
+        output['result'] = 'csp-header-invalid'
+        return output
+    elif not any(headers.values()):
         output['result'] = 'csp-not-implemented'
+        return output
+
+    # Store in our response object if we're using a header or meta
+    output['http'] = True if headers.get('http') else False
+    output['meta'] = True if headers.get('meta') else False
+
+    if headers['http'] and headers['meta']:
+        # This is technically incorrect. It's very easy to see if a given resource will be allowed
+        # given multiple policies, but it's extremely difficult to generate a singular policy to
+        # represent this. For the purposes of the Observatory, we just create a union of the two
+        # policies. This is incorrect, since if one policy had 'unsafe-inline' and the other one
+        # did not, the policy would not allow 'unsafe-inline'. Nevertheless, we are going to flag
+        # it, because the behavior is probably indicative of something bad and if the other policy
+        # ever disappeared, then bad things could happen that had previously been prevented.
+        csp = {}
+        for k in set(list(headers['http'].keys()) + list(headers['meta'].keys())):
+            csp[k] = headers['http'].get(k, set()).union(headers['meta'].get(k, set()))
+    else:
+        csp = headers['http'] or headers['meta']
+
+    # Get the various directives we look at
+    object_src = csp.get('object-src') or csp.get('default-src') or {'*'}
+    script_src = csp.get('script-src') or csp.get('default-src') or {'*'}
+    style_src = csp.get('style-src') or csp.get('default-src') or {'*'}
+
+    # Remove 'unsafe-inline' if nonce or hash are used are in script-src
+    # See: https://github.com/mozilla/http-observatory/issues/88
+    if any(source.startswith(('\'sha256-', '\'sha384-', '\'sha512-', '\'nonce-'))
+           for source in script_src) and '\'unsafe-inline\'' in script_src:
+        script_src.remove('\'unsafe-inline\'')
+
+    # Now to make the piggies squeal
+
+    # No 'unsafe-inline' or data: in script-src
+    # Also don't allow overly broad schemes such as https: in either object-src or script-src
+    # Likewise, if you don't have object-src or script-src defined, then all sources are allowed
+    if (script_src.intersection(dangerously_broad + unsafe_inline) or
+       object_src.intersection(dangerously_broad)):
+        output['result'] = 'csp-implemented-with-unsafe-inline'
+
+    # If the site is https, it shouldn't allow any http: as a source (passive or mixed content)
+    elif urlparse(response.url).scheme == 'https' and [d for d in set.union(*csp.values()) if 'http:' in d]:
+        output['result'] = 'csp-implemented-with-insecure-scheme'
+
+    # Don't allow 'unsafe-eval' in script-src or style-src
+    elif script_src.union(style_src).intersection({'\'unsafe-eval\''}):
+        output['result'] = 'csp-implemented-with-unsafe-eval'
+
+    # Don't allow 'unsafe-inline', data:, or overly broad sources in style-src
+    elif style_src.intersection(dangerously_broad + unsafe_inline):
+        output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
+
+    # Only if default-src is 'none' and 'none' alone, since additional uris override 'none'
+    elif csp.get('default-src') == {'\'none\''}:
+        output['result'] = 'csp-implemented-with-no-unsafe-default-src-none'
+    else:
+        output['result'] = 'csp-implemented-with-no-unsafe'
+
+    # Once we're done, convert every set() in csp to an array
+    csp = {k: list(v) for k, v in csp.items()}
+
+    # TODO: allow a small bonus for upgrade-insecure-requests?
+
+    # Code defensively on the size of the data
+    output['data'] = csp if len(str(csp)) < 32768 else {}
 
     # Check to see if the test passed or failed
     if output['result'] in (expectation,
@@ -151,6 +215,9 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                 'cookies-session-without-secure-flag-but-protected-by-hsts',
                 'cookies-session-without-httponly-flag',
                 'cookies-session-without-secure-flag']
+
+    # TODO: Support cookies set over http-equiv (ugh)
+    # https://github.com/mozilla/http-observatory/issues/265
 
     # Get their HTTP Strict Transport Security status, which can help when cookies are set without Secure
     hsts = strict_transport_security(reqs)['pass']
@@ -331,6 +398,8 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
     output = {
         'data': None,
         'expectation': expectation,
+        'http': False,    # whether an HTTP header was available
+        'meta': False,    # whether an HTTP meta-equiv was available
         'pass': False,
         'result': None,
     }
@@ -348,23 +417,33 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
 
     response = reqs['responses']['auto']
 
-    if 'Referrer-Policy' in response.headers:
-        output['data'] = response.headers['Referrer-Policy'][0:256]  # Code defensively
+    # Store whether the header or meta were present
+    output['http'] = True if 'Referrer-Policy' in response.headers else False
+    output['meta'] = True if 'Referrer-Policy' in response.http_equiv else False
 
-        # Find the last known valid policy value in the Referer Policy
-        policy = [token.strip() for token in output['data'].lower().split(',') if token.strip() in valid]
-        policy = policy.pop() if policy else None
-
-        if policy in goodness:
-            output['result'] = 'referrer-policy-private'
-        elif policy == 'no-referrer-when-downgrade':
-            output['result'] = 'referrer-policy-no-referrer-when-downgrade'
-        elif policy in badness:
-            output['result'] = 'referrer-policy-unsafe'
-        else:
-            output['result'] = 'referrer-policy-header-invalid'
+    # If it's in both a header and http-equiv, http-equiv gets precedence (aka comes last)
+    if 'Referrer-Policy' in response.headers and 'Referrer-Policy' in response.http_equiv:
+        output['data'] = ', '.join([response.headers['Referrer-Policy'],
+                                   response.http_equiv['Referrer-Policy']])[0:256]  # Code defensively
+    elif 'Referrer-Policy' in response.headers or 'Referrer-Policy' in response.http_equiv:
+        output['data'] = (response.http_equiv.get('Referrer-Policy') or response.headers.get('Referrer-Policy'))[0:256]
     else:
         output['result'] = 'referrer-policy-not-implemented'
+        output['pass'] = True
+        return output
+
+    # Find the last known valid policy value in the Referer Policy
+    policy = [token.strip() for token in output['data'].lower().split(',') if token.strip() in valid]
+    policy = policy.pop() if policy else None
+
+    if policy in goodness:
+        output['result'] = 'referrer-policy-private'
+    elif policy == 'no-referrer-when-downgrade':
+        output['result'] = 'referrer-policy-no-referrer-when-downgrade'
+    elif policy in badness:
+        output['result'] = 'referrer-policy-unsafe'
+    else:
+        output['result'] = 'referrer-policy-header-invalid'
 
     # Test passed or failed
     if output['result'] in ('referrer-policy-private',
