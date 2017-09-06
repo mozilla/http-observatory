@@ -4,6 +4,10 @@ from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
 
 
+SHORTEST_DIRECTIVE = 'img-src'
+SHORTEST_DIRECTIVE_LENGTH = len(SHORTEST_DIRECTIVE) - 1  # the shortest policy accepted by the CSP test
+
+
 def __parse_csp(csp_string: str) -> dict:
     """
     Decompose the CSP; could probably do this in one step, but it's complicated enough
@@ -22,8 +26,8 @@ def __parse_csp(csp_string: str) -> dict:
 
     # So technically the shortest directive is img-src, so lets just assume that
     # anything super short is invalid
-    if len(csp_string) < 6 or csp_string.isspace():
-        raise ValueError
+    if len(csp_string) < SHORTEST_DIRECTIVE_LENGTH or csp_string.isspace():
+        raise ValueError('CSP policy does not meet minimum length requirements')
 
     # It's actually rather up in the air if CSP is case sensitive or not for directives, see:
     # https://github.com/w3c/webappsec-csp/issues/236
@@ -36,12 +40,12 @@ def __parse_csp(csp_string: str) -> dict:
 
         # Technically the path part of any source is case-sensitive, but since we don't test
         # any paths, we can cheat a little bit here
-        values = set([_.lower() for _ in entry[-1].split()]) if len(entry) > 1 else {'\'none\''}
+        values = set([source.lower() for source in entry[-1].split()]) if len(entry) > 1 else {'\'none\''}
 
         # While technically valid in that you just use the first entry, we are saying that repeated
         # directives are invalid so that people notice it
         if directive in csp:
-            raise ValueError
+            raise ValueError('Repeated policy directives are invalid')
         else:
             csp[directive] = values
 
@@ -207,6 +211,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                 'cookies-session-without-secure-flag']
 
     # TODO: Support cookies set over http-equiv (ugh)
+    # https://github.com/mozilla/http-observatory/issues/265
 
     # Get their HTTP Strict Transport Security status, which can help when cookies are set without Secure
     hsts = strict_transport_security(reqs)['pass']
