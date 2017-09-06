@@ -131,18 +131,24 @@ class TestContentSecurityPolicy(TestCase):
             result = content_security_policy(self.reqs)
 
             self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+            self.assertTrue(result['header'])
+            self.assertFalse(result['meta'])
             self.assertTrue(result['pass'])
 
         # Do the same with an HTTP equiv
         self.reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
         result = content_security_policy(self.reqs)
         self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertFalse(result['header'])
+        self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
         # And that same thing, but with both a header and a CSP policy
         self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "script-src https://mozilla.org;"
         result = content_security_policy(self.reqs)
         self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertTrue(result['header'])
+        self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
 
@@ -525,6 +531,8 @@ class TestReferrerPolicy(TestCase):
             result = referrer_policy(self.reqs)
 
             self.assertEquals('referrer-policy-private', result['result'])
+            self.assertTrue(result['header'])
+            self.assertFalse(result['meta'])
             self.assertTrue(result['pass'])
 
         # Do that same test with a <meta> http-equiv
@@ -532,6 +540,8 @@ class TestReferrerPolicy(TestCase):
         result = referrer_policy(self.reqs)
         self.assertEquals('referrer-policy-private', result['result'])
         self.assertEquals('no-referrer, same-origin', result['data'])
+        self.assertFalse(result['header'])
+        self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
         # Note that <meta> http-equiv comes before the HTTP header
@@ -539,6 +549,8 @@ class TestReferrerPolicy(TestCase):
         result = referrer_policy(self.reqs)
         self.assertEquals('referrer-policy-private', result['result'])
         self.assertEquals('unsafe-url, no-referrer, same-origin', result['data'])
+        self.assertTrue(result['header'])
+        self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
     def test_header_no_referrer_when_downgrade(self):

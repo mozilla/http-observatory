@@ -74,6 +74,8 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     output = {
         'data': None,
         'expectation': expectation,
+        'header': False,  # whether an HTTP header was available
+        'meta': False,    # whether an HTTP meta-equiv was available
         'pass': False,
         'result': None,
     }
@@ -91,7 +93,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         headers = {
             'http': __parse_csp(response.headers.get('Content-Security-Policy'))
             if 'Content-Security-Policy' in response.headers else None,
-            'equiv': __parse_csp(response.http_equiv.get('Content-Security-Policy'))
+            'meta': __parse_csp(response.http_equiv.get('Content-Security-Policy'))
             if 'Content-Security-Policy' in response.http_equiv else None,
         }
     except:
@@ -107,7 +109,11 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         output['result'] = 'csp-not-implemented'
         return output
 
-    if headers['http'] and headers['equiv']:
+    # Store in our response object if we're using a header or meta
+    output['header'] = True if headers.get('http') else False
+    output['meta'] = True if headers.get('meta') else False
+
+    if headers['http'] and headers['meta']:
         # This is technically incorrect. It's very easy to see if a given resource will be allowed
         # given multiple policies, but it's extremely difficult to generate a singular policy to
         # represent this. For the purposes of the Observatory, we just create a union of the two
@@ -116,10 +122,10 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         # it, because the behavior is probably indicative of something bad and if the other policy
         # ever disappeared, then bad things could happen that had previously been prevented.
         csp = {}
-        for k in set(list(headers['http'].keys()) + list(headers['equiv'].keys())):
-            csp[k] = headers['http'].get(k, set()).union(headers['equiv'].get(k, set()))
+        for k in set(list(headers['http'].keys()) + list(headers['meta'].keys())):
+            csp[k] = headers['http'].get(k, set()).union(headers['meta'].get(k, set()))
     else:
-        csp = headers['http'] or headers['equiv']
+        csp = headers['http'] or headers['meta']
 
     # Get the various directives we look at
     object_src = csp.get('object-src') or csp.get('default-src') or {'*'}
@@ -392,6 +398,8 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
     output = {
         'data': None,
         'expectation': expectation,
+        'header': False,  # whether an HTTP header was available
+        'meta': False,    # whether an HTTP meta-equiv was available
         'pass': False,
         'result': None,
     }
@@ -408,6 +416,10 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
     valid = goodness + badness + ['no-referrer-when-downgrade']
 
     response = reqs['responses']['auto']
+
+    # Store whether the header or meta were present
+    output['header'] = True if 'Referrer-Policy' in response.headers else False
+    output['meta'] = True if 'Referrer-Policy' in response.http_equiv else False
 
     # If it's in both a header and http-equiv, http-equiv gets precedence (aka comes last)
     if 'Referrer-Policy' in response.headers and 'Referrer-Policy' in response.http_equiv:
