@@ -74,7 +74,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     output = {
         'data': None,
         'expectation': expectation,
-        'header': False,  # whether an HTTP header was available
+        'http': False,    # whether an HTTP header was available
         'meta': False,    # whether an HTTP meta-equiv was available
         'pass': False,
         'result': None,
@@ -110,7 +110,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         return output
 
     # Store in our response object if we're using a header or meta
-    output['header'] = True if headers.get('http') else False
+    output['http'] = True if headers.get('http') else False
     output['meta'] = True if headers.get('meta') else False
 
     if headers['http'] and headers['meta']:
@@ -398,7 +398,7 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
     output = {
         'data': None,
         'expectation': expectation,
-        'header': False,  # whether an HTTP header was available
+        'http': False,    # whether an HTTP header was available
         'meta': False,    # whether an HTTP meta-equiv was available
         'pass': False,
         'result': None,
@@ -418,7 +418,7 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
     response = reqs['responses']['auto']
 
     # Store whether the header or meta were present
-    output['header'] = True if 'Referrer-Policy' in response.headers else False
+    output['http'] = True if 'Referrer-Policy' in response.headers else False
     output['meta'] = True if 'Referrer-Policy' in response.http_equiv else False
 
     # If it's in both a header and http-equiv, http-equiv gets precedence (aka comes last)

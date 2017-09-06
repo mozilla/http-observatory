@@ -131,7 +131,7 @@ class TestContentSecurityPolicy(TestCase):
             result = content_security_policy(self.reqs)
 
             self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
-            self.assertTrue(result['header'])
+            self.assertTrue(result['http'])
             self.assertFalse(result['meta'])
             self.assertTrue(result['pass'])
 
@@ -139,7 +139,7 @@ class TestContentSecurityPolicy(TestCase):
         self.reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
         result = content_security_policy(self.reqs)
         self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
-        self.assertFalse(result['header'])
+        self.assertFalse(result['http'])
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
@@ -147,7 +147,7 @@ class TestContentSecurityPolicy(TestCase):
         self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "script-src https://mozilla.org;"
         result = content_security_policy(self.reqs)
         self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
-        self.assertTrue(result['header'])
+        self.assertTrue(result['http'])
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
@@ -531,7 +531,7 @@ class TestReferrerPolicy(TestCase):
             result = referrer_policy(self.reqs)
 
             self.assertEquals('referrer-policy-private', result['result'])
-            self.assertTrue(result['header'])
+            self.assertTrue(result['http'])
             self.assertFalse(result['meta'])
             self.assertTrue(result['pass'])
 
@@ -540,7 +540,7 @@ class TestReferrerPolicy(TestCase):
         result = referrer_policy(self.reqs)
         self.assertEquals('referrer-policy-private', result['result'])
         self.assertEquals('no-referrer, same-origin', result['data'])
-        self.assertFalse(result['header'])
+        self.assertFalse(result['http'])
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
@@ -549,7 +549,7 @@ class TestReferrerPolicy(TestCase):
         result = referrer_policy(self.reqs)
         self.assertEquals('referrer-policy-private', result['result'])
         self.assertEquals('unsafe-url, no-referrer, same-origin', result['data'])
-        self.assertTrue(result['header'])
+        self.assertTrue(result['http'])
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
