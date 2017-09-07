@@ -34,7 +34,7 @@ def parse_http_equiv_headers(html: str) -> CaseInsensitiveDict:
             # Note that this is so far only done for CSP and not for other types
             # of http-equiv
             if (meta.get('http-equiv', '').lower().strip() == 'content-security-policy' and
-                'Content-Security-Policy' in http_equiv_headers):
+               'Content-Security-Policy' in http_equiv_headers):
                 http_equiv_headers['Content-Security-Policy'] += '; ' + meta.get('content')
             else:
                 http_equiv_headers[meta.get('http-equiv')] = meta.get('content')
