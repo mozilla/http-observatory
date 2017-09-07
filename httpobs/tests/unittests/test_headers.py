@@ -87,6 +87,7 @@ class TestContentSecurityPolicy(TestCase):
         values = ("object-src 'none'; script-src 'none'; style-src 'unsafe-inline'",
                   "default-src 'none'; script-src https://mozilla.org; style-src 'unsafe-inline'",
                   "default-src 'unsafe-inline'; script-src https://mozilla.org",
+                  "default-src 'none';;; ;;;style-src 'self' 'unsafe-inline'",
                   "default-src 'none'; style-src data:",
                   "default-src 'none'; style-src *",
                   "default-src 'none'; style-src https:")
@@ -102,6 +103,7 @@ class TestContentSecurityPolicy(TestCase):
     def test_no_unsafe(self):
         # See https://github.com/mozilla/http-observatory/issues/88 for 'unsafe-inline' + hash/nonce
         values = ("default-src https://mozilla.org",
+                  "default-src https://mozilla.org;;; ;;;script-src 'none'",
                   "object-src 'none'; script-src https://mozilla.org; " +
                   "style-src https://mozilla.org; upgrade-insecure-requests;",
                   "object-src 'none'; style-src 'self';" +
@@ -137,6 +139,14 @@ class TestContentSecurityPolicy(TestCase):
 
         # Do the same with an HTTP equiv
         self.reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
+        result = content_security_policy(self.reqs)
+        self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertFalse(result['http'])
+        self.assertTrue(result['meta'])
+        self.assertTrue(result['pass'])
+
+        # Do the same with an HTTP equiv
+        self.reqs = empty_requests('test_parse_http_equiv_headers_csp_multiple_http_equiv1.html')
         result = content_security_policy(self.reqs)
         self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
         self.assertFalse(result['http'])
