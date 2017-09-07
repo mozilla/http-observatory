@@ -36,6 +36,9 @@ def __parse_csp(csp_string: str) -> dict:
     csp = {}
 
     for entry in [directive.strip().split(maxsplit=1) for directive in csp_string.split(';') if directive]:
+        if not entry:  # Catch errant semi-colons
+            continue
+
         directive = entry[0]
 
         # Technically the path part of any source is case-sensitive, but since we don't test
@@ -45,6 +48,7 @@ def __parse_csp(csp_string: str) -> dict:
         # While technically valid in that you just use the first entry, we are saying that repeated
         # directives are invalid so that people notice it
         if directive in csp:
+            print(csp)
             raise ValueError('Repeated policy directives are invalid')
         else:
             csp[directive] = values
