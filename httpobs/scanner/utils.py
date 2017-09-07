@@ -33,7 +33,8 @@ def parse_http_equiv_headers(html: str) -> CaseInsensitiveDict:
             # See issue: https://github.com/mozilla/http-observatory/issues/266
             # Note that this is so far only done for CSP and not for other types
             # of http-equiv
-            if meta.get('http-equiv') == 'Content-Security-Policy' and 'Content-Security-Policy' in http_equiv_headers:
+            if (meta.get('http-equiv', '').lower().strip() == 'content-security-policy' and
+                'Content-Security-Policy' in http_equiv_headers):
                 http_equiv_headers['Content-Security-Policy'] += '; ' + meta.get('content')
             else:
                 http_equiv_headers[meta.get('http-equiv')] = meta.get('content')
