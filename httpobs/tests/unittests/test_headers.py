@@ -67,6 +67,7 @@ class TestContentSecurityPolicy(TestCase):
             "default-src 'none'; img-src https:; media-src http://mozilla.org",
             "default-src 'none'; img-src http: https:; script-src 'self'; style-src 'self'",
             "default-src 'none'; img-src 'none'; media-src http:; script-src 'self'; style-src 'self'",
+            "default-src 'none'; img-src 'none'; media-src http:; script-src 'self'; style-src 'unsafe-inline'",
         )
 
         for value in values:

@@ -79,7 +79,7 @@ SCORE_TABLE = {
     'csp-implemented-with-insecure-scheme-in-passive-content-only': {
         'description': ('Content Security Policy (CSP) implemented, '
                         'but secure site allows images or media to be loaded over http'),
-        'modifier': -5,
+        'modifier': -10,
     },
     'csp-implemented-with-unsafe-eval': {
         'description': 'Content Security Policy (CSP) implemented, but allows \'unsafe-eval\'',

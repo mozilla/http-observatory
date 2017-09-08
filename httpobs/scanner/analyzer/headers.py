@@ -173,14 +173,14 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     elif script_src.union(style_src).intersection({'\'unsafe-eval\''}):
         output['result'] = 'csp-implemented-with-unsafe-eval'
 
-    # Don't allow 'unsafe-inline', data:, or overly broad sources in style-src
-    elif style_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE):
-        output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
-
     # If the site is https, it shouldn't allow any http: as a source (active content)
     elif (urlparse(response.url).scheme == 'https' and
           [source for source in passive_csp_sources if 'http:' in source or 'ftp:' in source]):
         output['result'] = 'csp-implemented-with-insecure-scheme-in-passive-content-only'
+
+    # Don't allow 'unsafe-inline', data:, or overly broad sources in style-src
+    elif style_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE):
+        output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
 
     # Only if default-src is 'none' and 'none' alone, since additional uris override 'none'
     elif csp.get('default-src') == {'\'none\''}:
