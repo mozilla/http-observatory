@@ -39,6 +39,7 @@ def __parse_csp(csp_string: str) -> dict:
         if not entry:  # Catch errant semi-colons
             continue
 
+        # Why not use .lower()? See: https://github.com/w3c/webappsec-csp/issues/236
         directive = entry[0]
 
         # Technically the path part of any source is case-sensitive, but since we don't test
@@ -63,6 +64,8 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     :param expectation: test expectation
         csp-implemented-with-no-unsafe: CSP implemented with no unsafe inline keywords [default]
         csp-implemented-with-unsafe-in-style-src-only: Allow the 'unsafe' keyword in style-src only
+        csp-implemented-with-insecure-scheme-in-passive-content-only:
+          CSP implemented with insecure schemes (http, ftp) in img/media-src
         csp-implemented-with-unsafe-inline: CSP implemented with unsafe-inline
         csp-implemented-with-unsafe-eval: CSP implemented with unsafe-eval
         csp-implemented-with-insecure-scheme: CSP implemented with having sources over http:
@@ -89,8 +92,11 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # TODO: try to parse when there are multiple CSP headers
 
     # Obviously you can get around it with things like https://*.org, but you're only hurting yourself
-    dangerously_broad = ['http:', 'https:', '*', 'http://*', 'http://*.*', 'https://*', 'https://*.*']
-    unsafe_inline = ['\'unsafe-inline\'', 'data:']
+    DANGEROUSLY_BROAD = ('ftp:', 'http:', 'https:', '*', 'http://*', 'http://*.*', 'https://*', 'https://*.*')
+    UNSAFE_INLINE = ('\'unsafe-inline\'', 'data:')
+
+    # Passive content check
+    PASSIVE_DIRECTIVES = ('img-src', 'media-src')
 
     # First we need to combine the HTTP header and HTTP Equiv "header"
     try:
@@ -131,6 +137,13 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     else:
         csp = headers['http'] or headers['meta']
 
+    # Some checks look only at active/passive CSP directives
+    # This could be inlined, but the code is quite hard to read at that point
+    active_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
+                          directive not in PASSIVE_DIRECTIVES]
+    passive_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
+                           directive in PASSIVE_DIRECTIVES]
+
     # Get the various directives we look at
     object_src = csp.get('object-src') or csp.get('default-src') or {'*'}
     script_src = csp.get('script-src') or csp.get('default-src') or {'*'}
@@ -147,20 +160,26 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # No 'unsafe-inline' or data: in script-src
     # Also don't allow overly broad schemes such as https: in either object-src or script-src
     # Likewise, if you don't have object-src or script-src defined, then all sources are allowed
-    if (script_src.intersection(dangerously_broad + unsafe_inline) or
-       object_src.intersection(dangerously_broad)):
+    if (script_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE) or
+       object_src.intersection(DANGEROUSLY_BROAD)):
         output['result'] = 'csp-implemented-with-unsafe-inline'
 
-    # If the site is https, it shouldn't allow any http: as a source (passive or mixed content)
-    elif urlparse(response.url).scheme == 'https' and [d for d in set.union(*csp.values()) if 'http:' in d]:
+    # If the site is https, it shouldn't allow any http: as a source (active content)
+    elif (urlparse(response.url).scheme == 'https' and
+          [source for source in active_csp_sources if 'http:' in source or 'ftp:' in source]):
         output['result'] = 'csp-implemented-with-insecure-scheme'
 
     # Don't allow 'unsafe-eval' in script-src or style-src
     elif script_src.union(style_src).intersection({'\'unsafe-eval\''}):
         output['result'] = 'csp-implemented-with-unsafe-eval'
 
+    # If the site is https, it shouldn't allow any http: as a source (active content)
+    elif (urlparse(response.url).scheme == 'https' and
+          [source for source in passive_csp_sources if 'http:' in source or 'ftp:' in source]):
+        output['result'] = 'csp-implemented-with-insecure-scheme-in-passive-content-only'
+
     # Don't allow 'unsafe-inline', data:, or overly broad sources in style-src
-    elif style_src.intersection(dangerously_broad + unsafe_inline):
+    elif style_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE):
         output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
 
     # Only if default-src is 'none' and 'none' alone, since additional uris override 'none'
@@ -180,7 +199,8 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # Check to see if the test passed or failed
     if output['result'] in (expectation,
                             'csp-implemented-with-no-unsafe-default-src-none',
-                            'csp-implemented-with-unsafe-inline-in-style-src-only'):
+                            'csp-implemented-with-unsafe-inline-in-style-src-only',
+                            'csp-implemented-with-insecure-scheme-in-passive-content-only'):
         output['pass'] = True
 
     return output

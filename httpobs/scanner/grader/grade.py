@@ -76,6 +76,11 @@ SCORE_TABLE = {
                         'This includes \'unsafe-inline\', data: or overly broad sources such as https:.'),
         'modifier': 0,
     },
+    'csp-implemented-with-insecure-scheme-in-passive-content-only': {
+        'description': ('Content Security Policy (CSP) implemented, '
+                        'but secure site allows images or media to be loaded over http'),
+        'modifier': -10,
+    },
     'csp-implemented-with-unsafe-eval': {
         'description': 'Content Security Policy (CSP) implemented, but allows \'unsafe-eval\'',
         'modifier': -10,
