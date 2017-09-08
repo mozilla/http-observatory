@@ -26,10 +26,14 @@ class TestContentSecurityPolicy(TestCase):
         self.assertFalse(result['pass'])
 
     def test_header_invalid(self):
-        values = ('  ',
-                  '\r\n',
-                  '',
-                  'defa')
+        values = (
+            "  ",
+            "\r\n",
+            "",
+            "default-src 'none'; default-src 'none'",  # Repeated directives not allowed
+            "default-src 'none'; img-src 'self'; default-src 'none'",
+            "defa",
+        )
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
@@ -40,19 +44,48 @@ class TestContentSecurityPolicy(TestCase):
             self.assertFalse(result['pass'])
 
     def test_insecure_scheme(self):
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = 'default-src http://mozilla.org'
+        values = (
+            "default-src http://mozilla.org",
+            "default-src 'none'; script-src http://mozilla.org",
+            "default-src 'none'; script-src http://mozilla.org",
+            "default-src 'none'; script-src ftp://mozilla.org",
+        )
 
-        result = content_security_policy(self.reqs)
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
 
-        self.assertEquals('csp-implemented-with-insecure-scheme', result['result'])
-        self.assertFalse(result['pass'])
+            result = content_security_policy(self.reqs)
+
+            self.assertEquals('csp-implemented-with-insecure-scheme', result['result'])
+            self.assertFalse(result['pass'])
+
+    def test_insecure_scheme_in_passive_content_only(self):
+        values = (
+            "default-src 'none'; img-src http://mozilla.org",
+            "default-src 'self'; img-src ftp:",
+            "default-src 'self'; img-src http:",
+            "default-src 'none'; img-src https:; media-src http://mozilla.org",
+            "default-src 'none'; img-src http: https:; script-src 'self'; style-src 'self'",
+            "default-src 'none'; img-src 'none'; media-src http:; script-src 'self'; style-src 'self'",
+        )
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+
+            result = content_security_policy(self.reqs)
+
+            self.assertEquals('csp-implemented-with-insecure-scheme-in-passive-content-only', result['result'])
+            self.assertTrue(result['pass'])
 
     def test_unsafe_inline(self):
         values = ("script-src 'unsafe-inline'",
-                  "script-src data:",
+                  "script-src data:",  # overly broad
+                  "script-src http:",
+                  "script-src ftp:",
                   "default-src 'unsafe-inline'",
                   "default-src 'UNSAFE-INLINE'",
                   "DEFAULT-SRC 'none'",  # See CSP bug report on case-sensitivity
+                  "script-src 'unsafe-inline'; SCRIPT-SRC 'none'",  # again
                   "upgrade-insecure-requests",
                   "script-src 'none'",
                   "script-src https:",
