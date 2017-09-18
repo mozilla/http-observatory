@@ -41,7 +41,8 @@ def scan(hostname: str, site_id: int, scan_id: int):
         insert_test_results(site_id,
                             scan_id,
                             [test(reqs) for test in tests],
-                            sanitize_headers(reqs['responses']['auto'].headers))
+                            sanitize_headers(reqs['responses']['auto'].headers),
+                            reqs['responses']['auto'].status_code)
 
     # catch the celery timeout, which will almost certainly occur in retrieve_all()
     except (SoftTimeLimitExceeded, TimeLimitExceeded):

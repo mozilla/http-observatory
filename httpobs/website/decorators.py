@@ -55,8 +55,8 @@ def sanitized_api_response(fn):
         output = fn(*args, **kwargs)
 
         SCAN_VALID_KEYS = ('algorithm_version', 'end_time', 'error', 'grade', 'hidden', 'likelihood_indicator',
-                           'response_headers', 'scan_id', 'score', 'start_time', 'state', 'tests_completed',
-                           'tests_failed', 'tests_passed', 'tests_quantity')
+                           'response_headers', 'scan_id', 'score', 'start_time', 'state', 'status_code',
+                           'tests_completed', 'tests_failed', 'tests_passed', 'tests_quantity')
         TEST_RESULT_VALID_KEYS = ('error', 'expectation', 'name', 'output', 'pass', 'result',
                                   'score_description', 'score_modifier')
 

@@ -29,7 +29,8 @@ CREATE TABLE IF NOT EXISTS scans (
   likelihood_indicator                VARCHAR    NULL,
   error                               VARCHAR    NULL,
   response_headers                    JSONB NULL,
-  hidden                              BOOL       NOT NULL DEFAULT FALSE
+  hidden                              BOOL       NOT NULL DEFAULT FALSE,
+  status_code                         SMALLINT   NULL
 );
 
 CREATE TABLE IF NOT EXISTS tests (
