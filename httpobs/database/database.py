@@ -120,7 +120,11 @@ def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
 
 
 # TODO: Separate out some of this logic so it doesn't need to be duplicated in local.scan()
-def insert_test_results(site_id: int, scan_id: int, tests: list, response_headers: dict, status_code: int=None) -> dict:
+def insert_test_results(site_id: int,
+                        scan_id: int,
+                        tests: list,
+                        response_headers: dict,
+                        status_code: int=None) -> dict:
     with get_cursor() as cur:
         tests_failed = tests_passed = 0
         score_with_extra_credit = uncurved_score = 100
