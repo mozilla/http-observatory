@@ -120,7 +120,7 @@ def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
 
 
 # TODO: Separate out some of this logic so it doesn't need to be duplicated in local.scan()
-def insert_test_results(site_id: int, scan_id: int, tests: list, response_headers: dict) -> dict:
+def insert_test_results(site_id: int, scan_id: int, tests: list, response_headers: dict, status_code: int=None) -> dict:
     with get_cursor() as cur:
         tests_failed = tests_passed = 0
         score_with_extra_credit = uncurved_score = 100
@@ -157,12 +157,12 @@ def insert_test_results(site_id: int, scan_id: int, tests: list, response_header
         # Update the scans table
         cur.execute("""UPDATE scans
                          SET (end_time, tests_failed, tests_passed, grade, score, likelihood_indicator,
-                         state, response_headers) =
-                         (NOW(), %s, %s, %s, %s, %s, %s, %s)
+                         state, response_headers, status_code) =
+                         (NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
                          WHERE id = %s
                          RETURNING *""",
                     (tests_failed, tests_passed, grade, score, likelihood_indicator, STATE_FINISHED,
-                        dumps(response_headers), scan_id))
+                        dumps(response_headers), status_code, scan_id))
 
         row = dict(cur.fetchone())
 
