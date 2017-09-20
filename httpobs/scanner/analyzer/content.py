@@ -5,6 +5,8 @@ from urllib.parse import urlparse
 from httpobs.conf import SCANNER_MOZILLA_DOMAINS
 from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import only_if_worse
+from httpobs.scanner.retriever.retriever import HTML_TYPES
+
 
 import json
 
@@ -128,12 +130,8 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                 'sri-not-implemented-and-external-scripts-not-loaded-securely',
                 'sri-not-implemented-response-not-html']
 
-    # If the response to get / fails
-    if response.status_code != 200:
-        output['result'] = 'request-did-not-return-status-code-200'
-
     # If the content isn't HTML, there's no scripts to load; this is okay
-    elif response.headers.get('Content-Type', '').split(';')[0] not in ('text/html', 'application/xhtml+xml'):
+    if response.headers.get('Content-Type', '').split(';')[0] not in HTML_TYPES:
         output['result'] = 'sri-not-implemented-response-not-html'
 
     else:

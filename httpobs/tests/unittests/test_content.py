@@ -168,14 +168,6 @@ class TestSubResourceIntegrity(TestCase):
         self.assertEquals('sri-not-implemented-response-not-html', result['result'])
         self.assertTrue(result['pass'])
 
-    def test_not_status_code_200(self):
-        self.reqs['responses']['auto'].status_code = 404
-
-        result = subresource_integrity(self.reqs)
-
-        self.assertEquals(result['result'], 'request-did-not-return-status-code-200')
-        self.assertFalse(result['pass'])
-
     def test_same_origin(self):
         self.reqs['resources']['__path__'] = """
         <html>
@@ -200,6 +192,14 @@ class TestSubResourceIntegrity(TestCase):
             <body></body>
         </html>
         """
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals('sri-not-implemented-but-all-scripts-loaded-from-secure-origin', result['result'])
+        self.assertTrue(result['pass'])
+
+        # And the same, but with a 404 status code
+        self.reqs['responses']['auto'].status_code = 404
 
         result = subresource_integrity(self.reqs)
 

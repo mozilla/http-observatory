@@ -378,7 +378,7 @@ SCORE_TABLE = {
     },
     'request-did-not-return-status-code-200': {
         'description': 'Site did not return a status code of 200',
-        'modifier': -5,  # can't run an SRI check on pages that don't return a 200
+        'modifier': -5,  # can't run an SRI check on pages that don't return a 200 (deprecated)
     },
     'xml-not-parsable': {
         'description': 'Claims to be xml, but cannot be parsed',
