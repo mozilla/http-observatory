@@ -18,6 +18,10 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 logging.getLogger('requests').setLevel(logging.CRITICAL)
 
+
+# MIME types for HTML requests
+HTML_TYPES = ('text/html', 'application/xhtml+xml')
+
 # Maximum timeout for requests for all GET requests for anything but the TLS Observatory
 # The default ConnectionTimeout is something like 75 seconds, which means that things like
 # tiles can take ~600s to timeout, since they have 8 DNS entries.  Setting it to lower
@@ -107,13 +111,13 @@ def __get(session, relative_path='/', headers=None, cookies=None):
         return None
 
 
-def __get_page_text(response: requests.Response) -> str:
-    if not response:
+def __get_page_text(response: requests.Response, force: bool=False) -> str:
+    if response is None:
         return None
-    elif response.status_code == 200:
+    elif response.status_code == 200 or force:  # Some pages we want to get the page text even with non-200s
         # A quick and dirty check to make sure that somebody's 404 page didn't actually return 200 with html
         ext = (response.history[0].url if response.history else response.url).split('.')[-1]
-        if 'text/html' in response.headers.get('Content-Type', '') and ext in ('json', 'txt', 'xml'):
+        if response.headers.get('Content-Type', '') in HTML_TYPES and ext in ('json', 'txt', 'xml'):
             return None
 
         return response.text
@@ -157,7 +161,7 @@ def retrieve_all(hostname, **kwargs):
     https_session = __create_session('https://' + hostname + kwargs['https_port'] + kwargs['path'], **kwargs)
 
     # If neither one works, then the site just can't be loaded
-    if not http_session['session'] and not https_session['session']:
+    if http_session['session'] is None and https_session['session'] is None:
         return retrievals
 
     else:
@@ -165,7 +169,7 @@ def retrieve_all(hostname, **kwargs):
         retrievals['responses']['http'] = http_session['response']
         retrievals['responses']['https'] = https_session['response']
 
-        if https_session['session']:
+        if https_session['session'] is not None:
             retrievals['responses']['auto'] = https_session['response']
             retrievals['session'] = https_session['session']
         else:
@@ -173,7 +177,7 @@ def retrieve_all(hostname, **kwargs):
             retrievals['session'] = http_session['session']
 
         # Store the contents of the "base" page
-        retrievals['resources']['__path__'] = __get_page_text(retrievals['responses']['auto'])
+        retrievals['resources']['__path__'] = __get_page_text(retrievals['responses']['auto'], force=True)
 
         # Do a CORS preflight request
         retrievals['responses']['cors'] = __get(retrievals['session'],
@@ -187,7 +191,7 @@ def retrieve_all(hostname, **kwargs):
 
     # Parse out the HTTP meta-equiv headers
     if (retrievals['responses']['auto'].headers.get('Content-Type', '').split(';')[0]
-            in ('text/html', 'application/xhtml+xml')
+            in HTML_TYPES
             and retrievals['resources']['__path__']):
         retrievals['responses']['auto'].http_equiv = parse_http_equiv_headers(retrievals['resources']['__path__'])
     else:
