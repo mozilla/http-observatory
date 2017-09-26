@@ -114,12 +114,8 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         output['result'] = 'csp-header-invalid'
         return output
 
-    # If we have headers but they're blank, that should error out
-    if (any('Content-Security-Policy' in h for h in [response.headers, response.http_equiv])
-       and not any(headers.values())):
-        output['result'] = 'csp-header-invalid'
-        return output
-    elif not any(headers.values()):
+    # If we have neither HTTP header nor meta, then there isn't any CSP
+    if not any(headers.values()):
         output['result'] = 'csp-not-implemented'
         return output
 
