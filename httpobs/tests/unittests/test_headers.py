@@ -32,6 +32,7 @@ class TestContentSecurityPolicy(TestCase):
             "",
             "default-src 'none'; default-src 'none'",  # Repeated directives not allowed
             "default-src 'none'; img-src 'self'; default-src 'none'",
+            "default-src 'none'; script-src 'strict-dynamic'",  # strict dynamic without hash/nonce
             "defa",
         )
 
@@ -58,6 +59,7 @@ class TestContentSecurityPolicy(TestCase):
 
             self.assertEquals('csp-implemented-with-insecure-scheme', result['result'])
             self.assertFalse(result['pass'])
+            self.assertTrue(result['policy']['insecureSchemeActive'])
 
     def test_insecure_scheme_in_passive_content_only(self):
         values = (
@@ -77,6 +79,7 @@ class TestContentSecurityPolicy(TestCase):
 
             self.assertEquals('csp-implemented-with-insecure-scheme-in-passive-content-only', result['result'])
             self.assertTrue(result['pass'])
+            self.assertTrue(result['policy']['insecureSchemePassive'])
 
     def test_unsafe_inline(self):
         values = ("script-src 'unsafe-inline'",
@@ -106,6 +109,7 @@ class TestContentSecurityPolicy(TestCase):
 
             self.assertEquals('csp-implemented-with-unsafe-inline', result['result'])
             self.assertFalse(result['pass'])
+            self.assertTrue(result['policy']['unsafeInline'])
 
     def test_unsafe_eval(self):
         self.reqs['responses']['auto'].headers['Content-Security-Policy'] = \
@@ -116,6 +120,7 @@ class TestContentSecurityPolicy(TestCase):
         self.assertEquals('csp-implemented-with-unsafe-eval', result['result'])
         self.assertEquals(result['data']['script-src'], ["'unsafe-eval'"])
         self.assertFalse(result['pass'])
+        self.assertTrue(result['policy']['unsafeEval'])
 
     def test_unsafe_inline_in_style_src_only(self):
         values = ("object-src 'none'; script-src 'none'; style-src 'unsafe-inline'",
@@ -133,6 +138,7 @@ class TestContentSecurityPolicy(TestCase):
 
             self.assertEquals('csp-implemented-with-unsafe-inline-in-style-src-only', result['result'])
             self.assertTrue(result['pass'])
+            self.assertTrue(result['policy']['unsafeInlineStyle'])
 
     def test_no_unsafe(self):
         # See https://github.com/mozilla/http-observatory/issues/88 for 'unsafe-inline' + hash/nonce
@@ -140,6 +146,7 @@ class TestContentSecurityPolicy(TestCase):
                   "default-src https://mozilla.org;;; ;;;script-src 'none'",
                   "object-src 'none'; script-src https://mozilla.org; " +
                   "style-src https://mozilla.org; upgrade-insecure-requests;",
+                  "object-src 'none'; script-src 'strict-dynamic' 'nonce-abc' 'unsafe-inline'; style-src 'none'",
                   "object-src 'none'; style-src 'self';" +
                   "script-src 'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBA='",
                   "object-src 'none'; style-src 'self'; script-src 'unsafe-inline' " +
@@ -157,7 +164,8 @@ class TestContentSecurityPolicy(TestCase):
 
     def test_no_unsafe_default_src_none(self):
         values = ("default-src",  # no value == 'none'
-                  "default-src 'none'; script-src https://mozilla.org;"
+                  "default-src 'none'; script-src 'strict-dynamic' 'nonce-abc123' 'unsafe-inline'",
+                  "default-src 'none'; script-src https://mozilla.org;" +
                   "style-src https://mozilla.org; upgrade-insecure-requests;",
                   "default-src 'none'; object-src https://mozilla.org")
 
@@ -170,6 +178,7 @@ class TestContentSecurityPolicy(TestCase):
             self.assertTrue(result['http'])
             self.assertFalse(result['meta'])
             self.assertTrue(result['pass'])
+            self.assertTrue(result['policy']['defaultNone'])
 
         # Do the same with an HTTP equiv
         self.reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
@@ -194,6 +203,48 @@ class TestContentSecurityPolicy(TestCase):
         self.assertTrue(result['http'])
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
+
+    def test_strict_dynamic(self):
+        values = (
+            "default-src 'none'; script-src 'strict-dynamic' 'nonce-abc123'",
+            "default-src 'none'; script-src 'strict-dynamic' 'sha256-abc123'",
+            "default-src 'none'; script-src 'strict-dynamic' 'sha256-abc123' https://",
+            "default-src 'none'; script-src 'strict-dynamic' 'sha256-abc123' 'unsafe-inline'",
+        )
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            result = content_security_policy(self.reqs)
+
+            self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+            self.assertTrue(result['policy']['strictDynamic'])
+
+    def test_policy_analysis(self):
+        values = (
+            "default-src 'none'",  # doesn't fall to frame-ancestors
+            "frame-ancestors *",
+            "frame-ancestors http:",
+            "frame-ancestors https:",
+        )
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            self.assertFalse(content_security_policy(self.reqs)['policy']['antiClickjacking'])
+
+        # Now test where anticlickjacking is enabled
+        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "default-src *; frame-ancestors 'none'"
+        self.assertTrue(content_security_policy(self.reqs)['policy']['antiClickjacking'])
+
+        # Test unsafeObjects
+        values = (
+            "default-src 'none'; object-src *",
+            "default-src 'none'; object-src https:",
+            "default-src *",
+        )
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            self.assertTrue(content_security_policy(self.reqs)['policy']['unsafeObjects'])
 
 
 class TestCookies(TestCase):

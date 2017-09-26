@@ -12,7 +12,7 @@ import json
 
 
 # Compat between Python 3.4 and Python 3.5 (see: https://github.com/mozilla/http-observatory-website/issues/14)
-if not hasattr(json, 'JSONDecodeError'):
+if not hasattr(json, 'JSONDecodeError'):  # pragma: no cover
     json.JSONDecodeError = ValueError
 
 
