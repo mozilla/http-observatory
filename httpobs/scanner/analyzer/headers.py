@@ -84,6 +84,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         'http': False,    # whether an HTTP header was available
         'meta': False,    # whether an HTTP meta-equiv was available
         'pass': False,
+        'policy': None,
         'result': None,
     }
     response = reqs['responses']['auto']
@@ -97,6 +98,9 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
 
     # Passive content check
     PASSIVE_DIRECTIVES = ('img-src', 'media-src')
+
+    # What do nonces and hashes start with?
+    NONCES_HASHES = ('\'sha256-', '\'sha384-', '\'sha512-', '\'nonce-')
 
     # First we need to combine the HTTP header and HTTP Equiv "header"
     try:
@@ -119,6 +123,19 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         output['result'] = 'csp-not-implemented'
         return output
 
+    # If we make it this far, we have a policy object
+    output['policy'] = {
+        'antiClickjacking': False,
+        'defaultNone': False,
+        'insecureSchemeActive': False,
+        'insecureSchemePassive': False,
+        'strictDynamic': False,
+        'unsafeEval': False,
+        'unsafeInline': False,
+        'unsafeInlineStyle': False,
+        'unsafeObjects': False,
+    }
+
     # Store in our response object if we're using a header or meta
     output['http'] = True if headers.get('http') else False
     output['meta'] = True if headers.get('meta') else False
@@ -137,23 +154,41 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     else:
         csp = headers['http'] or headers['meta']
 
-    # Some checks look only at active/passive CSP directives
-    # This could be inlined, but the code is quite hard to read at that point
-    active_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
-                          directive not in PASSIVE_DIRECTIVES]
-    passive_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
-                           directive in PASSIVE_DIRECTIVES]
-
     # Get the various directives we look at
+    frame_ancestors = headers['http'].get('frame-ancestors', {'*'}) if headers['http'] is not None else {'*'}
     object_src = csp.get('object-src') or csp.get('default-src') or {'*'}
     script_src = csp.get('script-src') or csp.get('default-src') or {'*'}
     style_src = csp.get('style-src') or csp.get('default-src') or {'*'}
 
+    # TODO: Move these above the csp.get() things!!
     # Remove 'unsafe-inline' if nonce or hash are used are in script-src
     # See: https://github.com/mozilla/http-observatory/issues/88
-    if any(source.startswith(('\'sha256-', '\'sha384-', '\'sha512-', '\'nonce-'))
+    if any(source.startswith(NONCES_HASHES)
            for source in script_src) and '\'unsafe-inline\'' in script_src:
         script_src.remove('\'unsafe-inline\'')
+
+    # If a script-src uses 'strict-dynamic', we need to:
+    # 1. Check to make sure there's a valid nonce/hash source
+    # 2. Remove any source that starts with as scheme
+    # 3. Remove 'self' and 'unsafe-inline'
+    if any(source.startswith(NONCES_HASHES) for source in script_src) and '\'strict-dynamic\'' in script_src:
+        for source in set(script_src):
+            if (source.startswith(DANGEROUSLY_BROAD) or
+               source == '\'self\'' or
+               source == '\'unsafe-inline\''):
+                script_src.remove(source)
+        output['policy']['strictDynamic'] = True
+    # 'strict-dynamic' in script-src without hash or nonce
+    elif '\'strict-dynamic\'' in script_src:
+        output['result'] = ('csp-header-invalid' if output['result'] is None
+                            else output['result'])
+
+    # Some checks look only at active/passive CSP directives
+    # This could be inlined, but the code is quite hard to read at that point
+    active_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
+                          directive not in PASSIVE_DIRECTIVES and directive not in 'script-src'] + list(script_src)
+    passive_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
+                           directive in PASSIVE_DIRECTIVES]
 
     # Now to make the piggies squeal
 
@@ -162,31 +197,49 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # Likewise, if you don't have object-src or script-src defined, then all sources are allowed
     if (script_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE) or
        object_src.intersection(DANGEROUSLY_BROAD)):
-        output['result'] = 'csp-implemented-with-unsafe-inline'
+        output['result'] = ('csp-implemented-with-unsafe-inline' if output['result'] is None
+                            else output['result'])
+        output['policy']['unsafeInline'] = True
 
     # If the site is https, it shouldn't allow any http: as a source (active content)
-    elif (urlparse(response.url).scheme == 'https' and
-          [source for source in active_csp_sources if 'http:' in source or 'ftp:' in source]):
-        output['result'] = 'csp-implemented-with-insecure-scheme'
+    if (urlparse(response.url).scheme == 'https' and
+       [source for source in active_csp_sources if 'http:' in source or 'ftp:' in source] and
+       not output['policy']['strictDynamic']):
+        output['result'] = ('csp-implemented-with-insecure-scheme' if output['result'] is None
+                            else output['result'])
+        output['policy']['insecureSchemeActive'] = True
 
     # Don't allow 'unsafe-eval' in script-src or style-src
-    elif script_src.union(style_src).intersection({'\'unsafe-eval\''}):
-        output['result'] = 'csp-implemented-with-unsafe-eval'
+    if script_src.union(style_src).intersection({'\'unsafe-eval\''}):
+        output['result'] = ('csp-implemented-with-unsafe-eval' if output['result'] is None
+                            else output['result'])
+        output['policy']['unsafeEval'] = True
 
     # If the site is https, it shouldn't allow any http: as a source (active content)
-    elif (urlparse(response.url).scheme == 'https' and
-          [source for source in passive_csp_sources if 'http:' in source or 'ftp:' in source]):
-        output['result'] = 'csp-implemented-with-insecure-scheme-in-passive-content-only'
+    if (urlparse(response.url).scheme == 'https' and
+       [source for source in passive_csp_sources if 'http:' in source or 'ftp:' in source]):
+        output['result'] = ('csp-implemented-with-insecure-scheme-in-passive-content-only' if output['result'] is None
+                            else output['result'])
+        output['policy']['insecureSchemePassive'] = True
 
     # Don't allow 'unsafe-inline', data:, or overly broad sources in style-src
-    elif style_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE):
-        output['result'] = 'csp-implemented-with-unsafe-inline-in-style-src-only'
+    if style_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE):
+        output['result'] = ('csp-implemented-with-unsafe-inline-in-style-src-only' if output['result'] is None
+                            else output['result'])
+        output['policy']['unsafeInlineStyle'] = True
 
     # Only if default-src is 'none' and 'none' alone, since additional uris override 'none'
-    elif csp.get('default-src') == {'\'none\''}:
-        output['result'] = 'csp-implemented-with-no-unsafe-default-src-none'
+    if csp.get('default-src') == {'\'none\''}:
+        output['result'] = ('csp-implemented-with-no-unsafe-default-src-none' if output['result'] is None
+                            else output['result'])
+        output['policy']['defaultNone'] = True
     else:
-        output['result'] = 'csp-implemented-with-no-unsafe'
+        output['result'] = ('csp-implemented-with-no-unsafe' if output['result'] is None
+                            else output['result'])
+
+    # Some other checks for the CSP analyzer
+    output['policy']['antiClickjacking'] = False if frame_ancestors.intersection(DANGEROUSLY_BROAD) else True
+    output['policy']['unsafeObjects'] = True if object_src.intersection(DANGEROUSLY_BROAD) else False
 
     # Once we're done, convert every set() in csp to an array
     csp = {k: list(v) for k, v in csp.items()}
