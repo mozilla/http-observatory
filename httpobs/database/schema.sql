@@ -169,6 +169,7 @@ ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsscanner;
 ALTER MATERIALIZED VIEW earliest_scans OWNER TO httpobsscanner;
 ALTER MATERIALIZED VIEW scan_score_difference_distribution OWNER TO httpobsscanner;
 ALTER MATERIALIZED VIEW scan_score_difference_distribution_summation OWNER TO httpobsscanner;
+ALTER MATERIALIZED VIEW latest_tests OWNER TO httpobsscanner;
 
 /* Database updates to allow us to track changes in scoring over time */
 /*

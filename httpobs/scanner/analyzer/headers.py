@@ -4,6 +4,15 @@ from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
 
 
+# Ignore the CloudFlare __cfduid tracking cookies. They *are* actually bad, but it is out of a site's
+# control.  See https://github.com/mozilla/http-observatory/issues/121 for additional details. Hopefully
+# this will eventually be fixed on CloudFlare's end.
+
+# Also ignore the Heroku sticky session cookie, see:
+# https://github.com/mozilla/http-observatory/issues/282
+COOKIES_TO_DELETE = ['__cfduid', 'heroku-session-affinity']
+
+# CSP settings
 SHORTEST_DIRECTIVE = 'img-src'
 SHORTEST_DIRECTIVE_LENGTH = len(SHORTEST_DIRECTIVE) - 1  # the shortest policy accepted by the CSP test
 
@@ -301,10 +310,10 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     else:
         jar = {}
 
-        # Ignore the CloudFlare __cfduid tracking cookies. They *are* actually bad, but it is out of a site's
-        # control.  See https://github.com/mozilla/http-observatory/issues/121 for additional details. Hopefully
-        # this will eventually be fixed on CloudFlare's end.
-        del(session.cookies['__cfduid'])
+        # There are certain cookies we ignore, because they are set by service providers and sites have
+        # no control over them.
+        for cookie in COOKIES_TO_DELETE:
+            del(session.cookies[cookie])
 
         for cookie in session.cookies:
             # The httponly functionality is a bit broken
