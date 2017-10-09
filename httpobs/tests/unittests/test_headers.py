@@ -235,16 +235,28 @@ class TestContentSecurityPolicy(TestCase):
         self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "default-src *; frame-ancestors 'none'"
         self.assertTrue(content_security_policy(self.reqs)['policy']['antiClickjacking'])
 
-        # Test unsafeObjects
+        # Test unsafeObjects and insecureBaseUri
         values = (
-            "default-src 'none'; object-src *",
-            "default-src 'none'; object-src https:",
+            "default-src 'none'; base-uri *; object-src *",
+            "default-src 'none'; base-uri https:; object-src https:",
             "default-src *",
         )
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            self.assertTrue(content_security_policy(self.reqs)['policy']['insecureBaseUri'])
             self.assertTrue(content_security_policy(self.reqs)['policy']['unsafeObjects'])
+
+        # Other tests for insecureBaseUri
+        values = (
+            "default-src *; base-uri 'none'",
+            "default-src 'none'; base-uri 'self'",
+            "default-src 'none'; base-uri https://mozilla.org",
+        )
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            self.assertFalse(content_security_policy(self.reqs)['policy']['insecureBaseUri'])
 
 
 class TestCookies(TestCase):
