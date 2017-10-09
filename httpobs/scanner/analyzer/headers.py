@@ -132,6 +132,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     output['policy'] = {
         'antiClickjacking': False,
         'defaultNone': False,
+        'insecureBaseUri': False,
         'insecureSchemeActive': False,
         'insecureSchemePassive': False,
         'strictDynamic': False,
@@ -160,12 +161,12 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         csp = headers['http'] or headers['meta']
 
     # Get the various directives we look at
+    base_uri = csp.get('base-uri') or {'*'}
     frame_ancestors = headers['http'].get('frame-ancestors', {'*'}) if headers['http'] is not None else {'*'}
     object_src = csp.get('object-src') or csp.get('default-src') or {'*'}
     script_src = csp.get('script-src') or csp.get('default-src') or {'*'}
     style_src = csp.get('style-src') or csp.get('default-src') or {'*'}
 
-    # TODO: Move these above the csp.get() things!!
     # Remove 'unsafe-inline' if nonce or hash are used are in script-src
     # See: https://github.com/mozilla/http-observatory/issues/88
     if any(source.startswith(NONCES_HASHES) for source in script_src) and '\'unsafe-inline\'' in script_src:
@@ -243,6 +244,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
 
     # Some other checks for the CSP analyzer
     output['policy']['antiClickjacking'] = (not bool(frame_ancestors.intersection(DANGEROUSLY_BROAD)))
+    output['policy']['insecureBaseUri'] = bool(base_uri.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE))
     output['policy']['unsafeObjects'] = bool(object_src.intersection(DANGEROUSLY_BROAD))
 
     # Once we're done, convert every set() in csp to an array
