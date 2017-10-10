@@ -81,7 +81,7 @@ def __create_session(url: str, **kwargs) -> dict:
         s = None
 
     # Store the domain name and scheme in the session
-    if r and s:
+    if r is not None and s is not None:
         s.url = urlparse(r.url)
 
     return {'session': s, 'response': r}
