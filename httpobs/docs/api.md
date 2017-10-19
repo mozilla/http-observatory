@@ -62,6 +62,7 @@ Example:
 
 * `/api/v1/getScanResults?scan=123456`
 
+
 ### Retrieve recent scans
 
 Retrieve the ten most recent scans that fall within a given score range. Maps hostnames to scores, returning a [recent scans object](#recent-scans).
@@ -76,6 +77,21 @@ Parameters:
 Examples:
 * `/api/v1/getRecentScans?max=20` (ten most recent "F" tests)
 * `/api/v1/getRecentScans?min=90` (ten most recent "A" or better tests)
+
+
+### Retrieve host's scan history
+
+Retrieve the ten most recent scans that fall within a given score range. Maps hostnames to scores, returning a [host history object](#host-history).
+
+**API Call:** `getHostHistory`<br>
+**API Method:** `GET`
+
+Parameters:
+* `host` hostname (required)
+
+Examples:
+* `/api/v1/getHostHistory?host=mozilla.org` (scan history for mozilla.org)
+
 
 ### Retrieve overall grade distribution
 
@@ -96,6 +112,7 @@ This returns the state of the scanner. It can be useful for determining how busy
 
 Example:
 * `/api/v1/getScannerStates`
+
 
 ## Response Objects
 
@@ -138,6 +155,36 @@ Example:
   "site0.mozilla.org": "A-"
 }
 ```
+
+### Host history
+
+Example:
+```json
+  [
+    {
+      "end_time": "Thu, 22 Sep 2016 23:24:28 GMT",
+      "end_time_unix_timestamp": 1474586668,
+      "grade": "C",
+      "scan_id": 1711106,
+      "score": 50
+    },
+    {
+      "end_time": "Thu, 09 Feb 2017 01:30:47 GMT",
+      "end_time_unix_timestamp": 1486603847,
+      "grade": "B+",
+      "scan_id": 3292839,
+      "score": 80
+    },
+    {
+      "end_time": "Fri, 10 Feb 2017 02:30:08 GMT",
+      "end_time_unix_timestamp": 1486693808,
+      "grade": "A",
+      "scan_id": 3302879,
+      "score": 90
+    }
+  ]
+```
+
 
 ### Scan
 
