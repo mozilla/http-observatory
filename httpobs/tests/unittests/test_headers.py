@@ -129,7 +129,10 @@ class TestContentSecurityPolicy(TestCase):
                   "default-src 'none';;; ;;;style-src 'self' 'unsafe-inline'",
                   "default-src 'none'; style-src data:",
                   "default-src 'none'; style-src *",
-                  "default-src 'none'; style-src https:")
+                  "default-src 'none'; style-src https:",
+                  "default-src 'none'; style-src 'unsafe-inline'; " +
+                  "script-src 'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBB=' " +
+                  "'unsafe-inline'")
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
@@ -141,7 +144,8 @@ class TestContentSecurityPolicy(TestCase):
             self.assertTrue(result['policy']['unsafeInlineStyle'])
 
     def test_no_unsafe(self):
-        # See https://github.com/mozilla/http-observatory/issues/88 for 'unsafe-inline' + hash/nonce
+        # See https://github.com/mozilla/http-observatory/issues/88 and
+        # https://github.com/mozilla/http-observatory/issues/277 for 'unsafe-inline' + hash/nonce
         values = ("default-src https://mozilla.org",
                   "default-src https://mozilla.org;;; ;;;script-src 'none'",
                   "object-src 'none'; script-src https://mozilla.org; " +
@@ -152,7 +156,10 @@ class TestContentSecurityPolicy(TestCase):
                   "object-src 'none'; style-src 'self'; script-src 'unsafe-inline' " +
                   "'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBA='" +
                   "'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBB='",
-                  "object-src 'none'; script-src 'unsafe-inline' 'nonce-abc123' 'unsafe-inline'; style-src 'none'")
+                  "object-src 'none'; script-src 'unsafe-inline' 'nonce-abc123' 'unsafe-inline'; style-src 'none'",
+                  "default-src https://mozilla.org; style-src 'unsafe-inline' 'nonce-abc123' 'unsafe-inline'",
+                  "default-src https://mozilla.org; style-src 'unsafe-inline' " +
+                  "'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBB=' 'unsafe-inline'")
 
         for value in values:
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
