@@ -9,4 +9,4 @@ class TestGrader(TestCase):
                           get_score_description('hpkp-preloaded'))
 
     def test_get_score_modifier(self):
-        self.assertEquals(5, get_score_modifier('hpkp-preloaded'))
+        self.assertEquals(0, get_score_modifier('hpkp-preloaded'))
