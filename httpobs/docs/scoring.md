@@ -3,7 +3,7 @@
 **Last Updated:** 2017-07-26 april@mozilla.com<br>
 **Author:** april@mozilla.com
 
-All websites start with a baseline score of 100, and receive penalties or bonuses from there. The minimum score is 0, but there is no maximum score. Bonus points are only awarded if the site's score without them is 90 (A) or greater. Currently, the highest possible score in the HTTP Observatory is 135.
+All websites start with a baseline score of 100, and receive penalties or bonuses from there. The minimum score is 0, but there is no maximum score. Bonus points are only awarded if the site's score without them is 90 (A) or greater. Currently, the highest possible score in the HTTP Observatory is 130.
 
 Although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
 
@@ -71,13 +71,13 @@ csp-header-invalid | Content Security Policy (CSP) header cannot be parsed succe
 
 [HTTP Public Key Pinning](https://wiki.mozilla.org/Security/Guidelines/Web_Security#HTTP_Public_Key_Pinning) | Description | Modifier
 --- | --- | :---:
-hpkp-preloaded | Preloaded via the HTTP Public Key Pinning (HPKP) preloading process | 5
-hpkp-implemented-<br>max-age-at-least-fifteen-days | HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000) | 5
-hpkp-implemented-<br>max-age-less-than-fifteen-days | HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000) | 1
-hpkp-header-invalid | HTTP Public Key Pinning (HPKP) header cannot be recognized | -5
+hpkp-preloaded | Preloaded via the HTTP Public Key Pinning (HPKP) preloading process | 0
+hpkp-implemented-<br>max-age-at-least-fifteen-days | HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000) | 0
+hpkp-implemented-<br>max-age-less-than-fifteen-days | HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000) | 0
 hpkp-not-implemented | HTTP Public Key Pinning (HPKP) header not implemented | 0
 hpkp-invalid-cert | HTTP Public Key Pinning (HPKP) header cannot be set, as site contains an invalid certificate chain | 0
 hpkp-not-implemented-no-https | HTTP Public Key Pinning (HPKP) header can't be implemented without https | 0
+hpkp-header-invalid | HTTP Public Key Pinning (HPKP) header cannot be recognized | -5
 <br>
 
 [HTTP Strict Transport Security](https://wiki.mozilla.org/Security/Guidelines/Web_Security#HTTP_Strict_Transport_Security) | Description | Modifier

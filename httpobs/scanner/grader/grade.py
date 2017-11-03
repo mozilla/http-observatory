@@ -159,15 +159,15 @@ SCORE_TABLE = {
     # Public Key Pinning
     'hpkp-preloaded': {
         'description': 'Preloaded via the HTTP Public Key Pinning (HPKP) preloading process',
-        'modifier': 5,
+        'modifier': 0,
     },
     'hpkp-implemented-max-age-at-least-fifteen-days': {
         'description': 'HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000)',
-        'modifier': 5,
+        'modifier': 0,
     },
     'hpkp-implemented-max-age-less-than-fifteen-days': {
         'description': 'HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000)',
-        'modifier': 1,
+        'modifier': 0,
     },
     'hpkp-not-implemented': {
         'description': 'HTTP Public Key Pinning (HPKP) header not implemented',
