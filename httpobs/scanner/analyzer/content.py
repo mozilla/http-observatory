@@ -52,8 +52,11 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
     else:
         second_level_domain = ''
 
+    if second_level_domain not in SCANNER_MOZILLA_DOMAINS:
+        output['expectation'] = output['result'] = 'contribute-json-only-required-on-mozilla-properties'
+
     # If there's a contribute.json file
-    if reqs['resources']['/contribute.json']:
+    elif reqs['resources']['/contribute.json']:
         try:
             contrib = json.loads(reqs['resources']['/contribute.json'])
 
@@ -75,8 +78,6 @@ def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> 
             else:
                 output['data'] = {}
 
-    elif second_level_domain not in SCANNER_MOZILLA_DOMAINS:
-        output['expectation'] = output['result'] = 'contribute-json-only-required-on-mozilla-properties'
     else:
         output['result'] = 'contribute-json-not-implemented'
 
