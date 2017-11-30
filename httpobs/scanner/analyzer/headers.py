@@ -192,8 +192,9 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # This could be inlined, but the code is quite hard to read at that point
     active_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
                           directive not in PASSIVE_DIRECTIVES and directive not in 'script-src'] + list(script_src)
-    passive_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
-                           directive in PASSIVE_DIRECTIVES]
+    passive_csp_sources = [source for source_list in
+                           [csp.get(directive, csp.get('default-src', [])) for directive in PASSIVE_DIRECTIVES]
+                           for source in source_list]
 
     # Now to make the piggies squeal
 
@@ -220,7 +221,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
                             else output['result'])
         output['policy']['unsafeEval'] = True
 
-    # If the site is https, it shouldn't allow any http: as a source (active content)
+    # If the site is https, it shouldn't allow any http: as a source (passive content)
     if (urlparse(response.url).scheme == 'https' and
        [source for source in passive_csp_sources if 'http:' in source or 'ftp:' in source]):
         output['result'] = ('csp-implemented-with-insecure-scheme-in-passive-content-only' if output['result'] is None
