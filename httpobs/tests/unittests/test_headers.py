@@ -258,6 +258,18 @@ class TestContentSecurityPolicy(TestCase):
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
             self.assertFalse(content_security_policy(self.reqs)['policy']['insecureBaseUri'])
 
+        # Test for insecureSchemePassive
+        values = (
+            "default-src * http: https: data: 'unsafe-inline' 'unsafe-eval'",
+            "default-src 'none'; img-src http:",
+            "default-src 'none' https://mozilla.org; img-src http://mozilla.org",
+            "default-src https:; media-src http://mozilla.org; script-src http:",
+        )
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            self.assertTrue(content_security_policy(self.reqs)['policy']['insecureSchemePassive'])
+
 
 class TestCookies(TestCase):
     def setUp(self):
