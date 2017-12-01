@@ -133,6 +133,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         'antiClickjacking': False,
         'defaultNone': False,
         'insecureBaseUri': False,
+        'insecureFormAction': False,
         'insecureSchemeActive': False,
         'insecureSchemePassive': False,
         'strictDynamic': False,
@@ -163,6 +164,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # Get the various directives we look at
     base_uri = csp.get('base-uri') or {'*'}
     frame_ancestors = headers['http'].get('frame-ancestors', {'*'}) if headers['http'] is not None else {'*'}
+    form_action = csp.get('form-action') or {'*'}
     object_src = csp.get('object-src') or csp.get('default-src') or {'*'}
     script_src = csp.get('script-src') or csp.get('default-src') or {'*'}
     style_src = csp.get('style-src') or csp.get('default-src') or {'*'}
@@ -246,6 +248,7 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # Some other checks for the CSP analyzer
     output['policy']['antiClickjacking'] = (not bool(frame_ancestors.intersection(DANGEROUSLY_BROAD)))
     output['policy']['insecureBaseUri'] = bool(base_uri.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE))
+    output['policy']['insecureFormAction'] = (bool(form_action.intersection(DANGEROUSLY_BROAD)))
     output['policy']['unsafeObjects'] = bool(object_src.intersection(DANGEROUSLY_BROAD))
 
     # Once we're done, convert every set() in csp to an array

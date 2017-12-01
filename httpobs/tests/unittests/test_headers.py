@@ -270,6 +270,28 @@ class TestContentSecurityPolicy(TestCase):
             self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
             self.assertTrue(content_security_policy(self.reqs)['policy']['insecureSchemePassive'])
 
+        # Test for insecureFormAction
+        values = (
+            "default-src *; form-action 'none'",
+            "default-src *; form-action 'self'",
+            "default-src 'none'; form-action 'self' https://mozilla.org",
+            "form-action 'self' https://mozilla.org",
+        )
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            self.assertFalse(content_security_policy(self.reqs)['policy']['insecureFormAction'])
+
+        values = (
+            "default-src *",
+            "default-src 'none'",
+            "form-action https:",
+        )
+
+        for value in values:
+            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            self.assertTrue(content_security_policy(self.reqs)['policy']['insecureFormAction'])
+
 
 class TestCookies(TestCase):
     def setUp(self):
