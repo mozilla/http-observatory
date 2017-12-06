@@ -212,8 +212,8 @@ def select_scan_host_history(site_id: int) -> list:
     # Get all of the site's historic scans
     with get_cursor() as cur:
         cur.execute("""SELECT id, grade, score, end_time FROM scans
-                         WHERE site_id = (%s)
-                         AND state = (%s)
+                         WHERE site_id = %s
+                         AND state = %s
                          ORDER BY end_time ASC;""",
                     (site_id, STATE_FINISHED))
 
@@ -306,7 +306,7 @@ def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) 
 def select_scan_recent_scan(site_id: int, recent_in_seconds=API_CACHED_RESULT_TIME) -> dict:
     with get_cursor() as cur:
         cur.execute("""SELECT * FROM scans
-                         WHERE site_id = (%s)
+                         WHERE site_id = %s
                          AND start_time >= NOW() - INTERVAL '%s seconds'
                          ORDER BY start_time DESC
                          LIMIT 1""",
@@ -322,7 +322,7 @@ def select_site_headers(hostname: str) -> dict:
     # Return the site's headers
     with get_cursor() as cur:
         cur.execute("""SELECT public_headers, private_headers, cookies FROM sites
-                         WHERE domain = (%s)
+                         WHERE domain = %s
                          ORDER BY creation_time DESC
                          LIMIT 1""",
                     (hostname,))
@@ -347,7 +347,7 @@ def select_site_id(hostname: str) -> int:
     # See if the site exists already
     with get_cursor() as cur:
         cur.execute("""SELECT id FROM sites
-                         WHERE domain=(%s)
+                         WHERE domain = %s
                          ORDER BY creation_time DESC
                          LIMIT 1""",
                     (hostname,))
@@ -392,7 +392,7 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
     else:
         with get_cursor() as cur:
             cur.execute("""UPDATE scans
-                             SET (state) = (%s)
+                             SET state = %s
                              WHERE id = %s
                              RETURNING *""",
                         (state, scan_id))
@@ -405,7 +405,7 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
 def update_scans_dequeue_scans(num_to_dequeue: int = 0) -> dict:
     with get_cursor() as cur:
         cur.execute("""UPDATE scans
-                         SET (state) = (%s)
+                         SET state = %s
                          FROM (
                            SELECT sites.domain, scans.site_id, scans.id AS scan_id, scans.state
                              FROM scans
