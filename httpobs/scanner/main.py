@@ -1,6 +1,6 @@
 from random import randrange
 from time import sleep
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from httpobs.conf import (BROKER_URL,
                           SCANNER_ALLOW_KICKSTART,
@@ -29,7 +29,7 @@ def main():
     # Parse the BROKER_URL
     broker_url = urlparse(BROKER_URL)
 
-    if broker_url.scheme.lower() != 'redis':  # Currently the de-queuer only support redis
+    if broker_url.scheme.lower() not in ('redis', 'redis+socket'):  # Currently the de-queuer only support redis
         print('Sorry, the scanner currently only supports redis.', file=sys.stderr)
         sys.exit(1)
 
@@ -103,10 +103,17 @@ def main():
 
         # Verify that the broker is still up; if it's down, let's sleep and try again later
         try:
-            conn = redis.Connection(host=broker_url.hostname,
-                                    port=broker_url.port or 6379,
-                                    db=int(broker_url.path[1:]),
-                                    password=broker_url.password)
+            if broker_url.scheme.lower() == 'redis':
+                conn = redis.Connection(host=broker_url.hostname,
+                                        port=broker_url.port or 6379,
+                                        db=int(broker_url.path[1:] if len(broker_url.path) > 0 else 0),
+                                        password=broker_url.password)
+            else:
+                conn = redis.UnixDomainSocketConnection(path=broker_url.path,
+                                                        db=int(parse_qs(broker_url.query).get(
+                                                            'virtual_host', ['0'])
+                                                            [0]))
+
             conn.connect()
             conn.can_read()
             conn.disconnect()
