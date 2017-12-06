@@ -169,10 +169,12 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     script_src = csp.get('script-src') or csp.get('default-src') or {'*'}
     style_src = csp.get('style-src') or csp.get('default-src') or {'*'}
 
-    # Remove 'unsafe-inline' if nonce or hash are used are in script-src
+    # Remove 'unsafe-inline' if nonce or hash are used in script-src or style-src
     # See: https://github.com/mozilla/http-observatory/issues/88
-    if any(source.startswith(NONCES_HASHES) for source in script_src) and '\'unsafe-inline\'' in script_src:
-        script_src.remove('\'unsafe-inline\'')
+    #      https://github.com/mozilla/http-observatory/issues/277
+    for source_list in (script_src, style_src):
+        if any(source.startswith(NONCES_HASHES) for source in source_list) and '\'unsafe-inline\'' in source_list:
+            source_list.remove('\'unsafe-inline\'')
 
     # If a script-src uses 'strict-dynamic', we need to:
     # 1. Check to make sure there's a valid nonce/hash source
