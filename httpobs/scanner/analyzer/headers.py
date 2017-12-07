@@ -58,7 +58,6 @@ def __parse_csp(csp_string: str) -> dict:
         # While technically valid in that you just use the first entry, we are saying that repeated
         # directives are invalid so that people notice it
         if directive in csp:
-            print(csp)
             raise ValueError('Repeated policy directives are invalid')
         else:
             csp[directive] = values
