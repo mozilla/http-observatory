@@ -1,5 +1,10 @@
 from celery import Celery
-from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
+from celery.exceptions import (
+    SoftTimeLimitExceeded,
+    TimeLimitExceeded,
+    WorkerLostError,
+    WorkerShutdown,
+    WorkerTerminate)
 
 from httpobs.conf import DEVELOPMENT_MODE
 from httpobs.database import (insert_test_results,
@@ -45,8 +50,10 @@ def scan(hostname: str, site_id: int, scan_id: int):
                             reqs['responses']['auto'].status_code)
 
     # catch the celery timeout, which will almost certainly occur in retrieve_all()
-    except (SoftTimeLimitExceeded, TimeLimitExceeded):
+    except SoftTimeLimitExceeded:
         update_scan_state(scan_id, STATE_ABORTED, error='site unresponsive')
+    except (TimeLimitExceeded, WorkerLostError, WorkerShutdown, WorkerTerminate):
+        raise
     # the database is down, oh no!
     except IOError:
         print('database down, aborting scan on {hostname}'.format(hostname=hostname), file=sys.stderr)
