@@ -853,8 +853,8 @@ class TestStrictTransportSecurity(TestCase):
         self.assertTrue(result['pass'])
         self.assertTrue(result['preloaded'])
 
-        # Cloudflare doesn't include subdomains
-        self.reqs['responses']['https'].url = 'https://cloudflare.com/'
+        # Facebook doesn't include subdomains
+        self.reqs['responses']['https'].url = 'https://facebook.com/'
 
         result = strict_transport_security(self.reqs)
 
@@ -863,8 +863,8 @@ class TestStrictTransportSecurity(TestCase):
         self.assertTrue(result['pass'])
         self.assertTrue(result['preloaded'])
 
-        # Android.com is preloaded, but only for HPKP, not HSTS
-        self.reqs['responses']['https'].url = 'https://android.com/'
+        # dropboxusercontent.com is preloaded, but only for HPKP, not HSTS
+        self.reqs['responses']['https'].url = 'https://dropboxusercontent.com/'
 
         result = strict_transport_security(self.reqs)
 
