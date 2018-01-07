@@ -3,6 +3,7 @@ from unittest import TestCase
 
 from httpobs.scanner.analyzer.headers import (content_security_policy,
                                               cookies,
+                                              cookies_samesite,
                                               public_key_pinning,
                                               referrer_policy,
                                               strict_transport_security,
@@ -549,6 +550,208 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-session-without-secure-flag', result['result'])
         self.assertFalse(result['pass'])
+
+
+class TestCookiesSameSite(TestCase):
+    def setUp(self):
+        self.reqs = empty_requests()
+
+    def tearDown(self):
+        self.reqs = None
+
+    def test_missing(self):
+        result = cookies_samesite(self.reqs)
+
+        self.assertEquals('samesite-cookies-not-found', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_missing_session_cookies(self):
+        cookie = Cookie(name='foo',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies_samesite(self.reqs)
+
+        self.assertEquals('samesite-cookies-not-found', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_session_not_used(self):
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies_samesite(self.reqs)
+
+        self.assertEquals('samesite-session-not-used', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_session_used(self):
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'SameSite': None},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies_samesite(self.reqs)
+
+        self.assertEquals('samesite-session-used', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_session_used_case_insensitive(self):
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'samesite': None},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies_samesite(self.reqs)
+
+        self.assertEquals('samesite-session-used', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_session_used_with_value(self):
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'SameSite': 'Strict'},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'SameSite': 'Lax'},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies_samesite(self.reqs)
+
+        self.assertEquals('samesite-session-used-with-value', result['result'])
+        self.assertTrue(result['pass'])
+
+    def test_session_used_with_value_case_insensitive(self):
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'SameSite': 'striCt'},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'SameSite': 'lAx'},
+                        secure=False,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies_samesite(self.reqs)
+
+        self.assertEquals('samesite-session-used-with-value', result['result'])
+        self.assertTrue(result['pass'])
 
 
 class TestPublicKeyPinning(TestCase):

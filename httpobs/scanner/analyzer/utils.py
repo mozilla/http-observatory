@@ -58,6 +58,11 @@ def only_if_worse(new_result: str, old_result: str, order) -> str:
         return old_result
 
 
+# Check if a cookie is a session identifier
+def is_session_cookie(cookie):
+    return any(i in cookie.name.lower() for i in ('login', 'sess'))
+
+
 # Let this file be run directly so you can see the JSON for the Google HSTS thingie
 if __name__ == '__main__':
     print(hsts)

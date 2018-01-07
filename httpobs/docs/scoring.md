@@ -3,7 +3,7 @@
 **Last Updated:** 2017-07-26 april@mozilla.com<br>
 **Author:** april@mozilla.com
 
-All websites start with a baseline score of 100, and receive penalties or bonuses from there. The minimum score is 0, but there is no maximum score. Bonus points are only awarded if the site's score without them is 90 (A) or greater. Currently, the highest possible score in the HTTP Observatory is 130.
+All websites start with a baseline score of 100, and receive penalties or bonuses from there. The minimum score is 0, but there is no maximum score. Bonus points are only awarded if the site's score without them is 90 (A) or greater. Currently, the highest possible score in the HTTP Observatory is 140.
 
 Although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
 
@@ -45,6 +45,14 @@ cookies-session-without-secure-flag-<br>but-protected-by-hsts | Session cookie s
 cookies-without-secure-flag | Cookies set without using the `Secure` flag or set over http | -20
 cookies-session-without-httponly-flag | Session cookie set without using the `HttpOnly` flag | -30
 cookies-session-without-secure-flag | Session cookie set without using the `Secure` flag or set over http | -40
+<br>
+
+[Cookies SameSite](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Cookies) | Description | Modifier
+--- | --- | :---:
+samesite-session-used-with-value | All session cookies have `SameSite` flag set with a value of either `Strict` or `Lax` | 10
+samesite-session-used | 'All session cookies have `SameSite` flag set | 10
+samesite-session-not-used | Session Cookies set without `SameSite` flag | 0
+samesite-cookies-not-found | No cookies detected | 0
 <br>
 
 [Cross-origin Resource Sharing (CORS)](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Cross-origin_Resource_Sharing) | Description | Modifier
