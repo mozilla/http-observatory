@@ -1,6 +1,6 @@
 from .content import contribute, subresource_integrity
-from .headers import (content_security_policy, cookies, public_key_pinning, referrer_policy, strict_transport_security,
-                      x_content_type_options, x_xss_protection, x_frame_options)
+from .headers import (content_security_policy, cookies, cookies_samesite, public_key_pinning, referrer_policy,
+                      strict_transport_security, x_content_type_options, x_xss_protection, x_frame_options)
 from .misc import cross_origin_resource_sharing, redirection
 
 __all__ = [
@@ -12,6 +12,7 @@ __all__ = [
 tests = (
     content_security_policy,
     cookies,
+    cookies_samesite,
     contribute,
     cross_origin_resource_sharing,
     public_key_pinning,

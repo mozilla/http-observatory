@@ -136,6 +136,24 @@ SCORE_TABLE = {
         'modifier': -40,
     },
 
+    # Cookies: SameSite
+    'samesite-session-used-with-value': {
+        'description': 'All session cookies have SameSite flag set with a value of either Strict or Lax',
+        'modifier': 10,
+    },
+    'samesite-session-used': {
+        'description': 'All session cookies have SameSite flag set',
+        'modifier': 10,
+    },
+    'samesite-session-not-used': {
+        'description': 'Session cookie set without SameSite flag',
+        'modifier': 0,
+    },
+    'samesite-cookies-not-found': {
+        'description': 'No cookies detected',
+        'modifier': 0,
+    },
+
     # Cross-origin resource sharing
     'cross-origin-resource-sharing-not-implemented': {
         'description': 'Content is not visible via cross-origin resource sharing (CORS) files or headers',

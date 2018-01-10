@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
-from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
+from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse, is_session_cookie
 
 
 # Ignore the CloudFlare __cfduid tracking cookies. They *are* actually bad, but it is out of a site's
@@ -335,7 +335,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                                                                       'max-age', 'path', 'port', 'secure']}
 
             # Is it a session identifier?
-            sessionid = any(i in cookie.name.lower() for i in ('login', 'sess'))
+            sessionid = is_session_cookie(cookie)
 
             if not cookie.secure and hsts:
                 output['result'] = only_if_worse('cookies-without-secure-flag-but-protected-by-hsts',
@@ -374,6 +374,75 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     if output['result'] in ('cookies-not-found', expectation):
         output['pass'] = True
 
+    return output
+
+
+@scored_test
+def cookies_samesite(reqs: dict, expectation='samesite-session-used-with-value') -> dict:
+    """
+    :param reqs: dictionary containing all the request and response objects
+    :param expectation: test expectation
+        samesite-session-used-with-value: All session cookies have SameSite flag set with a value of either
+          Strict or Lax
+        samesite-session-used: All session cookies have SameSite flag set
+        samesite-session-not-used: Session Cookies set without SameSite flag
+        samesite-cookies-not-found: No cookies found in HTTP requests
+    :return: dictionary with:
+        data: the cookie jar
+        expectation: test expectation
+        pass: whether the site's configuration met its expectation
+        result: short string describing the result of the test
+    """
+    output = {
+        'data': None,
+        'expectation': expectation,
+        'pass': True,
+        'result': None,
+    }
+    session = reqs['session']  # all requests and their associated cookies
+
+    # The order of how bad the various results are
+    goodness = ['samesite-session-used-with-value',
+                'samesite-session-used',
+                'samesite-session-not-used']
+
+    # If there are no cookies
+    if not session.cookies:
+        output['result'] = 'samesite-cookies-not-found'
+    else:
+        # There are certain cookies we ignore, because they are set by service providers and sites have
+        # no control over them.
+        for cookie in COOKIES_TO_DELETE:
+            del(session.cookies[cookie])
+
+        found_session = False
+        for cookie in session.cookies:
+            # Is it a session identifier?
+            sessionid = is_session_cookie(cookie)
+            if not sessionid:
+                continue
+            found_session = True
+            found_samesite = False
+            for key in cookie._rest:
+                if key.lower() != 'samesite':
+                    continue
+                found_samesite = True
+                value = cookie.get_nonstandard_attr(key)
+
+                if value is not None and (value.lower() == "strict" or value.lower() == "lax"):
+                    output['result'] = only_if_worse('samesite-session-used-with-value',
+                                                     output['result'],
+                                                     goodness)
+                else:
+                    output['result'] = only_if_worse('samesite-session-used',
+                                                     output['result'],
+                                                     goodness)
+            if not found_samesite:
+                output['result'] = only_if_worse('samesite-session-not-used',
+                                                 output['result'],
+                                                 goodness)
+        if not found_session:
+            output['result'] = 'samesite-cookies-not-found'
     return output
 
 
