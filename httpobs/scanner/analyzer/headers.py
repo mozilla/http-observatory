@@ -364,7 +364,6 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
             # Anti-CSRF tokens should be set using the SameSite option
             if anticsrf and not cookie.samesite:
-                print(cookie.name)
                 output['result'] = only_if_worse('cookies-anticsrf-without-samesite-flag',
                                                  output['result'],
                                                  goodness)
