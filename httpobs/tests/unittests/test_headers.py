@@ -305,6 +305,7 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-not-found', result['result'])
         self.assertTrue(result['pass'])
+        self.assertIsNone(result['sameSite'])
 
     def test_secure_with_httponly_sessions(self):
         # Python cookies are the literal worst, seriously, the worst
@@ -390,6 +391,154 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-secure-with-httponly-sessions', result['result'])
         self.assertTrue(result['pass'])
+        self.assertFalse(result['sameSite'])
+
+    def test_secure_with_httponly_sessions_and_samesite(self):
+        cookie = Cookie(name='SESSIONID_UNSET',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': True},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        cookie = Cookie(name='SESSIONID_STRICT',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': 'Strict'},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        cookie = Cookie(name='SESSIONID_LAX',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': 'Lax'},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies(self.reqs)
+
+        self.assertEquals('cookies-secure-with-httponly-sessions-and-samesite', result['result'])
+        self.assertEquals({
+                           'SESSIONID_LAX': {
+                                             'domain': 'mozilla.com',
+                                             'expires': None,
+                                             'httponly': True,
+                                             'max-age': None,
+                                             'path': '/',
+                                             'port': 443,
+                                             'samesite': 'Lax',
+                                             'secure': True
+                           },
+                           'SESSIONID_STRICT': {
+                                                'domain': 'mozilla.com',
+                                                'expires': None,
+                                                'httponly': True,
+                                                'max-age': None,
+                                                'path': '/',
+                                                'port': 443,
+                                                'samesite': 'Strict',
+                                                'secure': True
+                           },
+                           'SESSIONID_UNSET': {'domain': 'mozilla.com',
+                                               'expires': None,
+                                               'httponly': True,
+                                               'max-age': None,
+                                               'path': '/',
+                                               'port': 443,
+                                               'samesite': 'Strict',
+                                               'secure': True}
+                           },
+                          result['data'])
+        self.assertTrue(result['pass'])
+        self.assertTrue(result['sameSite'])
+
+    def test_anticsrf_without_samesite(self):
+        cookie = Cookie(name='CSRFTOKEN',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies(self.reqs)
+
+        self.assertEquals('cookies-anticsrf-without-samesite-flag', result['result'])
+        self.assertFalse(result['pass'])
+        self.assertFalse(result['sameSite'])
+
+    def test_samesite_invalid(self):
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': 'Invalid'},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies(self.reqs)
+
+        self.assertEquals('cookies-samesite-flag-invalid', result['result'])
+        self.assertFalse(result['pass'])
+        self.assertIsNone(result['sameSite'])
 
     def test_regular_cookie_no_secure_but_hsts(self):
         cookie = Cookie(name='foo',
@@ -416,6 +565,7 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-without-secure-flag-but-protected-by-hsts', result['result'])
         self.assertFalse(result['pass'])
+        self.assertFalse(result['sameSite'])
 
     def test_session_cookie_no_secure_but_hsts(self):
         cookie = Cookie(name='SESSIONID',
@@ -442,6 +592,7 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-session-without-secure-flag-but-protected-by-hsts', result['result'])
         self.assertFalse(result['pass'])
+        self.assertFalse(result['sameSite'])
 
     def test_no_secure(self):
         cookie = Cookie(name='foo',
@@ -467,6 +618,7 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-without-secure-flag', result['result'])
         self.assertFalse(result['pass'])
+        self.assertFalse(result['sameSite'])
 
     def test_session_no_httponly(self):
         cookie = Cookie(name='SESSIONID',
@@ -492,6 +644,7 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-session-without-httponly-flag', result['result'])
         self.assertFalse(result['pass'])
+        self.assertFalse(result['sameSite'])
 
     def test_session_no_secure(self):
         cookie = Cookie(name='SESSIONID',
@@ -517,6 +670,7 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-session-without-secure-flag', result['result'])
         self.assertFalse(result['pass'])
+        self.assertFalse(result['sameSite'])
 
         # https://github.com/mozilla/http-observatory/issues/97
         cookie = Cookie(name='SESSIONID',
@@ -542,6 +696,7 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-session-without-secure-flag', result['result'])
         self.assertFalse(result['pass'])
+        self.assertFalse(result['sameSite'])
 
 
 class TestPublicKeyPinning(TestCase):
