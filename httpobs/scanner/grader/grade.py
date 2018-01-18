@@ -134,7 +134,7 @@ SCORE_TABLE = {
         'modifier': -20,
     },
     'cookies-samesite-flag-invalid': {
-        'description': 'Cookies are set with SameSite set neither to Strict nor to Lax',
+        'description': 'Cookies use SameSite flag, but set to something other than Strict or Lax',
         'modifier': -20,
     },
     'cookies-anticsrf-without-samesite-flag': {

@@ -1,9 +1,9 @@
 # HTTP Observatory Scoring Methodology
 
-**Last Updated:** 2017-07-26 april@mozilla.com<br>
+**Last Updated:** 2018-01-18 april@mozilla.com<br>
 **Author:** april@mozilla.com
 
-All websites start with a baseline score of 100, and receive penalties or bonuses from there. The minimum score is 0, but there is no maximum score. Bonus points are only awarded if the site's score without them is 90 (A) or greater. Currently, the highest possible score in the HTTP Observatory is 130.
+All websites start with a baseline score of 100, and receive penalties or bonuses from there. The minimum score is 0, but there is no maximum score. Bonus points are only awarded if the site's score without them is 90 (A) or greater. Currently, the highest possible score in the HTTP Observatory is 135.
 
 Although both the letter grade ranges and modifiers are essentially arbitrary, they are based on feedback from industry professionals on how important passing or failing a given test is likely to be.
 
@@ -38,11 +38,14 @@ contribute-json-invalid-json | Contribute.json file cannot be parsed | -10
 
 [Cookies](https://wiki.mozilla.org/Security/Guidelines/Web_Security#Cookies) | Description | Modifier
 --- | --- | :---:
+cookies-secure-with-httponly-sessions-and-samesite | All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin restrictions are in place via the SameSite flag | 5
 cookies-not-found | No cookies detected | 0
 cookies-secure-with-httponly-sessions | All cookies use the `Secure` flag and all session cookies use the `HttpOnly` flag | 0
 cookies-without-secure-flag-<br>but-protected-by-hsts | Cookies set without using the `Secure` flag, but transmission over HTTP prevented by HSTS | -5
 cookies-session-without-secure-flag-<br>but-protected-by-hsts | Session cookie set without the `Secure` flag, but transmission over HTTP prevented by HSTS | -10
 cookies-without-secure-flag | Cookies set without using the `Secure` flag or set over http | -20
+cookies-samesite-flag-invalid | Cookies use SameSite flag, but set to something other than Strict or Lax | -20
+cookies-anticsrf-without-samesite-flag | Anti-CSRF tokens set without using the SameSite flag | -20
 cookies-session-without-httponly-flag | Session cookie set without using the `HttpOnly` flag | -30
 cookies-session-without-secure-flag | Session cookie set without using the `Secure` flag or set over http | -40
 <br>
