@@ -107,6 +107,12 @@ SCORE_TABLE = {
     },
 
     # Cookies
+    'cookies-secure-with-httponly-sessions-and-samesite': {
+        'description': ('All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin'
+                        'restrictions are in place via the SameSite flag'),
+        'modifier': 5,
+
+    },
     'cookies-secure-with-httponly-sessions': {
         'description': 'All cookies use the Secure flag and all session cookies use the HttpOnly flag',
         'modifier': 0,
@@ -125,6 +131,14 @@ SCORE_TABLE = {
     },
     'cookies-without-secure-flag': {
         'description': 'Cookies set without using the Secure flag or set over http',
+        'modifier': -20,
+    },
+    'cookies-samesite-flag-invalid': {
+        'description': 'Cookies are set with SameSite set neither to Strict nor to Lax',
+        'modifier': -20,
+    },
+    'cookies-anticsrf-without-samesite-flag': {
+        'description': 'Anti-CSRF tokens set without using the SameSite flag',
         'modifier': -20,
     },
     'cookies-session-without-httponly-flag': {
