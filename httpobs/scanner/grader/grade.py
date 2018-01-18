@@ -108,7 +108,7 @@ SCORE_TABLE = {
 
     # Cookies
     'cookies-secure-with-httponly-sessions-and-samesite': {
-        'description': ('All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin'
+        'description': ('All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin '
                         'restrictions are in place via the SameSite flag'),
         'modifier': 5,
 
