@@ -9,9 +9,11 @@ from httpobs.conf import (BROKER_URL,
                           SCANNER_CYCLE_SLEEP_TIME,
                           SCANNER_DATABASE_RECONNECTION_SLEEP_TIME,
                           SCANNER_MAINTENANCE_CYCLE_FREQUENCY,
+                          SCANNER_MATERIALIZED_VIEW_REFRESH_FREQUENCY,
                           SCANNER_MAX_CPU_UTILIZATION,
                           SCANNER_MAX_LOAD)
 from httpobs.database import (periodic_maintenance,
+                              refresh_materialized_views,
                               update_scans_dequeue_scans)
 from httpobs.scanner.tasks import scan
 
@@ -25,6 +27,7 @@ import sys
 def main():
     # Start each scanner at a random point in the range to spread out database maintenance
     dequeue_loop_count = randrange(0, SCANNER_MAINTENANCE_CYCLE_FREQUENCY)
+    materialized_view_loop_count = randrange(0, SCANNER_MATERIALIZED_VIEW_REFRESH_FREQUENCY)
 
     # Parse the BROKER_URL
     broker_url = urlparse(BROKER_URL)
@@ -78,7 +81,6 @@ def main():
                     time=str(datetime.datetime.now()).split('.')[0],
                     num=num),
                     file=sys.stderr)
-                num = 0
 
             # Forcibly restart if things are going real bad, sleep for a bit to avoid flagging
             if num > SCANNER_ALLOW_KICKSTART_NUM_ABORTED and SCANNER_ALLOW_KICKSTART:
@@ -100,6 +102,25 @@ def main():
             pass
         finally:
             dequeue_loop_count += 1
+            num = 0
+
+        # Every so often we need to refresh the materialized views that the statistics depend on
+        try:
+            if materialized_view_loop_count % SCANNER_MATERIALIZED_VIEW_REFRESH_FREQUENCY == 0:
+                print('[{time}] INFO: Refreshing materialized views.'.format(
+                    time=str(datetime.datetime.now()).split('.')[0]),
+                    file=sys.stderr)
+
+                materialized_view_loop_count = 0
+                refresh_materialized_views()
+
+                print('[{time}] INFO: Materialized views refreshed.'.format(
+                    time=str(datetime.datetime.now()).split('.')[0]),
+                    file=sys.stderr)
+        except:
+            pass
+        finally:
+            materialized_view_loop_count += 1
 
         # Verify that the broker is still up; if it's down, let's sleep and try again later
         try:

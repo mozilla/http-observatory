@@ -180,14 +180,6 @@ def periodic_maintenance() -> int:
     :return: the number of scans that were closed out
     """
     with get_cursor() as cur:
-        # Update the various materialized views
-        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY latest_scans;")
-        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY earliest_scans;")
-        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY grade_distribution;")
-        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY grade_distribution_all_scans;")
-        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY scan_score_difference_distribution;")
-        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY scan_score_difference_distribution_summation;")
-
         # Mark all scans that have been sitting unfinished for at least SCANNER_ABORT_SCAN_TIME as ABORTED
         cur.execute("""UPDATE scans
                          SET (state, end_time) = (%s, NOW())
@@ -197,7 +189,24 @@ def periodic_maintenance() -> int:
                            AND start_time < NOW() - INTERVAL '%s seconds';""",
                     (STATE_ABORTED, STATE_ABORTED, STATE_FAILED, STATE_FINISHED, SCANNER_ABORT_SCAN_TIME))
 
-        return cur.rowcount
+    return cur.rowcount
+
+
+def refresh_materialized_views() -> None:
+    """
+    Refresh every view in the database as used for grade statistics
+    :return: None
+    """
+    with get_cursor() as cur:
+        # Update the various materialized views
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY latest_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY earliest_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY grade_distribution;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY grade_distribution_all_scans;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY scan_score_difference_distribution;")
+        cur.execute("REFRESH MATERIALIZED VIEW CONCURRENTLY scan_score_difference_distribution_summation;")
+
+    return None
 
 
 def select_star_from(table: str) -> dict:
