@@ -89,7 +89,7 @@ def main():
                     print('[{time}] ERROR: Celery appears to be hung. Attempting to kickstart the scanners.'.format(
                         time=str(datetime.datetime.now()).split('.')[0]),
                         file=sys.stderr)
-                    subprocess.call(['pkill', '-u', 'httpobs', '-f', 'httpobs-scan-worker'])
+                    subprocess.call(['pkill', '-u', 'httpobs'])
                 except FileNotFoundError:
                     print('[{time}] ERROR: Tried to kickstart, but no pkill found.'.format(
                         time=str(datetime.datetime.now()).split('.')[0]),
