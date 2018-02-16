@@ -164,9 +164,6 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                 # Check to see if it's the same origin or second-level domain
                 if src.netloc == '' or samesld:
                     secureorigin = True
-                elif src.netloc != '' and '.' not in src.netloc:  # like localhost
-                    secureorigin = False
-                    scripts_on_foreign_origin = True
                 else:
                     secureorigin = False
                     scripts_on_foreign_origin = True
