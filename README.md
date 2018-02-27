@@ -51,7 +51,7 @@ $ httpobs-local-scan --http-port 8080 --https-port 8443 --path '/foo/bar' \
 ```
 
 ## Running a local scanner with Docker
-* Install [Docker Toolbox](https://www.docker.com/products/docker-toolbox) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+* Install [Docker Toolbox](https://docs.docker.com/toolbox/overview/) and [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
 
 ```bash
 # Install the HTTP Observatory client and requests library
