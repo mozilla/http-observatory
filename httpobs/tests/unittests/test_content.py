@@ -134,12 +134,7 @@ class TestSubResourceIntegrity(TestCase):
         self.reqs = None
 
     def test_no_scripts(self):
-        self.reqs['resources']['__path__'] = """
-        <html>
-            <head></head>
-            <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_no_scripts.html')
 
         result = subresource_integrity(self.reqs)
 
@@ -169,14 +164,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
     def test_same_origin(self):
-        self.reqs['resources']['__path__'] = """
-        <html>
-            <head>
-              <script src="/static/js/foo.js"></script>
-            </head>
-            <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_sameorigin1.html')
 
         result = subresource_integrity(self.reqs)
 
@@ -184,14 +172,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
         # On the same second-level domain
-        self.reqs['resources']['__path__'] = """
-        <html>
-            <head>
-              <script src="https://www.mozilla.org/static/js/foo.js"></script>
-            </head>
-            <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_sameorigin2.html')
 
         result = subresource_integrity(self.reqs)
 
@@ -208,18 +189,7 @@ class TestSubResourceIntegrity(TestCase):
 
     def test_implemented_external_scripts_https(self):
         # load from a remote site
-        self.reqs['resources']['__path__'] = """
-        <html>
-          <head>
-            <script src="/static/js/foo.js"></script>
-            <script src="https://fb.me/react-0.14.7.min.js"
-                    integrity="sha384-zTm/dblzLXQNp3CgY+hfaC/WJ6h4XtNrePh2CW2+rO9GPuNiPb9jmthvAL+oI/dQ"
-                    crossorigin="anonymous">
-            </script>
-          <head>
-          <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_impl_external_https1.html')
 
         result = subresource_integrity(self.reqs)
 
@@ -227,18 +197,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
         # load from an intranet / localhost
-        self.reqs['resources']['__path__'] = """
-        <html>
-          <head>
-            <script src="/static/js/foo.js"></script>
-            <script src="https://localhost/react-0.14.7.min.js"
-                    integrity="sha384-zTm/dblzLXQNp3CgY+hfaC/WJ6h4XtNrePh2CW2+rO9GPuNiPb9jmthvAL+oI/dQ"
-                    crossorigin="anonymous">
-            </script>
-          <head>
-          <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_impl_external_https2.html')
 
         result = subresource_integrity(self.reqs)
 
@@ -246,17 +205,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
     def test_implemented_same_origin(self):
-        self.reqs['resources']['__path__'] = """
-        <html>
-          <head>
-            <script src="/static/js/react-0.14.7.min.js"
-                    integrity="sha384-zTm/dblzLXQNp3CgY+hfaC/WJ6h4XtNrePh2CW2+rO9GPuNiPb9jmthvAL+oI/dQ"
-                    crossorigin="anonymous">
-            </script>
-          <head>
-          <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_impl_sameorigin.html')
 
         result = subresource_integrity(self.reqs)
 
@@ -264,15 +213,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertTrue(result['pass'])
 
     def test_not_implemented_external_scripts_https(self):
-        self.reqs['resources']['__path__'] = """
-        <html>
-          <head>
-            <script src="/static/js/foo.js"></script>
-            <script src="https://fb.me/react-0.14.7.min.js"></script>
-          <head>
-          <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_notimpl_external_https.html')
 
         result = subresource_integrity(self.reqs)
 
@@ -280,20 +221,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertFalse(result['pass'])
 
     def test_implemented_external_scripts_http(self):
-        self.reqs['resources']['__path__'] = """
-        <html>
-          <head>
-            <script src="/static/js/foo.js"></script>
-            <script src="http://fb.me/react-0.14.6.min.js"
-                    integrity="sha384-zTm/dblzLXQNp3CgY+hfaC/WJ6h4XtNrePh2CW2+rO9GPuNiPb9jmthvAL+oI/dQ"
-                    crossorigin="anonymous"></script>
-            <script src="https://fb.me/react-0.14.7.min.js"
-                    integrity="sha384-zTm/dblzLXQNp3CgY+hfaC/WJ6h4XtNrePh2CW2+rO9GPuNiPb9jmthvAL+oI/dQ"
-                    crossorigin="anonymous"></script>
-            <head>
-          <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_impl_external_http.html')
 
         result = subresource_integrity(self.reqs)
 
@@ -301,15 +229,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertFalse(result['pass'])
 
     def test_not_implemented_external_scripts_http(self):
-        self.reqs['resources']['__path__'] = """
-        <html>
-          <head>
-            <script src="/static/js/foo.js"></script>
-            <script src="http://fb.me/react-0.14.6.min.js"></script>
-            <head>
-          <body></body>
-        </html>
-        """
+        self.reqs = empty_requests('test_content_sri_notimpl_external_http.html')
 
         result = subresource_integrity(self.reqs)
 
