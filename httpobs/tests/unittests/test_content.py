@@ -171,6 +171,14 @@ class TestSubResourceIntegrity(TestCase):
         self.assertEquals(result['result'], 'sri-not-implemented-but-all-scripts-loaded-from-secure-origin')
         self.assertTrue(result['pass'])
 
+        # On the same second-level domain, but without a protocol
+        self.reqs = empty_requests('test_content_sri_sameorigin3.html')
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals('sri-not-implemented-and-external-scripts-not-loaded-securely', result['result'])
+        self.assertFalse(result['pass'])
+
         # On the same second-level domain, with https:// specified
         self.reqs = empty_requests('test_content_sri_sameorigin2.html')
 
@@ -228,8 +236,24 @@ class TestSubResourceIntegrity(TestCase):
         self.assertEquals('sri-implemented-but-external-scripts-not-loaded-securely', result['result'])
         self.assertFalse(result['pass'])
 
+    def test_implemented_external_scripts_noproto(self):
+        self.reqs = empty_requests('test_content_sri_impl_external_noproto.html')
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals('sri-implemented-but-external-scripts-not-loaded-securely', result['result'])
+        self.assertFalse(result['pass'])
+
     def test_not_implemented_external_scripts_http(self):
         self.reqs = empty_requests('test_content_sri_notimpl_external_http.html')
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals('sri-not-implemented-and-external-scripts-not-loaded-securely', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_not_implemented_external_scripts_noproto(self):
+        self.reqs = empty_requests('test_content_sri_notimpl_external_noproto.html')
 
         result = subresource_integrity(self.reqs)
 

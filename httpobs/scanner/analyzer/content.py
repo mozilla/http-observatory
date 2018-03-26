@@ -161,15 +161,28 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                 samesld = True if (psl.privatesuffix(urlparse(response.url).netloc) ==
                                    psl.privatesuffix(src.netloc)) else False
 
+                if src.scheme == '':
+                    if src.netloc == '':
+                        # Relative URL (src="/path")
+                        relativeorigin = True
+                        relativeprotocol = False
+                    else:
+                        # Relative protocol (src="//host/path")
+                        relativeorigin = False
+                        relativeprotocol = True
+                else:
+                    relativeorigin = False
+                    relativeprotocol = False
+
                 # Check to see if it's the same origin or second-level domain
-                if src.netloc == '' or samesld:
+                if relativeorigin or (samesld and not relativeprotocol):
                     secureorigin = True
                 else:
                     secureorigin = False
                     scripts_on_foreign_origin = True
 
                 # See if it's a secure scheme
-                if src.scheme == 'https' or (src.scheme == '' and urlparse(response.url).scheme == 'https'):
+                if src.scheme == 'https' or (relativeorigin and urlparse(response.url).scheme == 'https'):
                     securescheme = True
                 else:
                     securescheme = False
@@ -187,6 +200,11 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                                                          goodness)
                     elif not integrity and securescheme:
                         output['result'] = only_if_worse('sri-not-implemented-but-external-scripts-loaded-securely',
+                                                         output['result'],
+                                                         goodness)
+                    elif not integrity and not securescheme and samesld:
+                        output['result'] = only_if_worse('sri-not-implemented-and-external-scripts'
+                                                         '-not-loaded-securely',
                                                          output['result'],
                                                          goodness)
                     elif not integrity and not securescheme:
