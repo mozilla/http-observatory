@@ -171,7 +171,7 @@ class TestSubResourceIntegrity(TestCase):
         self.assertEquals(result['result'], 'sri-not-implemented-but-all-scripts-loaded-from-secure-origin')
         self.assertTrue(result['pass'])
 
-        # On the same second-level domain
+        # On the same second-level domain, with https:// specified
         self.reqs = empty_requests('test_content_sri_sameorigin2.html')
 
         result = subresource_integrity(self.reqs)
