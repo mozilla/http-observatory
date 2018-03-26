@@ -11,6 +11,7 @@ def empty_requests(http_equiv_file=None) -> dict:
     req = {
         'hostname': 'http-observatory.security.mozilla.org',
         'resources': {
+            '__path__': None,
             '/': None,
             '/clientaccesspolicy.xml': None,
             '/contribute.json': None,
@@ -25,6 +26,16 @@ def empty_requests(http_equiv_file=None) -> dict:
         },
         'session': UserDict(),
     }
+
+    # Parse the HTML file for its own headers, if requested
+    if http_equiv_file:
+        __dirname = os.path.abspath(os.path.dirname(__file__))
+
+        with open(os.path.join(__dirname, 'unittests', 'files', http_equiv_file), 'r') as f:
+            html = f.read()
+
+        # Load the HTML file into the object for content tests.
+        req['resources']['__path__'] = html
 
     req['responses']['auto'].headers = {
         'Content-Type': 'text/html',
@@ -44,12 +55,7 @@ def empty_requests(http_equiv_file=None) -> dict:
 
     # Parse the HTML file for its own headers, if requested
     if http_equiv_file:
-        __dirname = os.path.abspath(os.path.dirname(__file__))
-
-        with open(os.path.join(__dirname, 'unittests', 'files', http_equiv_file), 'r') as f:
-            html = f.read()
-
-        req['responses']['auto'].http_equiv = parse_http_equiv_headers(html)
+        req['responses']['auto'].http_equiv = parse_http_equiv_headers(req['resources']['__path__'])
     else:
         req['responses']['auto'].http_equiv = {}
 
