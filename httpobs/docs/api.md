@@ -133,7 +133,6 @@ Example:
   "D+": 60,
   "D": 110,
   "D-": 215,
-  "E": 298,
   "F": 46770
 }
 ```
@@ -148,7 +147,7 @@ Example:
   "site3.mozilla.org": "C+",
   "site4.mozilla.org": "F",
   "site5.mozilla.org": "F",
-  "site6.mozilla.org": "E",
+  "site6.mozilla.org": "B",
   "site7.mozilla.org": "F",
   "site8.mozilla.org": "B+",
   "site9.mozilla.org": "A+",
