@@ -1142,6 +1142,22 @@ class TestXXSSProtection(TestCase):
         self.assertEquals('x-xss-protection-header-invalid', result['result'])
         self.assertFalse(result['pass'])
 
+    def test_header_invalid_syntax(self):
+        self.reqs['responses']['auto'].headers['X-XSS-Protection'] = '1 mode=block'
+
+        result = x_xss_protection(self.reqs)
+
+        self.assertEquals('x-xss-protection-header-invalid', result['result'])
+        self.assertFalse(result['pass'])
+
+    def test_header_invalid_this_one_goes_to_eleven(self):
+        self.reqs['responses']['auto'].headers['X-XSS-Protection'] = '11'
+
+        result = x_xss_protection(self.reqs)
+
+        self.assertEquals('x-xss-protection-header-invalid', result['result'])
+        self.assertFalse(result['pass'])
+
     def test_disabled(self):
         self.reqs['responses']['auto'].headers['X-XSS-Protection'] = '0'
 

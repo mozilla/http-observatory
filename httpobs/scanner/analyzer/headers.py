@@ -787,25 +787,27 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
         output['data'] = xxssp[0:256]  # code defensively
 
         # Parse out the X-XSS-Protection header
-        try:
-            if xxssp[0] not in ('0', '1'):
-                raise ValueError
+        # webkit only checks the first character for 0 to return disabled
+        if xxssp[0] == '0':
+            output['result'] = 'x-xss-protection-disabled'
+            return output
 
-            enabled = True if xxssp[0] == '1' else False
+        # append enabled= to have string parse out nicely as below
+        xxssp = "enabled="+xxssp
+        # {'enabled': '1', 'mode': 'block', 'report': 'https://www.example.com/__reporturi__'}
+        xxssp = {d.split('=')[0].strip():
+                 (d.split('=')[1].strip() if '=' in d else None) for d in xxssp.split(';')}
 
-            # {'1': None, 'mode': 'block', 'report': 'https://www.example.com/__reporturi__'}
-            xxssp = {d.split('=')[0].strip():
-                     (d.split('=')[1].strip() if '=' in d else None) for d in xxssp.split(';')}
-        except:
+        if xxssp['enabled'] != '1':
             output['result'] = 'x-xss-protection-header-invalid'
             return output
+        else:
+            enabled = True
 
         if enabled and xxssp.get('mode') == 'block':
             output['result'] = 'x-xss-protection-enabled-mode-block'
         elif enabled:
             output['result'] = 'x-xss-protection-enabled'
-        elif not enabled:
-            output['result'] = 'x-xss-protection-disabled'
 
     else:
         output['result'] = 'x-xss-protection-not-implemented'
