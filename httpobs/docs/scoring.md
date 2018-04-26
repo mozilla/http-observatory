@@ -126,7 +126,7 @@ sri-not-implemented-<br>but-external-scripts-loaded-securely | Subresource Integ
 request-did-not-return-status-code-200 | Site did not return a status code of 200 (deprecated) | -5
 sri-implemented-<br>but-external-scripts-not-loaded-securely | Subresource Integrity (SRI) implemented, but external scripts are loaded over http | -20
 html-not-parsable | Claims to be html, but cannot be parsed | -20
-sri-not-implemented-<br>and-external-scripts-not-loaded-securely | Subresource Integrity (SRI) is not implemented, and external scripts are loaded over http | -50
+sri-not-implemented-<br>and-external-scripts-not-loaded-securely | Subresource Integrity (SRI) is not implemented, and external scripts are not loaded over https | -50
 <br>
 
 [X-Content-Type-Options](https://infosec.mozilla.org/Security/Guidelines/Web_Security#x-content-type-options) | Description | Modifier
