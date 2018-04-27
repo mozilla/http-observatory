@@ -11,7 +11,8 @@ def scan(hostname, **kwargs):
     API, you can use this to scan arbitrary ports and paths.
 
     Args:
-        hostname (str): domain name for host to be scanned
+        hostname (str): domain name for host to be scanned. Must not include
+            protocol (http://, https://) or port number (:80).
 
     Kwargs:
         http_port (int): port to scan for HTTP, instead of 80

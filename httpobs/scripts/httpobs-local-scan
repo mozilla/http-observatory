@@ -6,6 +6,7 @@ import argparse
 import json
 
 from operator import itemgetter
+from urllib.parse import urlparse
 
 
 if __name__ == "__main__":
@@ -40,7 +41,7 @@ if __name__ == "__main__":
                         help='output format (json or report), default of json',
                         type=str)
     parser.add_argument('hostname',
-                        help='host to scan',
+                        help='host to scan (hostname only, no protocol or port)',
                         type=str)
 
     args = vars(parser.parse_args())
@@ -51,6 +52,14 @@ if __name__ == "__main__":
 
     # print out help if no arguments are specified, or bad arguments
     if len(args) == 0 or output_format not in ('json', 'report'):
+        parser.print_help()
+        parser.exit(-1)
+
+    # port can't be appended to hostname because we need both HTTP and HTTPS ports.
+    # protocol can't be prefixed either, as we scan both of those ports.
+    #
+    # use urlparse to ensure that neither of these are present in the hostname.
+    if urlparse(args['hostname']).scheme or urlparse('http://' + args['hostname']).port:
         parser.print_help()
         parser.exit(-1)
 
