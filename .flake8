@@ -1,3 +1,6 @@
 [flake8]
+exclude =
+    .flake8
+    .git
 ignore = E722  # ignore bare excepts until I can get around to fixing them
 max-line-length = 119
