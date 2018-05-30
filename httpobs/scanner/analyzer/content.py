@@ -190,9 +190,9 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                 # Add it to the scripts data result, if it's not a relative URI
                 if not secureorigin:
                     output['data'][script['src']] = {
-                                                        'crossorigin': crossorigin,
-                                                        'integrity': integrity
-                                                    }
+                        'crossorigin': crossorigin,
+                        'integrity': integrity
+                    }
 
                     if integrity and not securescheme:
                         output['result'] = only_if_worse('sri-implemented-but-external-scripts-not-loaded-securely',

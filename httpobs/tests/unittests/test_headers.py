@@ -462,35 +462,36 @@ class TestCookies(TestCase):
 
         self.assertEquals('cookies-secure-with-httponly-sessions-and-samesite', result['result'])
         self.assertEquals({
-                           'SESSIONID_LAX': {
-                                             'domain': 'mozilla.com',
-                                             'expires': None,
-                                             'httponly': True,
-                                             'max-age': None,
-                                             'path': '/',
-                                             'port': 443,
-                                             'samesite': 'Lax',
-                                             'secure': True
-                           },
-                           'SESSIONID_STRICT': {
-                                                'domain': 'mozilla.com',
-                                                'expires': None,
-                                                'httponly': True,
-                                                'max-age': None,
-                                                'path': '/',
-                                                'port': 443,
-                                                'samesite': 'Strict',
-                                                'secure': True
-                           },
-                           'SESSIONID_UNSET': {'domain': 'mozilla.com',
-                                               'expires': None,
-                                               'httponly': True,
-                                               'max-age': None,
-                                               'path': '/',
-                                               'port': 443,
-                                               'samesite': 'Strict',
-                                               'secure': True}
-                           },
+                          'SESSIONID_LAX': {
+                              'domain': 'mozilla.com',
+                              'expires': None,
+                              'httponly': True,
+                              'max-age': None,
+                              'path': '/',
+                              'port': 443,
+                              'samesite': 'Lax',
+                              'secure': True
+                          },
+                          'SESSIONID_STRICT': {
+                              'domain': 'mozilla.com',
+                              'expires': None,
+                              'httponly': True,
+                              'max-age': None,
+                              'path': '/',
+                              'port': 443,
+                              'samesite': 'Strict',
+                              'secure': True
+                          },
+                          'SESSIONID_UNSET': {
+                              'domain': 'mozilla.com',
+                              'expires': None,
+                              'httponly': True,
+                              'max-age': None,
+                              'path': '/',
+                              'port': 443,
+                              'samesite': 'Strict',
+                              'secure': True}
+                          },
                           result['data'])
         self.assertTrue(result['pass'])
         self.assertTrue(result['sameSite'])
