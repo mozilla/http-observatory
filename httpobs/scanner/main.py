@@ -176,6 +176,9 @@ def main():
                 sleep(SCANNER_CYCLE_SLEEP_TIME / 2)
             else:  # If the queue was empty, lets sleep a little bit
                 sleep(SCANNER_CYCLE_SLEEP_TIME)
+        except KeyboardInterrupt:
+            print('Exiting scanner backend')
+            sys.exit(1)
         except:  # this shouldn't trigger, but we don't want a scan breakage to kill the scanner
             print('[{time}] ERROR: Unknown celery error.'.format(
                 time=str(datetime.datetime.now()).split('.')[0]),
