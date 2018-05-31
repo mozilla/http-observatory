@@ -4,8 +4,10 @@ from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
 
 from flask import Blueprint, jsonify, make_response, request
+from werkzeug.http import http_date
 
 import httpobs.database as database
+import json
 import os.path
 
 
@@ -154,6 +156,7 @@ def api_get_scanner_states():
 @api.route('/api/v1/__stats__', methods=['GET', 'OPTIONS'])
 @add_response_headers(cors=True)
 def api_get_scanner_stats():
+    pretty = True if request.args.get('pretty', '').lower() == 'true' else False
     verbose = True if request.args.get('verbose', '').lower() == 'true' else False
 
     # Get the scanner statistics from the backend database, defaulting to the quick stats only
@@ -171,7 +174,11 @@ def api_get_scanner_stats():
     for k, v in grade_improvements_all.items():
         grade_improvements[min(5, max(0, int(k / 20)))] += v
 
-    return jsonify({
+    # Convert all the datetimes to HTTP strings
+    stats['most_recent_scan_datetime'] = http_date(stats['most_recent_scan_datetime'].utctimetuple())
+    stats['recent_scans'] = {http_date(i.utctimetuple()): v for i, v in stats['recent_scans']}
+
+    resp = make_response(json.dumps({
         'gradeDistribution': {
             'latest': grade_distribution,
             'all': grade_distribution_all_scans,
@@ -195,7 +202,11 @@ def api_get_scanner_stats():
             },
         },
         'states': stats['states'],
-    })
+    }, indent=4 if pretty else None, sort_keys=pretty, default=str))
+
+    resp.mimetype = 'application/json'
+
+    return resp
 
 
 @api.route('/api/v1/getScanResults', methods=['GET', 'OPTIONS'])
