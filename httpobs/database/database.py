@@ -272,7 +272,7 @@ def select_scan_scanner_statistics(verbose: bool=False) -> dict:
                              GROUP BY hour
                              ORDER BY hour DESC;""",
                         (STATE_FINISHED,))
-            recent_scans = {str(k): v for (k, v) in dict(cur.fetchall()).items()}
+            recent_scans = dict(cur.fetchall()).items()
         else:
             recent_scans = {}
             states = {}
