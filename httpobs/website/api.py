@@ -1,4 +1,5 @@
 from httpobs.conf import API_COOLDOWN
+from httpobs.scanner import STATES
 from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
@@ -150,7 +151,9 @@ def api_get_recent_scans():
 @api.route('/api/v1/getScannerStates', methods=['GET', 'OPTIONS'])
 @add_response_headers(cors=True)
 def api_get_scanner_states():
-    return jsonify(database.select_scan_scanner_statistics()['states'])
+    stats = database.select_scan_scanner_statistics(verbose=True)
+
+    return jsonify({state: stats['states'].get(state, 0) for state in STATES})
 
 
 @api.route('/api/v1/__stats__', methods=['GET', 'OPTIONS'])
@@ -201,7 +204,7 @@ def api_get_scanner_stats():
                 'numPerHourLast24Hours': stats['recent_scans'],
             },
         },
-        'states': stats['states'],
+        'states': {state: stats['states'].get(state, 0) for state in STATES},
     }, indent=4 if pretty else None, sort_keys=pretty, default=str))
 
     resp.mimetype = 'application/json'
