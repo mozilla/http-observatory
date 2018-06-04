@@ -687,7 +687,7 @@ def x_content_type_options(reqs: dict, expectation='x-content-type-options-nosni
     if 'X-Content-Type-Options' in response.headers:
         output['data'] = response.headers['X-Content-Type-Options'][0:256]  # code defensively
 
-        if output['data'].lower() == 'nosniff':
+        if output['data'].strip().lower() == 'nosniff':
             output['result'] = 'x-content-type-options-nosniff'
         else:
             output['result'] = 'x-content-type-options-header-invalid'
@@ -781,7 +781,7 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
     }
     response = reqs['responses']['auto']
 
-    xxssp = response.headers.get('X-XSS-Protection')
+    xxssp = response.headers.get('X-XSS-Protection', '').strip()
 
     if xxssp:
         output['data'] = xxssp[0:256]  # code defensively

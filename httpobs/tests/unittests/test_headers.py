@@ -1059,12 +1059,13 @@ class TestXContentTypeOptions(TestCase):
         self.assertFalse(result['pass'])
 
     def test_nosniff(self):
-        self.reqs['responses']['auto'].headers['X-Content-Type-Options'] = 'nosniff'
+        for value in ('nosniff', 'nosniff '):
+            self.reqs['responses']['auto'].headers['X-Content-Type-Options'] = value
 
-        result = x_content_type_options(self.reqs)
+            result = x_content_type_options(self.reqs)
 
-        self.assertEquals('x-content-type-options-nosniff', result['result'])
-        self.assertTrue(result['pass'])
+            self.assertEquals('x-content-type-options-nosniff', result['result'])
+            self.assertTrue(result['pass'])
 
 
 class TestXFrameOptions(TestCase):
@@ -1105,12 +1106,13 @@ class TestXFrameOptions(TestCase):
         self.assertTrue(result['pass'])
 
     def test_deny(self):
-        self.reqs['responses']['auto'].headers['X-Frame-Options'] = 'DENY'
+        for value in ('DENY', 'DENY '):
+            self.reqs['responses']['auto'].headers['X-Frame-Options'] = value
 
-        result = x_frame_options(self.reqs)
+            result = x_frame_options(self.reqs)
 
-        self.assertEquals('x-frame-options-sameorigin-or-deny', result['result'])
-        self.assertTrue(result['pass'])
+            self.assertEquals('x-frame-options-sameorigin-or-deny', result['result'])
+            self.assertTrue(result['pass'])
 
     def test_enabled_via_csp(self):
         self.reqs['responses']['auto'].headers['X-Frame-Options'] = 'DENY'
@@ -1152,12 +1154,13 @@ class TestXXSSProtection(TestCase):
         self.assertFalse(result['pass'])
 
     def test_enabled_noblock(self):
-        self.reqs['responses']['auto'].headers['X-XSS-Protection'] = '1'
+        for value in ('1', '1 '):
+            self.reqs['responses']['auto'].headers['X-XSS-Protection'] = value
 
-        result = x_xss_protection(self.reqs)
+            result = x_xss_protection(self.reqs)
 
-        self.assertEquals('x-xss-protection-enabled', result['result'])
-        self.assertTrue(result['pass'])
+            self.assertEquals('x-xss-protection-enabled', result['result'])
+            self.assertTrue(result['pass'])
 
     def test_enabled_block(self):
         self.reqs['responses']['auto'].headers['X-XSS-Protection'] = '1; mode=block'
