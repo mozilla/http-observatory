@@ -78,7 +78,7 @@ SCORE_TABLE = {
     },
     'csp-implemented-with-insecure-scheme-in-passive-content-only': {
         'description': ('Content Security Policy (CSP) implemented, '
-                        'but secure site allows images or media to be loaded over http'),
+                        'but secure site allows images or media to be loaded over HTTP'),
         'modifier': -10,
     },
     'csp-implemented-with-unsafe-eval': {
@@ -94,7 +94,7 @@ SCORE_TABLE = {
     },
     'csp-implemented-with-insecure-scheme': {
         'description': ('Content Security Policy (CSP) implemented, '
-                        'but secure site allows resources to be loaded from http'),
+                        'but secure site allows resources to be loaded over HTTP'),
         'modifier': -20,
     },
     'csp-header-invalid': {
@@ -130,7 +130,7 @@ SCORE_TABLE = {
         'modifier': -10,
     },
     'cookies-without-secure-flag': {
-        'description': 'Cookies set without using the Secure flag or set over http',
+        'description': 'Cookies set without using the Secure flag or set over HTTP',
         'modifier': -20,
     },
     'cookies-samesite-flag-invalid': {
@@ -146,7 +146,7 @@ SCORE_TABLE = {
         'modifier': -30,
     },
     'cookies-session-without-secure-flag': {
-        'description': 'Session cookie set without using the Secure flag or set over http',
+        'description': 'Session cookie set without using the Secure flag or set over HTTP',
         'modifier': -40,
     },
 
@@ -188,7 +188,7 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'hpkp-not-implemented-no-https': {
-        'description': 'HTTP Public Key Pinning (HPKP) header can\'t be implemented without https',
+        'description': 'HTTP Public Key Pinning (HPKP) header can\'t be implemented without HTTPS',
         'modifier': 0,
     },
     'hpkp-invalid-cert': {
@@ -207,27 +207,27 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'redirection-to-https': {
-        'description': 'Initial redirection is to https on same host, final destination is https',
+        'description': 'Initial redirection is to HTTPS on same host, final destination is HTTPS',
         'modifier': 0,
     },
     'redirection-not-needed-no-http': {
-        'description': 'Not able to connect via http, so no redirection necessary',
+        'description': 'Not able to connect via HTTP, so no redirection necessary',
         'modifier': 0,
     },
     'redirection-off-host-from-http': {
-        'description': 'Initial redirection from http to https is to a different host, preventing HSTS',
+        'description': 'Initial redirection from HTTP to HTTPS is to a different host, preventing HSTS',
         'modifier': -5,
     },
     'redirection-not-to-https-on-initial-redirection': {
-        'description': 'Redirects to https eventually, but initial redirection is to another http URL',
+        'description': 'Redirects to HTTPS eventually, but initial redirection is to another HTTP URL',
         'modifier': -10,
     },
     'redirection-not-to-https': {
-        'description': 'Redirects, but final destination is not an https URL',
+        'description': 'Redirects, but final destination is not an HTTPS URL',
         'modifier': -20,
     },
     'redirection-missing': {
-        'description': 'Does not redirect to an https site',
+        'description': 'Does not redirect to an HTTPS site',
         'modifier': -20,
     },
     'redirection-invalid-cert': {
@@ -280,7 +280,7 @@ SCORE_TABLE = {
         'modifier': -20,
     },
     'hsts-not-implemented-no-https': {
-        'description': 'HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over https',
+        'description': 'HTTP Strict Transport Security (HSTS) header cannot be set for sites not available over HTTPS',
         'modifier': -20,
     },
     'hsts-invalid-cert': {
@@ -311,16 +311,16 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'sri-not-implemented-but-external-scripts-loaded-securely': {
-        'description': 'Subresource Integrity (SRI) not implemented, but all external scripts are loaded over https',
+        'description': 'Subresource Integrity (SRI) not implemented, but all external scripts are loaded over HTTPS',
         'modifier': -5,
     },
     'sri-implemented-but-external-scripts-not-loaded-securely': {
-        'description': ('Subresource Integrity (SRI) implemented, but external scripts are loaded over http or use '
+        'description': ('Subresource Integrity (SRI) implemented, but external scripts are loaded over HTTP or use '
                         'protocol-relative URLs via src="//..."'),
         'modifier': -20,
     },
     'sri-not-implemented-and-external-scripts-not-loaded-securely': {
-        'description': ('Subresource Integrity (SRI) not implemented, and external scripts are loaded over http or '
+        'description': ('Subresource Integrity (SRI) not implemented, and external scripts are loaded over HTTP or '
                         'use protocol-relative URLs via src="//..."'),
         'modifier': -50,
     },
