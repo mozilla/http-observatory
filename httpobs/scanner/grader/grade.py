@@ -320,7 +320,8 @@ SCORE_TABLE = {
         'modifier': -20,
     },
     'sri-not-implemented-and-external-scripts-not-loaded-securely': {
-        'description': 'Subresource Integrity (SRI) not implemented, and external scripts are not loaded over https',
+        'description': ('Subresource Integrity (SRI) not implemented, and external scripts are loaded over http or '
+                        'use protocol-relative URLs via src="//..."'),
         'modifier': -50,
     },
 
