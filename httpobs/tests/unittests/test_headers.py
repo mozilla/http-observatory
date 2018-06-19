@@ -1051,12 +1051,13 @@ class TestXContentTypeOptions(TestCase):
         self.assertFalse(result['pass'])
 
     def test_header_invalid(self):
-        self.reqs['responses']['auto'].headers['X-Content-Type-Options'] = 'whimsy'
+        for value in ('whimsy', 'nosniff, nosniff'):
+            self.reqs['responses']['auto'].headers['X-Content-Type-Options'] = value
 
-        result = x_content_type_options(self.reqs)
+            result = x_content_type_options(self.reqs)
 
-        self.assertEquals('x-content-type-options-header-invalid', result['result'])
-        self.assertFalse(result['pass'])
+            self.assertEquals('x-content-type-options-header-invalid', result['result'])
+            self.assertFalse(result['pass'])
 
     def test_nosniff(self):
         for value in ('nosniff', 'nosniff '):
@@ -1138,12 +1139,16 @@ class TestXXSSProtection(TestCase):
         self.assertFalse(result['pass'])
 
     def test_header_invalid(self):
-        self.reqs['responses']['auto'].headers['X-XSS-Protection'] = 'whimsy'
+        for value in ('whimsy',
+                      '2; mode=block',
+                      '1; mode=block; mode=block',
+                      '1; mode=block, 1; mode=block'):
+            self.reqs['responses']['auto'].headers['X-XSS-Protection'] = value
 
-        result = x_xss_protection(self.reqs)
+            result = x_xss_protection(self.reqs)
 
-        self.assertEquals('x-xss-protection-header-invalid', result['result'])
-        self.assertFalse(result['pass'])
+            self.assertEquals('x-xss-protection-header-invalid', result['result'])
+            self.assertFalse(result['pass'])
 
     def test_disabled(self):
         self.reqs['responses']['auto'].headers['X-XSS-Protection'] = '0'
