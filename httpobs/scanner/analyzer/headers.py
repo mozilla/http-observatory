@@ -772,6 +772,8 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
         pass: whether the site's configuration met its expectation
         result: short string describing the result of the test
     """
+    VALID_DIRECTIVES = ('0', '1', 'mode', 'report')
+    VALID_MODES = ('block',)
 
     output = {
         'data': None,
@@ -779,43 +781,60 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
         'pass': False,
         'result': None,
     }
+
+    enabled = False  # XXSSP enabled or not
+    valid = True     # XXSSP header valid or not
     response = reqs['responses']['auto']
+    header = response.headers.get('X-XSS-Protection', '').strip()
+    xxssp = {}
 
-    xxssp = response.headers.get('X-XSS-Protection', '').strip()
-
-    if xxssp:
-        output['data'] = xxssp[0:256]  # code defensively
+    if header:
+        output['data'] = header[0:256]  # code defensively
 
         # Parse out the X-XSS-Protection header
         try:
-            if xxssp[0] not in ('0', '1'):
+            if header[0] not in ('0', '1'):
                 raise ValueError
 
-            enabled = True if xxssp[0] == '1' else False
+            if header[0] == '1':
+                enabled = True
 
             # {'1': None, 'mode': 'block', 'report': 'https://www.example.com/__reporturi__'}
-            xxssp = {d.split('=')[0].strip():
-                     (d.split('=')[1].strip() if '=' in d else None) for d in xxssp.split(';')}
+            for directive in header.lower().split(';'):
+                k, v = [d.strip() for d in directive.split('=')] if '=' in directive else (directive.strip(), None)
+
+                # An invalid directive, like foo=bar
+                if k not in VALID_DIRECTIVES:
+                    raise ValueError
+
+                # An invalid mode, like mode=allow
+                if k == 'mode' and v not in VALID_MODES:
+                    raise ValueError
+
+                # A repeated directive, such as 1; mode=block; mode=block
+                if k in xxssp:
+                    raise ValueError
+
+                xxssp[k] = v
         except:
             output['result'] = 'x-xss-protection-header-invalid'
-            return output
+            valid = False
 
-        if enabled and xxssp.get('mode') == 'block':
+        if valid and enabled and xxssp.get('mode') == 'block':
             output['result'] = 'x-xss-protection-enabled-mode-block'
-        elif enabled:
+            output['pass'] = True
+        elif valid and enabled:
             output['result'] = 'x-xss-protection-enabled'
-        elif not enabled:
+            output['pass'] = True
+        elif valid and not enabled:
             output['result'] = 'x-xss-protection-disabled'
 
     else:
         output['result'] = 'x-xss-protection-not-implemented'
 
-    # The test passes if X-XSS-Protection is enabled in any capacity
-    if 'enabled' in output['result']:
-        output['pass'] = True
-
     # Allow sites to skip out of having X-XSS-Protection if they implement a strong CSP policy
-    if output['pass'] is False:
+    # Note that having an invalid XXSSP setting will still trigger, even with a good CSP policy
+    if valid and output['pass'] is False:
         if content_security_policy(reqs)['pass']:
             output['pass'] = True
             output['result'] = 'x-xss-protection-not-needed-due-to-csp'
