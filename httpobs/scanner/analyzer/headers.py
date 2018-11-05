@@ -335,13 +335,11 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                 if key.lower() == 'httponly' and getattr(cookie, 'httponly') is False:
                     cookie.httponly = True
                 elif key.lower() == 'samesite' and getattr(cookie, 'samesite') is False:
-                    if (cookie._rest[key] is True or
-                            cookie._rest[key] is None or
-                            cookie._rest[key].strip().lower() == 'strict'):
-                        cookie.samesite = 'Strict'
-                        output['sameSite'] = True
-                    elif cookie._rest[key].strip().lower() == 'lax':
+                    if cookie._rest[key] in (None, True) or cookie._rest[key].strip().lower() == 'lax':
                         cookie.samesite = 'Lax'
+                        output['sameSite'] = True
+                    elif cookie._rest[key].strip().lower() == 'strict':
+                        cookie.samesite = 'Strict'
                         output['sameSite'] = True
                     else:
                         output['result'] = only_if_worse('cookies-samesite-flag-invalid',
