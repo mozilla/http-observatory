@@ -439,6 +439,25 @@ class TestCookies(TestCase):
                         value='bar')
         self.reqs['session'].cookies.set_cookie(cookie)
 
+        cookie = Cookie(name='SESSIONID_STRICT',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': None},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
         cookie = Cookie(name='SESSIONID_LAX',
                         comment=None,
                         comment_url=None,
