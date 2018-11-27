@@ -2,5 +2,6 @@
 exclude =
     .flake8
     .git
-ignore = E722  # ignore bare excepts until I can get around to fixing them
+ignore = E722,  # ignore bare excepts until I can get around to fixing them
+         W504   # line break after binary operator
 max-line-length = 119

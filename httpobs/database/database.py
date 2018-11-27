@@ -124,7 +124,7 @@ def insert_test_results(site_id: int,
                         scan_id: int,
                         tests: list,
                         response_headers: dict,
-                        status_code: int=None) -> dict:
+                        status_code: int = None) -> dict:
     with get_cursor() as cur:
         tests_failed = tests_passed = 0
         score_with_extra_credit = uncurved_score = 100
@@ -239,7 +239,7 @@ def select_scan_host_history(site_id: int) -> list:
         return []
 
 
-def select_scan_scanner_statistics(verbose: bool=False) -> dict:
+def select_scan_scanner_statistics(verbose: bool = False) -> dict:
     # Get all the scanner statistics while minimizing the number of cursors needed
     with get_cursor() as cur:
         # Get the grade distribution across all scans (periodically refreshed)
