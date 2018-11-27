@@ -111,7 +111,7 @@ def __get(session, relative_path='/', headers=None, cookies=None):
         return None
 
 
-def __get_page_text(response: requests.Response, force: bool=False) -> str:
+def __get_page_text(response: requests.Response, force: bool = False) -> str:
     if response is None:
         return None
     elif response.status_code == 200 or force:  # Some pages we want to get the page text even with non-200s
