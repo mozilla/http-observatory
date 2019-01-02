@@ -80,36 +80,36 @@ $ docker-compose up -d
 ```
 
 ## Creating a local installation (tested on Ubuntu 15)
-```
+```bash
 # Install git, postgresql, and redis
-# sudo -s
-# apt-get install -y git libpq-dev postgresql redis-server
+$ sudo -s
+$ apt-get install -y git libpq-dev postgresql redis-server
 
 # Clone the repo
-# cd /opt
-# git clone https://github.com/mozilla/http-observatory.git
-# cd http-observatory
+$ cd /opt
+$ git clone https://github.com/mozilla/http-observatory.git
+$ cd http-observatory
 
 # Install the observatory and scanner
-# pip install .
-# pip3 install -r requirements.txt
+$ pip install .
+$ pip3 install -r requirements.txt
 
 # Install the database
-# su - postgres
+$ su - postgres
 $ createdb http_observatory
 $ psql http_observatory < httpobs/database/schema.sql
 $ psql http_observatory
 http_observatory=# \password httpobsapi
 http_observatory=# \password httpobsscanner
-# vi /etc/postgresql/9.4/main/postgresql.conf (set max_connections = 512, shared_buffers = 256MB)
-# service postgresql restart
+$ vi /etc/postgresql/9.4/main/postgresql.conf (set max_connections = 512, shared_buffers = 256MB)
+$ service postgresql restart
 
 # Create the httpobs user, and log/pid directories
-# useradd -m httpobs
-# install -m 750 -o httpobs -g httpobs -d /var/run/httpobs /var/log/httpobs
+$ useradd -m httpobs
+$ install -m 750 -o httpobs -g httpobs -d /var/run/httpobs /var/log/httpobs
 
 # Update the environmental variables
-# su - httpobs
+$ su - httpobs
 $ echo export HTTPOBS_API_URL="http://localhost:57001/api/v1" >> ~/.profile
 
 # Start the scanner
@@ -118,7 +118,7 @@ $ HTTPOBS_DATABASE_USER="httpobsscanner" HTTPOBS_DATABASE_PASS="....." \
     /opt/http-observatory/httpobs/scripts/httpobs-scan-worker
 
 # Start the API (in another terminal)
-# HTTPOBS_DATABASE_USER="httpobsapi" HTTPOBS_DATABASE_PASS="....." \
+$ HTTPOBS_DATABASE_USER="httpobsapi" HTTPOBS_DATABASE_PASS="....." \
     uwsgi --http :57001 --wsgi-file httpobs/website/main.py --processes 8 --callable app --master
 ```
 
