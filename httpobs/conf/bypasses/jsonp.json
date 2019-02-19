@@ -133,6 +133,20 @@
   "//a.tiles.mapbox.com/v3/zentralmedia.map-n2raeauc.jsonp",
   "//maps.google.ru/maps/vt",
   "//c1n2.hypercomments.com/stream/subscribe",
-  "//rec.ydf.yandex.ru/cookie"
+  "//rec.ydf.yandex.ru/cookie",
+  "//api-metrika.yandex.ru/management/v1/counter/1/operation/1",
+  "//app-sjint.marketo.com/index.php/form/getKnownLead",
+  "//app-e.marketo.com/index.php/form/getKnownLead",
+  "//a.sm.cn/api/getgamehotboarddata",
+  "//mkto.uber.com/index.php/form/getKnownLead",
+  "//www.aol.com/amp-proxy/api/finance-instruments/14.1.MSTATS_NYSE_L/",
+  "//df-webservices.comet.aol.com/sigfig/ws",
+  "//api.cmi.aol.com/content/alert/homepage-alert",
+  "//api.cmi.aol.com/catalog/cms/help-central-usaol-navigation-utility",
+  "//ui.comet.aol.com/",
+  "//portal.pf.aol.com/jsonmfus/",
+  "//search.twitter.com/trends.json",
+  "//twitter.com/statuses/user_timeline/yakumo119info.json",
+  "//twitter.com/status/user_timeline/kbeautysalon.json"
  ]
 }
