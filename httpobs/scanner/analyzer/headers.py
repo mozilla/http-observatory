@@ -4,13 +4,9 @@ from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
 
 
-# Ignore the CloudFlare __cfduid tracking cookies. They *are* actually bad, but it is out of a site's
-# control.  See https://github.com/mozilla/http-observatory/issues/121 for additional details. Hopefully
-# this will eventually be fixed on CloudFlare's end.
-
-# Also ignore the Heroku sticky session cookie, see:
+# Ignore the Heroku sticky session cookie, see:
 # https://github.com/mozilla/http-observatory/issues/282
-COOKIES_TO_DELETE = ['__cfduid', 'heroku-session-affinity']
+COOKIES_TO_DELETE = ['heroku-session-affinity']
 
 # CSP settings
 SHORTEST_DIRECTIVE = 'img-src'
