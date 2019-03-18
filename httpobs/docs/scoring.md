@@ -36,7 +36,7 @@ contribute-json-not-implemented | Contribute.json file missing from root of webs
 contribute-json-invalid-json | Contribute.json file cannot be parsed | -10
 <br>
 
-[Cookies](https://infosec.mozilla.org/Security/Guidelines/Web_Security#cookies) | Description | Modifier
+[Cookies](https://infosec.mozilla.org/guidelines/web_security#cookies) | Description | Modifier
 --- | --- | :---:
 cookies-secure-with-httponly-sessions-and-samesite | All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin restrictions are in place via the SameSite flag | 5
 cookies-not-found | No cookies detected | 0
@@ -50,7 +50,7 @@ cookies-session-without-httponly-flag | Session cookie set without using the `Ht
 cookies-session-without-secure-flag | Session cookie set without using the `Secure` flag or set over http | -40
 <br>
 
-[Cross-origin Resource Sharing (CORS)](https://infosec.mozilla.org/Security/Guidelines/Web_Security#cross-origin-resource-sharing) | Description | Modifier
+[Cross-origin Resource Sharing (CORS)](https://infosec.mozilla.org/guidelines/web_security#cross-origin-resource-sharing) | Description | Modifier
 --- | --- | :---:
 cross-origin-resource-sharing-<br>implemented-with-public-access | Public content is visible via cross-origin resource sharing (CORS) Access-Control-Allow-Origin header | 0
 cross-origin-resource-sharing-<br>implemented-with-restricted-access | Content is visible via cross-origin resource sharing (CORS) files or headers, but is restricted to specific domains | 0
@@ -59,7 +59,7 @@ xml-not-parsable | crossdomain.xml or clientaccesspolicy.xml claims to be xml, b
 cross-origin-resource-sharing-<br>implemented-with-universal-access | Content is visible via cross-origin resource sharing (CORS) file or headers | -50
 <br>
 
-[Content Security Policy](https://infosec.mozilla.org/Security/Guidelines/Web_Security#content-security_policy) | Description | Modifier
+[Content Security Policy](https://infosec.mozilla.org/guidelines/web_security#content-security_policy) | Description | Modifier
 --- | --- | :---:
 csp-implemented-with-no-unsafe-default-src-none | Content Security Policy (CSP) implemented with `default-src 'none'` and without `'unsafe-inline'` or `'unsafe-eval'` | 10
 csp-implemented-with-no-unsafe | Content Security Policy (CSP) implemented without `'unsafe-inline'` or `'unsafe-eval'` | 5
@@ -72,7 +72,7 @@ csp-not-implemented | Content Security Policy (CSP) header not implemented | -25
 csp-header-invalid | Content Security Policy (CSP) header cannot be parsed successfully | -25
 <br>
 
-[HTTP Public Key Pinning](https://infosec.mozilla.org/Security/Guidelines/Web_Security#http-public-key-pinning) | Description | Modifier
+[HTTP Public Key Pinning](https://infosec.mozilla.org/guidelines/web_security#http-public-key-pinning) | Description | Modifier
 --- | --- | :---:
 hpkp-preloaded | Preloaded via the HTTP Public Key Pinning (HPKP) preloading process | 0
 hpkp-implemented-<br>max-age-at-least-fifteen-days | HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000) | 0
@@ -83,7 +83,7 @@ hpkp-not-implemented-no-https | HTTP Public Key Pinning (HPKP) header can't be i
 hpkp-header-invalid | HTTP Public Key Pinning (HPKP) header cannot be recognized | -5
 <br>
 
-[HTTP Strict Transport Security](https://infosec.mozilla.org/Security/Guidelines/Web_Security#http-strict-transport-security) | Description | Modifier
+[HTTP Strict Transport Security](https://infosec.mozilla.org/guidelines/web_security#http-strict-transport-security) | Description | Modifier
 --- | --- | :---:
 hsts-preloaded | Preloaded via the HTTP Strict Transport Security (HSTS) preloading process | 5
 hsts-implemented-<br>max-age-at-least-six-months | HTTP Strict Transport Security (HSTS) header set to a minimum of six months (15768000) | 0
@@ -94,7 +94,7 @@ hsts-invalid-cert | HTTP Strict Transport Security (HSTS) header cannot be set, 
 hsts-header-invalid | HTTP Strict Transport Security (HSTS) header cannot be recognized | -20
 <br>
 
-[Redirections](https://infosec.mozilla.org/Security/Guidelines/Web_Security#http-redirections) | Description | Modifier
+[Redirections](https://infosec.mozilla.org/guidelines/web_security#http-redirections) | Description | Modifier
 --- | --- | :---:
 redirection-all-redirects-preloaded | All hosts redirected to are in the HTTP Strict Transport Security (HSTS) preload list | 0
 redirection-to-https | Initial redirection is to https on same host, final destination is https | 0
@@ -106,7 +106,7 @@ redirection-not-to-https | Redirects, but final destination is not an https URL 
 redirection-invalid-cert | Invalid certificate chain encountered during redirection | -20
 <br>
 
-[Referrer Policy](https://infosec.mozilla.org/Security/Guidelines/Web_Security#referrer-policy) | Description | Modifier
+[Referrer Policy](https://infosec.mozilla.org/guidelines/web_security#referrer-policy) | Description | Modifier
 --- | --- | :---:
 referrer-policy-private | `Referrer-Policy` header set to `no-referrer` or `same-origin`, `strict-origin` or `strict-origin-when-cross-origin` | 5
 referrer-policy-no-referrer-when-downgrade | `Referrer-Policy` header set to `no-referrer-when-downgrade` | 0
@@ -115,7 +115,7 @@ referrer-policy-unsafe | Referrer-Policy header unsafely set to `origin`, `origi
 referrer-policy-header-invalid | `Referrer-Policy` header cannot be recognized | -5
 <br>
 
-[Subresource Integrity](https://infosec.mozilla.org/Security/Guidelines/Web_Security#subresource-integrity) | Description | Modifier
+[Subresource Integrity](https://infosec.mozilla.org/guidelines/web_security#subresource-integrity) | Description | Modifier
 --- | --- | :---:
 sri-implemented-<br>and-all-scripts-loaded-securely | Subresource Integrity (SRI) is implemented and all scripts are loaded from a similar origin | 5
 sri-implemented-<br>and-external-scripts-loaded-securely | Subresource Integrity (SRI) is implemented and all scripts are loaded securely | 5
@@ -129,14 +129,14 @@ html-not-parsable | Claims to be html, but cannot be parsed | -20
 sri-not-implemented-<br>and-external-scripts-not-loaded-securely | Subresource Integrity (SRI) is not implemented, and external scripts are not loaded over https | -50
 <br>
 
-[X-Content-Type-Options](https://infosec.mozilla.org/Security/Guidelines/Web_Security#x-content-type-options) | Description | Modifier
+[X-Content-Type-Options](https://infosec.mozilla.org/guidelines/web_security#x-content-type-options) | Description | Modifier
 --- | --- | :---:
 x-content-type-options-nosniff | `X-Content-Type-Options` header set to `nosniff` | 0
 x-content-type-options-not-implemented | `X-Content-Type-Options` header not implemented | -5
 x-content-type-options-header-invalid | `X-Content-Type-Options` header cannot be recognized | -5
 <br>
 
-[X-Frame-Options](https://infosec.mozilla.org/Security/Guidelines/Web_Security#x-frame-options) | Description | Modifier
+[X-Frame-Options](https://infosec.mozilla.org/guidelines/web_security#x-frame-options) | Description | Modifier
 --- | --- | :---:
 x-frame-options-implemented-via-csp | `X-Frame-Options` (XFO) implemented via the CSP `frame-ancestors` directive | 5
 x-frame-options-allow-from-origin | `X-Frame-Options` (XFO) header uses `ALLOW-FROM uri` directive | 0
@@ -145,7 +145,7 @@ x-frame-options-not-implemented | `X-Frame-Options` (XFO) header not implemented
 x-frame-options-header-invalid | `X-Frame-Options` (XFO) header cannot be recognized | -20
 <br>
 
-[X-XSS-Protection](https://infosec.mozilla.org/Security/Guidelines/Web_Security#x-xss-protection) | Description | Modifier
+[X-XSS-Protection](https://infosec.mozilla.org/guidelines/web_security#x-xss-protection) | Description | Modifier
 --- | --- | :---:
 x-xss-protection-not-needed-due-to-csp | `X-XSS-Protection` header not needed due to strong Content Security Policy (CSP) header | 0
 x-xss-protection-enabled-mode-block | `X-XSS-Protection` header set to `1; mode=block` | 0
