@@ -27,6 +27,19 @@ Scoring Range | Grade
 
 ## Score Modifiers
 
+[Content Security Policy](https://infosec.mozilla.org/Security/Guidelines/Web_Security#content-security_policy) | Description | Modifier
+--- | --- | :---:
+csp-implemented-with-no-unsafe-default-src-none | Content Security Policy (CSP) implemented with `default-src 'none'` and without `'unsafe-inline'` or `'unsafe-eval'` | 10
+csp-implemented-with-no-unsafe | Content Security Policy (CSP) implemented without `'unsafe-inline'` or `'unsafe-eval'` | 5
+csp-implemented-with-unsafe-inline-in-style-src-only | Content Security Policy (CSP) implemented with unsafe directives inside `style-src`. This includes 'unsafe-inline', `data:`, or overly broad sources such as `https:`. | 0
+csp-implemented-with-insecure-scheme-in-passive-content-only | Content Security Policy (CSP) implemented, but secure site allows images or media to be loaded over http | -10
+csp-implemented-with-unsafe-eval | Content Security Policy (CSP) implemented, but allows `'unsafe-eval'` | -10
+csp-implemented-with-insecure-scheme | Content Security Policy (CSP) implemented, but secure site allows resources to be loaded from http | -20
+csp-implemented-with-unsafe-inline | Content Security Policy (CSP) implemented unsafely. This includes `\'unsafe-inline\'` or `data:` inside script-src, overly broad sources such as `https:` inside `object-src` or `script-src`, or not restricting the sources for `object-src` or `script-src`. | -20
+csp-not-implemented | Content Security Policy (CSP) header not implemented | -25
+csp-header-invalid | Content Security Policy (CSP) header cannot be parsed successfully | -25
+<br>
+
 [Contribute.json](https://www.contributejson.org/) | Description | Modifier
 --- | --- | :---:
 contribute-json-only-required-on-mozilla-properties | Contribute.json isn't required on websites that don't belong to Mozilla | 0
@@ -57,19 +70,6 @@ cross-origin-resource-sharing-<br>implemented-with-restricted-access | Content i
 cross-origin-resource-sharing-not-implemented | Content is not visible via cross-origin resource sharing (CORS) files or headers | 0
 xml-not-parsable | crossdomain.xml or clientaccesspolicy.xml claims to be xml, but cannot be parsed | -20
 cross-origin-resource-sharing-<br>implemented-with-universal-access | Content is visible via cross-origin resource sharing (CORS) file or headers | -50
-<br>
-
-[Content Security Policy](https://infosec.mozilla.org/Security/Guidelines/Web_Security#content-security_policy) | Description | Modifier
---- | --- | :---:
-csp-implemented-with-no-unsafe-default-src-none | Content Security Policy (CSP) implemented with `default-src 'none'` and without `'unsafe-inline'` or `'unsafe-eval'` | 10
-csp-implemented-with-no-unsafe | Content Security Policy (CSP) implemented without `'unsafe-inline'` or `'unsafe-eval'` | 5
-csp-implemented-with-unsafe-inline-in-style-src-only | Content Security Policy (CSP) implemented with unsafe directives inside `style-src`. This includes 'unsafe-inline', `data:`, or overly broad sources such as `https:`. | 0
-csp-implemented-with-insecure-scheme-in-passive-content-only | Content Security Policy (CSP) implemented, but secure site allows images or media to be loaded over http | -10
-csp-implemented-with-unsafe-eval | Content Security Policy (CSP) implemented, but allows `'unsafe-eval'` | -10
-csp-implemented-with-insecure-scheme | Content Security Policy (CSP) implemented, but secure site allows resources to be loaded from http | -20
-csp-implemented-with-unsafe-inline | Content Security Policy (CSP) implemented unsafely. This includes `\'unsafe-inline\'` or `data:` inside script-src, overly broad sources such as `https:` inside `object-src` or `script-src`, or not restricting the sources for `object-src` or `script-src`. | -20
-csp-not-implemented | Content Security Policy (CSP) header not implemented | -25
-csp-header-invalid | Content Security Policy (CSP) header cannot be parsed successfully | -25
 <br>
 
 [HTTP Public Key Pinning](https://infosec.mozilla.org/Security/Guidelines/Web_Security#http-public-key-pinning) | Description | Modifier
