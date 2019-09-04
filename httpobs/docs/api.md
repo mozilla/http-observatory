@@ -236,7 +236,7 @@ Example:
   "FINISHED": 46240,
   "PENDING": 122,
   "STARTING": 96,
-  "RUNNING: 128,
+  "RUNNING": 128,
 }
 ```
 
