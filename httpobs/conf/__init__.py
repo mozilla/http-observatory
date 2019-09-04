@@ -38,8 +38,8 @@ def __conf(section, param, type=None, default=None):
 DEVELOPMENT_MODE = True if environ.get('HTTPOBS_DEV') == 'yes' else False or __conf('global', 'development', bool)
 
 # API configuration
-API_ALLOW_VERBOSE_STATS_VIA_PROXY = (environ.get('HTTPOBS_ALLOW_VERBOSE_STATS_VIA_PROXY') == 'yes' or
-                                     __conf('api', 'allow_verbose_stats_via_proxy', bool, True))
+API_ALLOW_VERBOSE_STATS_FROM_PUBLIC = (environ.get('HTTPOBS_ALLOW_VERBOSE_STATS_FROM_PUBLIC') == 'yes' or
+                                       __conf('api', 'allow_verbose_stats_from_public', bool, True))
 API_CACHED_RESULT_TIME = int(environ.get('HTTPOBS_API_CACHED_RESULT_TIME') or __conf('api', 'cached_result_time'))
 API_COOLDOWN = int(environ.get('HTTPOBS_API_COOLDOWN') or __conf('api', 'cooldown', int))
 API_PORT = int(environ.get('HTTPOBS_API_PORT') or __conf('api', 'port', int))
