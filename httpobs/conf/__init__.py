@@ -13,7 +13,7 @@ _config_parser.read(['/etc/httpobs.conf', os.path.expanduser('~/.httpobs.conf')]
 
 
 # Return None if it's not in the config parser
-def __conf(section, param, type=None):
+def __conf(section, param, type=None, default=None):
     try:
         if type == str or type is None:
             return _config_parser.get(section, param)
@@ -28,13 +28,18 @@ def __conf(section, param, type=None):
     except (KeyError, configparser.NoSectionError):
         return None
     except:
-        print('Error with key {0} in section {1}'.format(param, section))
-        sys.exit(1)
+        if default:
+            return default
+        else:
+            print('Error with key {0} in section {1}'.format(param, section))
+            sys.exit(1)
 
 
 DEVELOPMENT_MODE = True if environ.get('HTTPOBS_DEV') == 'yes' else False or __conf('global', 'development', bool)
 
 # API configuration
+API_ALLOW_VERBOSE_STATS_VIA_PROXY = (environ.get('HTTPOBS_ALLOW_VERBOSE_STATS_VIA_PROXY') == 'yes' or
+                                     __conf('api', 'allow_verbose_stats_via_proxy', bool, True))
 API_CACHED_RESULT_TIME = int(environ.get('HTTPOBS_API_CACHED_RESULT_TIME') or __conf('api', 'cached_result_time'))
 API_COOLDOWN = int(environ.get('HTTPOBS_API_COOLDOWN') or __conf('api', 'cooldown', int))
 API_PORT = int(environ.get('HTTPOBS_API_PORT') or __conf('api', 'port', int))
