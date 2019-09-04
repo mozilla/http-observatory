@@ -1,4 +1,4 @@
-from httpobs.conf import API_COOLDOWN
+from httpobs.conf import API_ALLOW_VERBOSE_STATS_VIA_PROXY, API_COOLDOWN
 from httpobs.scanner import STATES
 from httpobs.scanner.grader import get_score_description, GRADES
 from httpobs.scanner.utils import valid_hostname
@@ -161,6 +161,10 @@ def api_get_scanner_states():
 def api_get_scanner_stats():
     pretty = True if request.args.get('pretty', '').lower() == 'true' else False
     verbose = True if request.args.get('verbose', '').lower() == 'true' else False
+
+    # Disallow proxied requests from the public if this setting is set
+    if verbose and not API_ALLOW_VERBOSE_STATS_VIA_PROXY:
+        verbose = True if len(request.access_route) == 1 else False
 
     # Get the scanner statistics from the backend database, defaulting to the quick stats only
     stats = database.select_scan_scanner_statistics(verbose)
