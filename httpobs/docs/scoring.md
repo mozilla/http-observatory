@@ -75,12 +75,8 @@ csp-header-invalid | Content Security Policy (CSP) header cannot be parsed succe
 [HTTP Public Key Pinning](https://infosec.mozilla.org/guidelines/web_security#http-public-key-pinning) | Description | Modifier
 --- | --- | :---:
 hpkp-preloaded | Preloaded via the HTTP Public Key Pinning (HPKP) preloading process | 0
-hpkp-implemented-<br>max-age-at-least-fifteen-days | HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000) | 0
-hpkp-implemented-<br>max-age-less-than-fifteen-days | HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000) | 0
-hpkp-not-implemented | HTTP Public Key Pinning (HPKP) header not implemented | 0
-hpkp-invalid-cert | HTTP Public Key Pinning (HPKP) header cannot be set, as site contains an invalid certificate chain | 0
-hpkp-not-implemented-no-https | HTTP Public Key Pinning (HPKP) header can't be implemented without https | 0
-hpkp-header-invalid | HTTP Public Key Pinning (HPKP) header cannot be recognized | -5
+hpkp-not-present | Deprecated HTTP Public Key Pinning (HPKP) header is not present | 0
+hpkp-is-deprecated | HTTP Public Key Pinning (HPKP) header is present, but HPKP is deprecated and no longer recommended | 0
 <br>
 
 [HTTP Strict Transport Security](https://infosec.mozilla.org/guidelines/web_security#http-strict-transport-security) | Description | Modifier

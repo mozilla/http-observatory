@@ -407,27 +407,21 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
 
 @scored_test
-def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
+def public_key_pinning(reqs: dict, expectation='hpkp-not-present') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation; possible results:
-      hpkp-not-implemented-no-https
-      hpkp-not-implemented
-      hpkp-implemented-max-age-less-than-fifteen-days
-      hpkp-implemented-max-age-at-least-fifteen-days
+      hpkp-not-present
       hpkp-preloaded
-      hpkp-header-invalid
-      hpkp-invalid-cert
+      hpkp-is-deprecated
     :return: dictionary with:
       data: the raw HPKP header
-        includesubdomains: whether the includeSubDomains directive is set
-        max-age: what the max
-        num-pins: the number of pins
+        preloaded: whether the domain was found in the preload list
+        includesubdomains: whether the includeSubDomains directive is set for a preloaded domain
       expectation: test expectation
       pass: whether the site's configuration met its expectation
       result: short string describing the result of the test
     """
-    FIFTEEN_DAYS = 1296000
 
     output = {
         'data': None,
@@ -437,48 +431,16 @@ def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
         'numPins': None,
         'pass': True,
         'preloaded': False,
-        'result': 'hpkp-not-implemented',
+        'result': 'hpkp-not-present',
     }
-    response = reqs['responses']['https']
+    # Check both HTTP and HTTPS responses for deprecated HPKP headers and for HPKP preload.
+    # The header should only be found in HTTPS, but it's deprecated no matter where it's found.
+    response = reqs['responses']['auto']
 
-    # If there's no HTTPS, we can't have HPKP
-    if response is None:
-        output['result'] = 'hpkp-not-implemented-no-https'
-
-    # Can't have HPKP without a valid certificate chain
-    elif not response.verified:
-        output['result'] = 'hpkp-invalid-cert'
-
-    elif 'Public-Key-Pins' in response.headers:
+    # If there's an HPKP header, include that in the results.
+    if 'Public-Key-Pins' in response.headers:
         output['data'] = response.headers['Public-Key-Pins'][0:2048]  # code against malicious headers
-
-        try:
-            pkp = [i.lower().strip() for i in output['data'].split(';')]
-            pins = []
-
-            for parameter in pkp:
-                if parameter.startswith('max-age='):
-                    output['max-age'] = int(parameter[8:128])  # defense
-                elif parameter.startswith('pin-sha256=') and parameter not in pins:
-                    pins.append(parameter)
-                elif parameter == 'includesubdomains':
-                    output['includeSubDomains'] = True
-            output['numPins'] = len(pins)
-
-            # You must set a max-age with HPKP
-            if output['max-age']:
-                if output['max-age'] < FIFTEEN_DAYS:
-                    output['result'] = 'hpkp-implemented-max-age-less-than-fifteen-days'
-                else:
-                    output['result'] = 'hpkp-implemented-max-age-at-least-fifteen-days'
-
-            # You must have at least two pins with HPKP and set max-age
-            if not output['max-age'] or len(pins) < 2:
-                raise ValueError
-
-        except:
-            output['result'] = 'hpkp-header-invalid'
-            output['pass'] = False
+        output['result'] = 'hpkp-is-deprecated'
 
     # If they're in the preloaded list, this overrides most anything else
     if response is not None:

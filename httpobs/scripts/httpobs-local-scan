@@ -27,7 +27,7 @@ if __name__ == "__main__":
                         type=str)
     parser.add_argument('--no-verify',
                         action='store_true',
-                        help='disable certificate verification in the HSTS/HPKP tests')
+                        help='disable certificate verification in the HSTS tests')
     parser.add_argument('--cookies',
                         default=argparse.SUPPRESS,
                         help='cookies to send in scan (json formatted)',

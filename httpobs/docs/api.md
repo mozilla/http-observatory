@@ -395,7 +395,7 @@ Example:
     "score_modifier": 0
   },
   "public-key-pinning": {
-    "expectation": "hpkp-not-implemented",
+    "expectation": "hpkp-not-present",
     "name": "public-key-pinning",
     "output": {
       "data": null,
@@ -405,8 +405,8 @@ Example:
       "preloaded": false
     },
     "pass": true,
-    "result": "hpkp-not-implemented",
-    "score_description": "HTTP Public Key Pinning (HPKP) header not implemented",
+    "result": "hpkp-not-present",
+    "score_description": "Deprecated HTTP Public Key Pinning (HPKP) header is not present",
     "score_modifier": 0
   },
   "redirection": {

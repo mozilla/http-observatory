@@ -170,34 +170,18 @@ SCORE_TABLE = {
         'modifier': -50,
     },
 
-    # Public Key Pinning
+    # Public Key Pinning (deprecated)
     'hpkp-preloaded': {
         'description': 'Preloaded via the HTTP Public Key Pinning (HPKP) preloading process',
         'modifier': 0,
     },
-    'hpkp-implemented-max-age-at-least-fifteen-days': {
-        'description': 'HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000)',
+    'hpkp-not-present': {
+        'description': 'Deprecated HTTP Public Key Pinning (HPKP) header is not present',
         'modifier': 0,
     },
-    'hpkp-implemented-max-age-less-than-fifteen-days': {
-        'description': 'HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000)',
-        'modifier': 0,
-    },
-    'hpkp-not-implemented': {
-        'description': 'HTTP Public Key Pinning (HPKP) header not implemented',
-        'modifier': 0,
-    },
-    'hpkp-not-implemented-no-https': {
-        'description': 'HTTP Public Key Pinning (HPKP) header can\'t be implemented without HTTPS',
-        'modifier': 0,
-    },
-    'hpkp-invalid-cert': {
-        'description': ('HTTP Public Key Pinning (HPKP) header cannot be set, '
-                        'as site contains an invalid certificate chain'),
-        'modifier': 0,
-    },
-    'hpkp-header-invalid': {
-        'description': 'HTTP Public Key Pinning (HPKP) header cannot be recognized',
+    'hpkp-is-deprecated': {
+        'description': ('HTTP Public Key Pinning (HPKP) header is present, but HPKP is deprecated '
+                        'and no longer recommended'),
         'modifier': -5,
     },
 
