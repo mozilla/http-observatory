@@ -1,7 +1,9 @@
 import httpobs.conf
 
 from httpobs.scanner.analyzer import NUM_TESTS, tests
-from httpobs.scanner.grader import get_grade_and_likelihood_for_score, get_score_description
+from httpobs.scanner.grader import (get_grade_and_likelihood_for_score,
+                                    get_score_description,
+                                    MINIMUM_SCORE_FOR_EXTRA_CREDIT)
 from httpobs.scanner.retriever import retrieve_all
 
 
@@ -53,25 +55,47 @@ def scan(hostname, **kwargs):
     if reqs['responses']['auto'] is None:
         return {'error': 'site down'}
 
-    # Get all the results
-    results = [test(reqs) for test in tests]
-    for result in results:
+    # Code based on httpobs.database.insert_test_results
+    tests_failed = tests_passed = 0
+    score_with_extra_credit = uncurved_score = 100
+    results = {}
+
+    for test in tests:
+        # Get result for this test
+        result = test(reqs)
+
+        # Add the result with a score_description
         result['score_description'] = get_score_description(result['result'])
+        results[result.pop('name')] = result
+
+        # Keep track of how many tests passed or failed
+        if result.get('pass'):
+            tests_passed += 1
+        else:
+            tests_failed += 1
+
+        # And keep track of the score
+        score_modifier = result.get('score_modifier')
+        score_with_extra_credit += score_modifier
+        if score_modifier < 0:
+            uncurved_score += score_modifier
+
+    # Only record the full score if the uncurved score already receives an A
+    score = score_with_extra_credit if uncurved_score >= MINIMUM_SCORE_FOR_EXTRA_CREDIT else uncurved_score
 
     # Get the score, grade, etc.
-    grades = get_grade_and_likelihood_for_score(100 + sum([result.get('score_modifier', 0) for result in results]))
-    tests_passed = sum([1 if result.get('pass') else 0 for result in results])
+    score, grade, likelihood_indicator = get_grade_and_likelihood_for_score(score)
 
     # Return the results
     return({
         'scan': {
-            'grade': grades[1],
-            'likelihood_indicator': grades[2],
+            'grade': grade,
+            'likelihood_indicator': likelihood_indicator,
             'response_headers': dict(reqs['responses']['auto'].headers),
-            'score': grades[0],
-            'tests_failed': NUM_TESTS - tests_passed,
+            'score': score,
+            'tests_failed': tests_failed,
             'tests_passed': tests_passed,
             'tests_quantity': NUM_TESTS,
         },
-        'tests': {result.pop('name'): result for result in results}
+        'tests': results
     })
