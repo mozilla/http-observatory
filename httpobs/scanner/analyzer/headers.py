@@ -281,7 +281,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
         cookies-without-secure-flag-but-protected-by-hsts: Cookies don't have secure, but site uses HSTS
         cookies-session-without-secure-flag-but-protected-by-hsts: Same, but session cookie
         cookies-without-secure-flag: Cookies set without secure flag
-        cookies-samesite-flag-invalid: Cookies set with invalid SameSite value (must be either unset, Strict, or Lax)
+        cookies-samesite-flag-invalid: Cookies set with invalid SameSite value (must be either unset, Strict, Lax or None)
         cookies-session-without-secure-flag: Session cookies lack the Secure flag
         cookies-session-without-httponly-flag: Session cookies lack the HttpOnly flag
         cookies-not-found: No cookies found in HTTP requests
@@ -322,6 +322,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
     else:
         jar = {}
+        samesiteCount = 0
 
         # There are certain cookies we ignore, because they are set by service providers and sites have
         # no control over them.
@@ -335,12 +336,18 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                 if key.lower() == 'httponly' and getattr(cookie, 'httponly') is False:
                     cookie.httponly = True
                 elif key.lower() == 'samesite' and getattr(cookie, 'samesite') is False:
-                    if cookie._rest[key] in (None, True) or cookie._rest[key].strip().lower() == 'lax':
+                    if cookie._rest[key].strip().lower() == 'lax':
                         cookie.samesite = 'Lax'
+                        samesiteCount += 1
                         output['sameSite'] = True
                     elif cookie._rest[key].strip().lower() == 'strict':
                         cookie.samesite = 'Strict'
+                        samesiteCount += 1
                         output['sameSite'] = True
+                    elif cookie._rest[key].strip().lower() == 'none':
+                        cookie.samesite = 'None'
+                        samesiteCount += 1
+                        output['sameSite'] = True   
                     else:
                         output['result'] = only_if_worse('cookies-samesite-flag-invalid',
                                                          output['result'],
@@ -353,6 +360,11 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
             # Is it a session identifier or an anti-csrf token?
             sessionid = any(i in cookie.name.lower() for i in ('login', 'sess'))
             anticsrf = True if 'csrf' in cookie.name.lower() else False
+
+            if not cookie.secure and cookie.samesite == 'None':
+                output['result'] = only_if_worse('cookies-samesite-flag-invalid',
+                                                 output['result'],
+                                                 goodness)
 
             if not cookie.secure and hsts:
                 output['result'] = only_if_worse('cookies-without-secure-flag-but-protected-by-hsts',
@@ -388,7 +400,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
         # Store whether or not we saw SameSite cookies, if cookies were set
         if output['result'] is None:
-            if output['sameSite']:
+            if output['sameSite'] and samesiteCount == len(jar):
                 output['result'] = 'cookies-secure-with-httponly-sessions-and-samesite'
             else:
                 output['result'] = 'cookies-secure-with-httponly-sessions'
