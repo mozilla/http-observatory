@@ -121,7 +121,7 @@ def api_get_host_history():
 
     # Prune for when the score doesn't change; thanks to chuck for the elegant list comprehension
     pruned_history = [v for k, v in enumerate(history) if history[k].get('score') is not history[k - 1].get('score') or
-                      k is 0]
+                      k == 0]
 
     # Return the host history
     return jsonify(pruned_history)
