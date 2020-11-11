@@ -290,6 +290,9 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
         expectation: test expectation
         pass: whether the site's configuration met its expectation
         result: short string describing the result of the test
+        sameSite: True if all session cookies have a valid SameSite attribute
+                  False if any session cookie has an invalid or missing SameSite attribute
+                  None if there are no session cookies
     """
 
     output = {
@@ -322,7 +325,6 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
     else:
         jar = {}
-        samesiteCount = 0
 
         # There are certain cookies we ignore, because they are set by service providers and sites have
         # no control over them.
@@ -336,18 +338,13 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                 if key.lower() == 'httponly' and getattr(cookie, 'httponly') is False:
                     cookie.httponly = True
                 elif key.lower() == 'samesite' and getattr(cookie, 'samesite') is False:
-                    if cookie._rest[key].strip().lower() == 'lax':
+                    samesiteVal = '' if cookie._rest[key] == None else str(cookie._rest[key])
+                    if samesiteVal.strip().lower() == 'lax':
                         cookie.samesite = 'Lax'
-                        samesiteCount += 1
-                        output['sameSite'] = True
-                    elif cookie._rest[key].strip().lower() == 'strict':
+                    elif samesiteVal.strip().lower() == 'strict':
                         cookie.samesite = 'Strict'
-                        samesiteCount += 1
-                        output['sameSite'] = True
-                    elif cookie._rest[key].strip().lower() == 'none':
+                    elif samesiteVal.strip().lower() == 'none':
                         cookie.samesite = 'None'
-                        samesiteCount += 1
-                        output['sameSite'] = True   
                     else:
                         output['result'] = only_if_worse('cookies-samesite-flag-invalid',
                                                          output['result'],
@@ -400,11 +397,12 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
         # Store whether or not we saw SameSite cookies, if cookies were set
         if output['result'] is None:
-            if output['sameSite'] and samesiteCount == len(jar):
-                output['result'] = 'cookies-secure-with-httponly-sessions-and-samesite'
-            else:
+            if any(c for c in session.cookies if c.samesite == False):
                 output['result'] = 'cookies-secure-with-httponly-sessions'
                 output['sameSite'] = False
+            else:
+                output['result'] = 'cookies-secure-with-httponly-sessions-and-samesite'
+                output['sameSite'] = True
 
         # Save the cookie jar
         output['data'] = jar if len(str(jar)) < 32768 else {}
