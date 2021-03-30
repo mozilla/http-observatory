@@ -420,7 +420,7 @@ class TestCookies(TestCase):
                         value='bar')
         self.reqs['session'].cookies.set_cookie(cookie)
 
-        cookie = Cookie(name='SESSIONID_SAMESITE_LAX_TRUE',
+        cookie = Cookie(name='SESSIONID_SAMESITE_LAX',
                         comment=None,
                         comment_url=None,
                         discard=False,
@@ -433,7 +433,101 @@ class TestCookies(TestCase):
                         port=443,
                         port_specified=443,
                         rfc2109=False,
-                        rest={'HttpOnly': True, 'SameSite': True},
+                        rest={'HttpOnly': True, 'SameSite': 'Lax'},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        cookie = Cookie(name='SESSIONID_SAMESITE_NONE',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': 'None'},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies(self.reqs)
+
+        self.assertEquals('cookies-secure-with-httponly-sessions-and-samesite', result['result'])
+        self.assertEquals({
+                          'SESSIONID_SAMESITE_STRICT': {
+                              'domain': 'mozilla.com',
+                              'expires': None,
+                              'httponly': True,
+                              'max-age': None,
+                              'path': '/',
+                              'port': 443,
+                              'samesite': 'Strict',
+                              'secure': True},
+                          'SESSIONID_SAMESITE_LAX': {
+                              'domain': 'mozilla.com',
+                              'expires': None,
+                              'httponly': True,
+                              'max-age': None,
+                              'path': '/',
+                              'port': 443,
+                              'samesite': 'Lax',
+                              'secure': True},
+                            'SESSIONID_SAMESITE_NONE': {
+                              'domain': 'mozilla.com',
+                              'expires': None,
+                              'httponly': True,
+                              'max-age': None,
+                              'path': '/',
+                              'port': 443,
+                              'samesite': 'None',
+                              'secure': True}
+                          },
+                          result['data'])
+        self.assertTrue(result['pass'])
+        self.assertTrue(result['sameSite'])
+
+    def test_secure_with_httponly_sessions_and_samesite_not_awarded_if_not_all_cookies_samesite(self):
+        cookie = Cookie(name='SESSIONID_SAMESITE_STRICT',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': 'Strict'},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        cookie = Cookie(name='SESSIONID_NO_SAMESITE',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True},
                         secure=True,
                         version=1,
                         value='bar')
@@ -458,7 +552,7 @@ class TestCookies(TestCase):
                         value='bar')
         self.reqs['session'].cookies.set_cookie(cookie)
 
-        cookie = Cookie(name='SESSIONID_SAMESITE_LAX_NONE',
+        cookie = Cookie(name='SESSIONID_SAMESITE_NONE',
                         comment=None,
                         comment_url=None,
                         discard=False,
@@ -471,7 +565,7 @@ class TestCookies(TestCase):
                         port=443,
                         port_specified=443,
                         rfc2109=False,
-                        rest={'HttpOnly': True, 'SameSite': None},
+                        rest={'HttpOnly': True, 'SameSite': 'None'},
                         secure=True,
                         version=1,
                         value='bar')
@@ -479,7 +573,7 @@ class TestCookies(TestCase):
 
         result = cookies(self.reqs)
 
-        self.assertEquals('cookies-secure-with-httponly-sessions-and-samesite', result['result'])
+        self.assertEquals('cookies-secure-with-httponly-sessions', result['result'])
         self.assertEquals({
                           'SESSIONID_SAMESITE_STRICT': {
                               'domain': 'mozilla.com',
@@ -489,16 +583,15 @@ class TestCookies(TestCase):
                               'path': '/',
                               'port': 443,
                               'samesite': 'Strict',
-                              'secure': True
-                          },
-                          'SESSIONID_SAMESITE_LAX_TRUE': {
+                              'secure': True},
+                          'SESSIONID_NO_SAMESITE': {
                               'domain': 'mozilla.com',
                               'expires': None,
                               'httponly': True,
                               'max-age': None,
                               'path': '/',
                               'port': 443,
-                              'samesite': 'Lax',
+                              'samesite': False,
                               'secure': True},
                           'SESSIONID_SAMESITE_LAX': {
                               'domain': 'mozilla.com',
@@ -508,21 +601,20 @@ class TestCookies(TestCase):
                               'path': '/',
                               'port': 443,
                               'samesite': 'Lax',
-                              'secure': True
-                          },
-                          'SESSIONID_SAMESITE_LAX_NONE': {
+                              'secure': True},
+                            'SESSIONID_SAMESITE_NONE': {
                               'domain': 'mozilla.com',
                               'expires': None,
                               'httponly': True,
                               'max-age': None,
                               'path': '/',
                               'port': 443,
-                              'samesite': 'Lax',
+                              'samesite': 'None',
                               'secure': True}
                           },
                           result['data'])
         self.assertTrue(result['pass'])
-        self.assertTrue(result['sameSite'])
+        self.assertFalse(result['sameSite'])
 
     def test_anticsrf_without_samesite(self):
         cookie = Cookie(name='CSRFTOKEN',
@@ -549,6 +641,58 @@ class TestCookies(TestCase):
         self.assertEquals('cookies-anticsrf-without-samesite-flag', result['result'])
         self.assertFalse(result['pass'])
         self.assertFalse(result['sameSite'])
+
+    def test_samesite_invalid_empty(self):
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': None},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies(self.reqs)
+
+        self.assertEquals('cookies-samesite-flag-invalid', result['result'])
+        self.assertFalse(result['pass'])
+        self.assertIsNone(result['sameSite'])
+
+    def test_samesite_invalid_true(self):
+        cookie = Cookie(name='SESSIONID',
+                        comment=None,
+                        comment_url=None,
+                        discard=False,
+                        domain='mozilla.com',
+                        domain_initial_dot=False,
+                        domain_specified='mozilla.com',
+                        expires=None,
+                        path='/',
+                        path_specified='/',
+                        port=443,
+                        port_specified=443,
+                        rfc2109=False,
+                        rest={'HttpOnly': True, 'SameSite': True},
+                        secure=True,
+                        version=1,
+                        value='bar')
+        self.reqs['session'].cookies.set_cookie(cookie)
+
+        result = cookies(self.reqs)
+
+        self.assertEquals('cookies-samesite-flag-invalid', result['result'])
+        self.assertFalse(result['pass'])
+        self.assertIsNone(result['sameSite'])
 
     def test_samesite_invalid(self):
         cookie = Cookie(name='SESSIONID',

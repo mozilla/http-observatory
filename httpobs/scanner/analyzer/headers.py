@@ -281,7 +281,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
         cookies-without-secure-flag-but-protected-by-hsts: Cookies don't have secure, but site uses HSTS
         cookies-session-without-secure-flag-but-protected-by-hsts: Same, but session cookie
         cookies-without-secure-flag: Cookies set without secure flag
-        cookies-samesite-flag-invalid: Cookies set with invalid SameSite value (must be either unset, Strict, or Lax)
+        cookies-samesite-flag-invalid: Cookies set with invalid SameSite value (must be either unset, Strict, Lax or None)
         cookies-session-without-secure-flag: Session cookies lack the Secure flag
         cookies-session-without-httponly-flag: Session cookies lack the HttpOnly flag
         cookies-not-found: No cookies found in HTTP requests
@@ -290,6 +290,9 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
         expectation: test expectation
         pass: whether the site's configuration met its expectation
         result: short string describing the result of the test
+        sameSite: True if all session cookies have a valid SameSite attribute
+                  False if any session cookie has an invalid or missing SameSite attribute
+                  None if there are no session cookies
     """
 
     output = {
@@ -335,12 +338,13 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                 if key.lower() == 'httponly' and getattr(cookie, 'httponly') is False:
                     cookie.httponly = True
                 elif key.lower() == 'samesite' and getattr(cookie, 'samesite') is False:
-                    if cookie._rest[key] in (None, True) or cookie._rest[key].strip().lower() == 'lax':
+                    samesiteVal = '' if cookie._rest[key] == None else str(cookie._rest[key])
+                    if samesiteVal.strip().lower() == 'lax':
                         cookie.samesite = 'Lax'
-                        output['sameSite'] = True
-                    elif cookie._rest[key].strip().lower() == 'strict':
+                    elif samesiteVal.strip().lower() == 'strict':
                         cookie.samesite = 'Strict'
-                        output['sameSite'] = True
+                    elif samesiteVal.strip().lower() == 'none':
+                        cookie.samesite = 'None'
                     else:
                         output['result'] = only_if_worse('cookies-samesite-flag-invalid',
                                                          output['result'],
@@ -353,6 +357,11 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
             # Is it a session identifier or an anti-csrf token?
             sessionid = any(i in cookie.name.lower() for i in ('login', 'sess'))
             anticsrf = True if 'csrf' in cookie.name.lower() else False
+
+            if not cookie.secure and cookie.samesite == 'None':
+                output['result'] = only_if_worse('cookies-samesite-flag-invalid',
+                                                 output['result'],
+                                                 goodness)
 
             if not cookie.secure and hsts:
                 output['result'] = only_if_worse('cookies-without-secure-flag-but-protected-by-hsts',
@@ -388,11 +397,12 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
         # Store whether or not we saw SameSite cookies, if cookies were set
         if output['result'] is None:
-            if output['sameSite']:
-                output['result'] = 'cookies-secure-with-httponly-sessions-and-samesite'
-            else:
+            if any(c for c in session.cookies if c.samesite == False):
                 output['result'] = 'cookies-secure-with-httponly-sessions'
                 output['sameSite'] = False
+            else:
+                output['result'] = 'cookies-secure-with-httponly-sessions-and-samesite'
+                output['sameSite'] = True
 
         # Save the cookie jar
         output['data'] = jar if len(str(jar)) < 32768 else {}
