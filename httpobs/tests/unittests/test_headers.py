@@ -354,26 +354,6 @@ class TestCookies(TestCase):
                         value='bar')
         self.reqs['session'].cookies.set_cookie(cookie)
 
-        # See: https://github.com/mozilla/http-observatory/issues/121 for the __cfduid insanity
-        cookie = Cookie(name='__cfduid',
-                        comment=None,
-                        comment_url=None,
-                        discard=False,
-                        domain='mozilla.com',
-                        domain_initial_dot=False,
-                        domain_specified='mozilla.com',
-                        expires=None,
-                        path='/',
-                        path_specified='/',
-                        port=443,
-                        port_specified=443,
-                        rest={},
-                        rfc2109=False,
-                        secure=False,
-                        version=1,
-                        value='bar')
-        self.reqs['session'].cookies.set_cookie(cookie)
-
         # See: https://github.com/mozilla/http-observatory/issues/282 for the heroku-session-affinity insanity
         cookie = Cookie(name='heroku-session-affinity',
                         comment=None,
