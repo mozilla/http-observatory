@@ -21,17 +21,19 @@ Used to invoke a new scan of a website. By default, the HTTP Observatory will re
 **API Method:** `POST`
 
 Parameters:
-* `host` hostname (required)
+
+- `host` hostname (required)
 
 POST parameters:
-* `hidden` setting to "true" will hide a scan from public results returned by `getRecentScans`
-* `rescan` setting to "true" forces a rescan of a site
+
+- `hidden` setting to "true" will hide a scan from public results returned by `getRecentScans`
+- `rescan` setting to "true" forces a rescan of a site
 
 Examples:
-* `/api/v1/analyze?host=www.mozilla.org`
-* `/api/v1/analyze?host=www.privatesite.net`
-  * `hidden=true&rescan=true`  (POST data)
 
+- `/api/v1/analyze?host=www.mozilla.org`
+- `/api/v1/analyze?host=www.privatesite.net`
+  - `hidden=true&rescan=true` (POST data)
 
 ### Retrieve assessment
 
@@ -42,26 +44,26 @@ This is used to retrieve the results of an existing, ongoing, or completed scan.
 
 Parameters:
 
-* `host` hostname (required)
+- `host` hostname (required)
 
 Example:
-* `/api/v1/analyze?host=www.mozilla.org`
+
+- `/api/v1/analyze?host=www.mozilla.org`
 
 ### Retrieve test results
 
-Each scan consists of a variety of subtests, including Content Security Policy, Subresource Integrity, etc.  The results of all these tests can be retrieved once the scan's state has been placed in the `FINISHED` state. It will return a single [tests object](#tests).
+Each scan consists of a variety of subtests, including Content Security Policy, Subresource Integrity, etc. The results of all these tests can be retrieved once the scan's state has been placed in the `FINISHED` state. It will return a single [tests object](#tests).
 
 **API Call:** `getScanResults`<br>
 **API Method:** `GET`
 
 Parameters:
 
-* `scan` scan_id number from the [scan object](#scan)
+- `scan` scan_id number from the [scan object](#scan)
 
 Example:
 
-* `/api/v1/getScanResults?scan=123456`
-
+- `/api/v1/getScanResults?scan=123456`
 
 ### Retrieve recent scans
 
@@ -71,27 +73,29 @@ Retrieve the ten most recent scans that fall within a given score range. Maps ho
 **API Method:** `GET`
 
 Parameters:
-* `min` minimum score
-* `max` maximum score
+
+- `min` minimum score
+- `max` maximum score
 
 Examples:
-* `/api/v1/getRecentScans?max=20` (ten most recent "F" tests)
-* `/api/v1/getRecentScans?min=90` (ten most recent "A" or better tests)
 
+- `/api/v1/getRecentScans?max=20` (ten most recent "F" tests)
+- `/api/v1/getRecentScans?min=90` (ten most recent "A" or better tests)
 
 ### Retrieve host's scan history
 
-Retrieve the ten most recent scans that fall within a given score range. Maps hostnames to scores, returning a [host history object](#host-history).
+This returns all public scans made to a website. Including its grade, and score. Returning a [host history object](#host-history).
 
 **API Call:** `getHostHistory`<br>
 **API Method:** `GET`
 
 Parameters:
-* `host` hostname (required)
+
+- `host` hostname (required)
 
 Examples:
-* `/api/v1/getHostHistory?host=mozilla.org` (scan history for mozilla.org)
 
+- `/api/v1/getHostHistory?host=mozilla.org` (scan history for mozilla.org)
 
 ### Retrieve overall grade distribution
 
@@ -101,9 +105,10 @@ This returns each possible grade in the HTTP Observatory, as well as how many sc
 **API Method:** `GET`
 
 Example:
-* `/api/v1/getGradeDistribution`
 
-### Retrieve scanner states
+- `/api/v1/getGradeDistribution`
+
+### ~~Retrieve scanner states~~ `DEPRECATED`
 
 This returns the state of the scanner. It can be useful for determining how busy the HTTP Observatory is. Returns a [Scanner state object](#scanner-state).
 
@@ -111,14 +116,15 @@ This returns the state of the scanner. It can be useful for determining how busy
 **API Method:** `GET`
 
 Example:
-* `/api/v1/getScannerStates`
 
+- `/api/v1/getScannerStates`
 
 ## Response Objects
 
 ### Grade distribution
 
 Example:
+
 ```json
 {
   "A+": 3,
@@ -140,6 +146,7 @@ Example:
 ### Recent scans
 
 Example:
+
 ```json
 {
   "site1.mozilla.org": "A",
@@ -158,57 +165,59 @@ Example:
 ### Host history
 
 Example:
-```json
-  [
-    {
-      "end_time": "Thu, 22 Sep 2016 23:24:28 GMT",
-      "end_time_unix_timestamp": 1474586668,
-      "grade": "C",
-      "scan_id": 1711106,
-      "score": 50
-    },
-    {
-      "end_time": "Thu, 09 Feb 2017 01:30:47 GMT",
-      "end_time_unix_timestamp": 1486603847,
-      "grade": "B+",
-      "scan_id": 3292839,
-      "score": 80
-    },
-    {
-      "end_time": "Fri, 10 Feb 2017 02:30:08 GMT",
-      "end_time_unix_timestamp": 1486693808,
-      "grade": "A",
-      "scan_id": 3302879,
-      "score": 90
-    }
-  ]
-```
 
+```json
+[
+  {
+    "end_time": "Thu, 22 Sep 2016 23:24:28 GMT",
+    "end_time_unix_timestamp": 1474586668,
+    "grade": "C",
+    "scan_id": 1711106,
+    "score": 50
+  },
+  {
+    "end_time": "Thu, 09 Feb 2017 01:30:47 GMT",
+    "end_time_unix_timestamp": 1486603847,
+    "grade": "B+",
+    "scan_id": 3292839,
+    "score": 80
+  },
+  {
+    "end_time": "Fri, 10 Feb 2017 02:30:08 GMT",
+    "end_time_unix_timestamp": 1486693808,
+    "grade": "A",
+    "scan_id": 3302879,
+    "score": 90
+  }
+]
+```
 
 ### Scan
 
-* `end_time` timestamp for when the scan completed
-* `grade` final grade assessed upon a completed scan
-* `hidden` whether the scan results are unlisted on the recent results page
-* `response_headers` the entirety of the HTTP response headers
-* `scan_id` unique ID number assigned to the scan
-* `score` final score assessed upon a completed (`FINISHED`) scan
-* `likelihood_indicator` Mozilla risk likelihod indicator that is the equivalent of the grade [https://wiki.mozilla.org/Security/Standard_Levels] (https://wiki.mozilla.org/Security/Standard_Levels)
-* `start_time` timestamp for when the scan was first requested
-* `state` the current state of the scan
-* `tests_failed` the number of subtests that were assigned a fail result
-* `tests_passed` the number of subtests that were assigned a passing result
-* `tests_quantity` the total number of tests available and assessed at the time of the scan
+- `end_time` timestamp for when the scan completed
+- `grade` final grade assessed upon a completed scan
+- `hidden` whether the scan results are unlisted on the recent results page
+- `response_headers` the entirety of the HTTP response headers
+- `scan_id` unique ID number assigned to the scan
+- `score` final score assessed upon a completed (`FINISHED`) scan
+- `likelihood_indicator` Mozilla risk likelihod indicator that is the equivalent of the grade [https://wiki.mozilla.org/Security/Standard_Levels] (https://wiki.mozilla.org/Security/Standard_Levels)
+- `start_time` timestamp for when the scan was first requested
+- `state` the current state of the scan
+- `tests_failed` the number of subtests that were assigned a fail result
+- `tests_passed` the number of subtests that were assigned a passing result
+- `tests_quantity` the total number of tests available and assessed at the time of the scan
 
 The scan can exist in one of six states:
-* `ABORTED` aborted for internal technical reasons
-* `FAILED` failed to complete, typically due to the site being unavailable or timing out
-* `FINISHED` completed successfully
-* `PENDING` issued by the API but not yet picked up by a scanner instance
-* `STARTING` assigned to a scanning instance
-* `RUNNING` currently in the process of scanning a website
+
+- `ABORTED` aborted for internal technical reasons
+- `FAILED` failed to complete, typically due to the site being unavailable or timing out
+- `FINISHED` completed successfully
+- `PENDING` issued by the API but not yet picked up by a scanner instance
+- `STARTING` assigned to a scanning instance
+- `RUNNING` currently in the process of scanning a website
 
 Example:
+
 ```json
 {
   "end_time": "Tue, 22 Mar 2016 21:51:41 GMT",
@@ -229,6 +238,7 @@ Example:
 ### Scanner state
 
 Example:
+
 ```json
 {
   "ABORTED": 10,
@@ -236,24 +246,26 @@ Example:
   "FINISHED": 46240,
   "PENDING": 122,
   "STARTING": 96,
-  "RUNNING": 128,
+  "RUNNING": 128
 }
 ```
 
 ### Tests
 
 The tests object contains one test object for each test conducted by the HTTP Observatory. Each test object is contains the following values:
-* `expectation` the expectation for a test result going in
-* `name` the name of the test; this should be the same as the parent object's name
-* `output` artifacts related to the test; these can vary widely between tests and are not guaranteed to be stable over time.
-  * `data` generally as close to the raw output of the test as is possible.  For example, in the strict-transport-security test, `output -> data` contains the raw `Strict-Transport-Security` header
-  * `????` other values under `output` have keys that vary; for example, the `strict-transport-security` test has a `includeSubDomains` key that is either set to `True` or `False`. Similarly, the `redirection` test contains a `route` key that contains an array of the URLs that were redirected to.  See example below for more available keys.
-* `pass` whether the test passed or failed; a test that meets or exceeds the expectation will be marked as passed
-* `result` result of the test
-* `score_description` short description describing what `result` means
-* `score_modifier` how much the result of the test affected the final score; should range between +5 and -50
+
+- `expectation` the expectation for a test result going in
+- `name` the name of the test; this should be the same as the parent object's name
+- `output` artifacts related to the test; these can vary widely between tests and are not guaranteed to be stable over time.
+  - `data` generally as close to the raw output of the test as is possible. For example, in the strict-transport-security test, `output -> data` contains the raw `Strict-Transport-Security` header
+  - `????` other values under `output` have keys that vary; for example, the `strict-transport-security` test has a `includeSubDomains` key that is either set to `True` or `False`. Similarly, the `redirection` test contains a `route` key that contains an array of the URLs that were redirected to. See example below for more available keys.
+- `pass` whether the test passed or failed; a test that meets or exceeds the expectation will be marked as passed
+- `result` result of the test
+- `score_description` short description describing what `result` means
+- `score_modifier` how much the result of the test affected the final score; should range between +5 and -50
 
 Example:
+
 ```json
 {
   "content-security-policy": {
@@ -261,17 +273,9 @@ Example:
     "name": "content-security-policy",
     "output": {
       "data": {
-        "connect-src": [
-          "'self'",
-          "https://sentry.prod.mozaws.net"
-        ],
-        "default-src": [
-          "'self'"
-        ],
-        "font-src": [
-          "'self'",
-          "https://addons.cdn.mozilla.net"
-        ],
+        "connect-src": ["'self'", "https://sentry.prod.mozaws.net"],
+        "default-src": ["'self'"],
+        "font-src": ["'self'", "https://addons.cdn.mozilla.net"],
         "frame-src": [
           "'self'",
           "https://ic.paypal.com",
@@ -290,15 +294,9 @@ Example:
           "https://ssl.gstatic.com/",
           "https://sentry.prod.mozaws.net"
         ],
-        "media-src": [
-          "https://videos.cdn.mozilla.net"
-        ],
-        "object-src": [
-          "'none'"
-        ],
-        "report-uri": [
-          "/__cspreport__"
-        ],
+        "media-src": ["https://videos.cdn.mozilla.net"],
+        "object-src": ["'none'"],
+        "report-uri": ["/__cspreport__"],
         "script-src": [
           "'self'",
           "https://addons.mozilla.org",
