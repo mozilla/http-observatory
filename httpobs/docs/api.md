@@ -81,7 +81,7 @@ Examples:
 
 ### Retrieve host's scan history
 
-Retrieve the ten most recent scans that fall within a given score range. Maps hostnames to scores, returning a [host history object](#host-history).
+This returns all public scans made to a website. Including its grade, and score. Returning a [host history object](#host-history).
 
 **API Call:** `getHostHistory`<br>
 **API Method:** `GET`
@@ -103,7 +103,7 @@ This returns each possible grade in the HTTP Observatory, as well as how many sc
 Example:
 * `/api/v1/getGradeDistribution`
 
-### Retrieve scanner states
+### ~~Retrieve scanner states~~ `DEPRECATED`
 
 This returns the state of the scanner. It can be useful for determining how busy the HTTP Observatory is. Returns a [Scanner state object](#scanner-state).
 
