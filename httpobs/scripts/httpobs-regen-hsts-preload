@@ -4,10 +4,5 @@
 dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 cd $dir/../..
 
-# download the bypass files
-curl --silent 'https://raw.githubusercontent.com/google/csp-evaluator/master/whitelist_bypasses/json/angular.json' > httpobs/conf/bypasses/angular.json
-curl --silent 'https://raw.githubusercontent.com/google/csp-evaluator/master/whitelist_bypasses/json/flash.json' > httpobs/conf/bypasses/flash.json
-curl --silent 'https://raw.githubusercontent.com/google/csp-evaluator/master/whitelist_bypasses/json/jsonp.json' > httpobs/conf/bypasses/jsonp.json
-
 # execute the regeneration script
 PYTHONPATH='.' python3 -c 'import httpobs.scanner.utils; httpobs.scanner.utils.retrieve_store_hsts_preload_list()'
