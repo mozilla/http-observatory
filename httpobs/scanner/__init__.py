@@ -18,7 +18,7 @@ __all__ = [
     'STATE_ABORTED',
     'STATE_FAILED',
     'STATE_FINISHED',
-    'STATE_PENDING,'
+    'STATE_PENDING',
     'STATE_RUNNING',
     'STATE_STARTING',
 ]
