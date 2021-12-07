@@ -19,13 +19,13 @@ Sites can be scanned using:
 ## Contributing
 
 ### Prerequisites
-* Python 3
+* Python 3.7
 * Git
 * pip3
 
 #### Notes
 
-These instructions assume that you have a working Python3 development environment with `pip3` installed and capable of building requirements, which may require installing an additional python OS package (`-dev`, `-devel`).
+These instructions assume that you have a working Python3.7 development environment with `pip3` installed and capable of building requirements, which may require installing an additional python OS package (`-dev`, `-devel`).
 
 If this is not appropriate for your environment, you may install the appropriate requirements using your OS package manager (or other means) and skip the `pip3 -r requirements` command.
 
