@@ -1,5 +1,4 @@
 amqp==2.3.2
-anyjson==0.3.3
 beautifulsoup4==4.6.3
 billiard==3.5.0.4
 celery==4.2.1
