@@ -281,7 +281,8 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
         cookies-without-secure-flag-but-protected-by-hsts: Cookies don't have secure, but site uses HSTS
         cookies-session-without-secure-flag-but-protected-by-hsts: Same, but session cookie
         cookies-without-secure-flag: Cookies set without secure flag
-        cookies-samesite-flag-invalid: Cookies set with invalid SameSite value (must be either unset, Strict, Lax or None)
+        cookies-samesite-flag-invalid: Cookies set with invalid SameSite value
+          (must be either unset, Strict, Lax or None)
         cookies-session-without-secure-flag: Session cookies lack the Secure flag
         cookies-session-without-httponly-flag: Session cookies lack the HttpOnly flag
         cookies-not-found: No cookies found in HTTP requests
@@ -338,7 +339,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                 if key.lower() == 'httponly' and getattr(cookie, 'httponly') is False:
                     cookie.httponly = True
                 elif key.lower() == 'samesite' and getattr(cookie, 'samesite') is False:
-                    samesiteVal = '' if cookie._rest[key] == None else str(cookie._rest[key])
+                    samesiteVal = '' if cookie._rest[key] is None else str(cookie._rest[key])
                     if samesiteVal.strip().lower() == 'lax':
                         cookie.samesite = 'Lax'
                     elif samesiteVal.strip().lower() == 'strict':
@@ -397,7 +398,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
 
         # Store whether or not we saw SameSite cookies, if cookies were set
         if output['result'] is None:
-            if any(c for c in session.cookies if c.samesite == False):
+            if any(c for c in session.cookies if c.samesite is False):
                 output['result'] = 'cookies-secure-with-httponly-sessions'
                 output['sameSite'] = False
             else:

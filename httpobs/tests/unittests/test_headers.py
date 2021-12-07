@@ -480,7 +480,7 @@ class TestCookies(TestCase):
                               'port': 443,
                               'samesite': 'Lax',
                               'secure': True},
-                            'SESSIONID_SAMESITE_NONE': {
+                          'SESSIONID_SAMESITE_NONE': {
                               'domain': 'mozilla.com',
                               'expires': None,
                               'httponly': True,
@@ -602,7 +602,7 @@ class TestCookies(TestCase):
                               'port': 443,
                               'samesite': 'Lax',
                               'secure': True},
-                            'SESSIONID_SAMESITE_NONE': {
+                          'SESSIONID_SAMESITE_NONE': {
                               'domain': 'mozilla.com',
                               'expires': None,
                               'httponly': True,
