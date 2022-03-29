@@ -39,7 +39,7 @@ setup(
         'amqp==2.3.2',
         'beautifulsoup4==4.6.3',
         'billiard==3.5.0.4',
-        'celery==4.2.1',
+        'celery==5.2.2',
         'click==7.0',
         'coverage==4.5.2',
         'flake8==3.6.0',
