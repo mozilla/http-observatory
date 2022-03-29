@@ -16,6 +16,7 @@ setup(
     version=VERSION,
     description='HTTP Observatory: a set of tests and tools to scan your website for basic web hygeine.',
     url=SOURCE_URL,
+    long_description_content_type='text/markdown',
     long_description=README,
     classifiers=[
         'Development Status :: 4 - Beta',
