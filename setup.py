@@ -54,7 +54,7 @@ setup(
         'pyflakes==2.0.0',
         'pytz==2018.7',
         'vine==1.1.4',
-        'Werkzeug==0.14.1',
+        'Werkzeug==0.15.3',
         'psycopg2>=2.7,<2.8',
         'redis==2.10.6',
         'psutil==5.9.0',
