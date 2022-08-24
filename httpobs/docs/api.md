@@ -57,6 +57,7 @@ Each scan consists of a variety of subtests, including Content Security Policy, 
 Parameters:
 
 * `scan` scan_id number from the [scan object](#scan)
+* `display` format of output, allowed values: `object` (default), `array`
 
 Example:
 

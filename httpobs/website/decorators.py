@@ -62,7 +62,9 @@ def sanitized_api_response(fn):
                                   'score_description', 'score_modifier')
 
         # Convert it to a dict (in case it's a DictRow)
-        output = dict(output)
+        is_list = type(output) == list
+        if not is_list:
+            output = dict(output)
 
         if 'tests_quantity' in output:  # autodetect that it's a scan
             # Rename 'id' to 'result_id':
@@ -75,8 +77,8 @@ def sanitized_api_response(fn):
             # Delete any other things that might have made their way into the results
             output = {k: output[k] for k in SCAN_VALID_KEYS if k in output}
 
-        elif 'content-security-policy' in output:  # autodetect that it's a test result
-            for test in output:
+        elif 'content-security-policy' in output or is_list:  # autodetect that it's a test result
+            for test in (range(0, len(output)) if is_list else output):
                 # Delete unnecessary keys
                 output[test] = {k: output[test][k] for k in output[test] if k in TEST_RESULT_VALID_KEYS}
 
