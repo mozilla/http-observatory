@@ -11,8 +11,7 @@ from httpobs.conf import (SCANNER_ALLOW_LOCALHOST,
 from requests.structures import CaseInsensitiveDict
 
 
-HSTS_URL = ('https://chromium.googlesource.com/chromium'
-            '/src/net/+/master/http/transport_security_state_static.json?format=TEXT')
+HSTS_URL = 'https://raw.githubusercontent.com/chromium/chromium/main/net/http/transport_security_state_static.json'
 
 
 def parse_http_equiv_headers(html: str) -> CaseInsensitiveDict:
@@ -49,7 +48,7 @@ def parse_http_equiv_headers(html: str) -> CaseInsensitiveDict:
 def retrieve_store_hsts_preload_list():
     # Download the Google HSTS Preload List
     try:
-        r = b64decode(requests.get(HSTS_URL).text).decode('utf-8').split('\n')
+        r = requests.get(HSTS_URL).text.split('\n')
 
         # Remove all the comments
         r = ''.join([line.split('// ')[0] for line in r if line.strip() != '//'])
@@ -138,3 +137,9 @@ def valid_hostname(hostname: str):
 
     # If we've made it this far, then everything is good to go!  Woohoo!
     return hostname
+
+
+# allow for this file to be run directly to fetch the HSTS preload list via the debugger
+# or via the regen script
+if __name__ == "__main__":
+    retrieve_store_hsts_preload_list()

@@ -5,4 +5,4 @@ dir=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 cd $dir/../..
 
 # execute the regeneration script
-PYTHONPATH='.' python3 -c 'import httpobs.scanner.utils; httpobs.scanner.utils.retrieve_store_hsts_preload_list()'
+PYTHONPATH='.' python3 httpobs/scanner/utils.py
