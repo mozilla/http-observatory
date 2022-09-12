@@ -4,7 +4,6 @@ import requests
 import socket
 import sys
 
-from base64 import b64decode
 from bs4 import BeautifulSoup as bs
 from httpobs.conf import (SCANNER_ALLOW_LOCALHOST,
                           SCANNER_PINNED_DOMAINS)
