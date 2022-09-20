@@ -304,7 +304,7 @@ SCORE_TABLE = {
     },
     'sri-not-implemented-but-no-scripts-loaded': {
         'description': 'Subresource Integrity (SRI) is not needed since site contains no script tags',
-        'modifier': 0,
+        'modifier': 5,
     },
     'sri-not-implemented-but-all-scripts-loaded-from-secure-origin': {
         'description': 'Subresource Integrity (SRI) not implemented, but all scripts are loaded from a similar origin',
