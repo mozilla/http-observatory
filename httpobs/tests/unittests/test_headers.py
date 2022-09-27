@@ -9,20 +9,16 @@ from httpobs.scanner.analyzer.headers import (content_security_policy,
                                               x_content_type_options,
                                               x_frame_options,
                                               x_xss_protection)
-from httpobs.tests.utils import empty_requests
+from httpobs.tests.utils import empty_requests, set_header
 
 
 class TestContentSecurityPolicy(TestCase):
-    def setUp(self):
-        self.reqs = empty_requests()
-
-    def tearDown(self):
-        self.reqs = None
-
     def test_missing(self):
-        result = content_security_policy(self.reqs)
+        reqs = empty_requests()
+        result = content_security_policy(reqs)
 
         self.assertEquals('csp-not-implemented', result['result'])
+        self.assertEquals(result['numPolicies'], 0)
         self.assertFalse(result['pass'])
 
     def test_header_invalid(self):
@@ -37,11 +33,13 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
 
-            result = content_security_policy(self.reqs)
+            result = content_security_policy(reqs)
 
             self.assertEquals(result['result'], 'csp-header-invalid')
+            self.assertEquals(result['numPolicies'], 1)
             self.assertFalse(result['pass'])
 
     def test_insecure_scheme(self):
@@ -53,9 +51,10 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
 
-            result = content_security_policy(self.reqs)
+            result = content_security_policy(reqs)
 
             self.assertEquals('csp-implemented-with-insecure-scheme', result['result'])
             self.assertFalse(result['pass'])
@@ -73,49 +72,53 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
 
-            result = content_security_policy(self.reqs)
+            result = content_security_policy(reqs)
 
             self.assertEquals('csp-implemented-with-insecure-scheme-in-passive-content-only', result['result'])
             self.assertTrue(result['pass'])
             self.assertTrue(result['policy']['insecureSchemePassive'])
 
     def test_unsafe_inline(self):
-        values = ("script-src 'unsafe-inline'",
-                  "script-src data:",  # overly broad
-                  "script-src http:",
-                  "script-src ftp:",
-                  "default-src 'unsafe-inline'",
-                  "default-src 'UNSAFE-INLINE'",
-                  "DEFAULT-SRC 'none'",  # See CSP bug report on case-sensitivity
-                  "script-src 'unsafe-inline'; SCRIPT-SRC 'none'",  # again
-                  "upgrade-insecure-requests",
-                  "script-src 'none'",
-                  "script-src https:",
-                  "script-src https://mozilla.org https:",
-                  "default-src https://mozilla.org https:",
-                  "default-src 'none'; script-src *",
-                  "default-src *; script-src *; object-src 'none'",
-                  "default-src 'none'; script-src 'none', object-src *",
-                  "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'",
-                  "default-src 'none'; script-src 'unsafe-inline' http:",
-                  "object-src https:; script-src 'none'")
+        values = (
+            "script-src 'unsafe-inline'",
+            "script-src data:",  # overly broad
+            "script-src http:",
+            "script-src ftp:",
+            "default-src 'unsafe-inline'",
+            "default-src 'UNSAFE-INLINE'",
+            "upgrade-insecure-requests",
+            "script-src 'none'",
+            "script-src https:",
+            "script-src https://mozilla.org https:",
+            "default-src https://mozilla.org https:",
+            "default-src 'none'; script-src *",
+            "default-src *; script-src *; object-src 'none'",
+            "default-src 'none'; script-src 'none', object-src *",
+            "default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'",
+            "default-src 'none'; script-src 'unsafe-inline' http:",
+            "object-src https:; script-src 'none'",
+        )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
 
-            result = content_security_policy(self.reqs)
+            result = content_security_policy(reqs)
 
             self.assertEquals('csp-implemented-with-unsafe-inline', result['result'])
             self.assertFalse(result['pass'])
             self.assertTrue(result['policy']['unsafeInline'])
 
     def test_unsafe_eval(self):
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = \
-            "default-src 'none'; script-src 'unsafe-eval'"
+        reqs = empty_requests()
 
-        result = content_security_policy(self.reqs)
+        set_header(reqs['responses']['auto'], 'Content-Security-Policy',
+                   "default-src 'none'; script-src 'unsafe-eval'")
+
+        result = content_security_policy(reqs)
 
         self.assertEquals('csp-implemented-with-unsafe-eval', result['result'])
         self.assertEquals(result['data']['script-src'], ["'unsafe-eval'"])
@@ -135,9 +138,10 @@ class TestContentSecurityPolicy(TestCase):
                   "'unsafe-inline'")
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
 
-            result = content_security_policy(self.reqs)
+            result = content_security_policy(reqs)
 
             self.assertEquals('csp-implemented-with-unsafe-inline-in-style-src-only', result['result'])
             self.assertTrue(result['pass'])
@@ -162,54 +166,95 @@ class TestContentSecurityPolicy(TestCase):
                   "'sha256-hqBEA/HXB3aJU2FgOnYN8rkAgEVgyfi3Vs1j2/XMPBB=' 'unsafe-inline'")
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
 
-            result = content_security_policy(self.reqs)
+            result = content_security_policy(reqs)
 
             self.assertEquals('csp-implemented-with-no-unsafe', result['result'])
             self.assertTrue(result['pass'])
 
     def test_no_unsafe_default_src_none(self):
-        values = ("default-src",  # no value == 'none'
-                  "default-src 'none'; script-src 'strict-dynamic' 'nonce-abc123' 'unsafe-inline'",
-                  "default-src 'none'; script-src https://mozilla.org;" +
-                  "style-src https://mozilla.org; upgrade-insecure-requests;",
-                  "default-src 'none'; object-src https://mozilla.org")
+
+        # An HTTP header (default-src http:) and HTTP equiv (default-src https:), with differing values
+        # that should end up as default-src 'none'
+        reqs = empty_requests('test_parse_http_equiv_headers_csp2.html')
+        set_header(reqs['responses']['auto'], 'Content-Security-Policy', "default-src http:")
+        result = content_security_policy(reqs)
+        self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertEquals(result['numPolicies'], 2)
+        self.assertTrue(result['http'])
+        self.assertTrue(result['meta'])
+        self.assertTrue(result['pass'])
+        values = (
+            "default-src",  # no value == 'none'  TODO: Fix this
+            "default-src 'none'; script-src 'strict-dynamic' 'nonce-abc123' 'unsafe-inline'",
+            "default-src 'none'; script-src https://mozilla.org;" +
+            "style-src https://mozilla.org; upgrade-insecure-requests;",
+            "default-src 'none'; object-src https://mozilla.org",
+        )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
 
-            result = content_security_policy(self.reqs)
+            result = content_security_policy(reqs)
 
             self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+            self.assertEquals(result['numPolicies'], 1)
             self.assertTrue(result['http'])
             self.assertFalse(result['meta'])
             self.assertTrue(result['pass'])
             self.assertTrue(result['policy']['defaultNone'])
 
         # Do the same with an HTTP equiv
-        self.reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
-        result = content_security_policy(self.reqs)
+        reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
+        result = content_security_policy(reqs)
         self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertEquals(result['numPolicies'], 1)
         self.assertFalse(result['http'])
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
-        # Do the same with an HTTP equiv
-        self.reqs = empty_requests('test_parse_http_equiv_headers_csp_multiple_http_equiv1.html')
-        result = content_security_policy(self.reqs)
+        # Do the same with an HTTP equiv that has multiple policies
+        reqs = empty_requests('test_parse_http_equiv_headers_csp_multiple_http_equiv1.html')
+        result = content_security_policy(reqs)
         self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertEquals(result['numPolicies'], 4)
         self.assertFalse(result['http'])
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
-        # And that same thing, but with both a header and a CSP policy
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "script-src https://mozilla.org;"
-        result = content_security_policy(self.reqs)
+        # With both a header and an HTTP equiv set to default-src 'none'
+        reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
+        set_header(reqs['responses']['auto'], 'Content-Security-Policy', "default-src 'none'")
+        result = content_security_policy(reqs)
         self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertEquals(result['numPolicies'], 2)
         self.assertTrue(result['http'])
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
+
+        # With both a header (default-src 'none') and a conflicting HTTP equiv (default-src https:)
+        reqs = empty_requests('test_parse_http_equiv_headers_csp2.html')
+        set_header(reqs['responses']['auto'], 'Content-Security-Policy', "default-src 'none'")
+        result = content_security_policy(reqs)
+        self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertEquals(result['numPolicies'], 2)
+        self.assertTrue(result['http'])
+        self.assertTrue(result['meta'])
+        self.assertTrue(result['pass'])
+
+        # An HTTP header (img-src 'none') and HTTP equiv (default-src 'none'), with differing values
+        reqs = empty_requests('test_parse_http_equiv_headers_csp1.html')
+        set_header(reqs['responses']['auto'], 'Content-Security-Policy', "img-src 'none'")
+        result = content_security_policy(reqs)
+        self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
+        self.assertEquals(result['numPolicies'], 2)
+        self.assertTrue(result['http'])
+        self.assertTrue(result['meta'])
+        self.assertTrue(result['pass'])
+
 
     def test_strict_dynamic(self):
         values = (
@@ -220,8 +265,9 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
-            result = content_security_policy(self.reqs)
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
+            result = content_security_policy(reqs)
 
             self.assertEquals('csp-implemented-with-no-unsafe-default-src-none', result['result'])
             self.assertTrue(result['policy']['strictDynamic'])
@@ -235,12 +281,14 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
-            self.assertFalse(content_security_policy(self.reqs)['policy']['antiClickjacking'])
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
+            self.assertFalse(content_security_policy(reqs)['policy']['antiClickjacking'])
 
         # Now test where anticlickjacking is enabled
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "default-src *; frame-ancestors 'none'"
-        self.assertTrue(content_security_policy(self.reqs)['policy']['antiClickjacking'])
+        reqs = empty_requests()
+        set_header(reqs['responses']['auto'], 'Content-Security-Policy', "default-src *; frame-ancestors 'none'")
+        self.assertTrue(content_security_policy(reqs)['policy']['antiClickjacking'])
 
         # Test unsafeObjects and insecureBaseUri
         values = (
@@ -250,9 +298,10 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
-            self.assertTrue(content_security_policy(self.reqs)['policy']['insecureBaseUri'])
-            self.assertTrue(content_security_policy(self.reqs)['policy']['unsafeObjects'])
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
+            self.assertTrue(content_security_policy(reqs)['policy']['insecureBaseUri'])
+            self.assertTrue(content_security_policy(reqs)['policy']['unsafeObjects'])
 
         # Other tests for insecureBaseUri
         values = (
@@ -262,8 +311,9 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
-            self.assertFalse(content_security_policy(self.reqs)['policy']['insecureBaseUri'])
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
+            self.assertFalse(content_security_policy(reqs)['policy']['insecureBaseUri'])
 
         # Test for insecureSchemePassive
         values = (
@@ -274,8 +324,9 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
-            self.assertTrue(content_security_policy(self.reqs)['policy']['insecureSchemePassive'])
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
+            self.assertTrue(content_security_policy(reqs)['policy']['insecureSchemePassive'])
 
         # Test for insecureFormAction
         values = (
@@ -286,8 +337,9 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
-            self.assertFalse(content_security_policy(self.reqs)['policy']['insecureFormAction'])
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
+            self.assertFalse(content_security_policy(reqs)['policy']['insecureFormAction'])
 
         values = (
             "default-src *",
@@ -296,8 +348,9 @@ class TestContentSecurityPolicy(TestCase):
         )
 
         for value in values:
-            self.reqs['responses']['auto'].headers['Content-Security-Policy'] = value
-            self.assertTrue(content_security_policy(self.reqs)['policy']['insecureFormAction'])
+            reqs = empty_requests()
+            set_header(reqs['responses']['auto'], 'Content-Security-Policy', value)
+            self.assertTrue(content_security_policy(reqs)['policy']['insecureFormAction'])
 
 
 class TestCookies(TestCase):
@@ -1288,10 +1341,11 @@ class TestXFrameOptions(TestCase):
             self.assertTrue(result['pass'])
 
     def test_enabled_via_csp(self):
-        self.reqs['responses']['auto'].headers['X-Frame-Options'] = 'DENY'
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = 'frame-ancestors https://mozilla.org'
+        reqs = empty_requests()
+        set_header(reqs['responses']['auto'], 'X-Frame-Options', 'DENY')
+        set_header(reqs['responses']['auto'], 'Content-Security-Policy', 'frame-ancestors https://mozilla.org')
 
-        result = x_frame_options(self.reqs)
+        result = x_frame_options(reqs)
 
         self.assertEquals('x-frame-options-implemented-via-csp', result['result'])
         self.assertTrue(result['pass'])
@@ -1348,9 +1402,10 @@ class TestXXSSProtection(TestCase):
         self.assertTrue(result['pass'])
 
     def test_enabled_via_csp(self):
-        self.reqs['responses']['auto'].headers['Content-Security-Policy'] = "object-src 'none'; script-src 'none'"
+        reqs = empty_requests()
+        set_header(reqs['responses']['auto'], 'Content-Security-Policy', "object-src 'none'; script-src 'none'")
 
-        result = x_xss_protection(self.reqs)
+        result = x_xss_protection(reqs)
 
         self.assertEquals('x-xss-protection-not-needed-due-to-csp', result['result'])
         self.assertTrue(result['pass'])

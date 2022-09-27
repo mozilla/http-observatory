@@ -125,15 +125,6 @@ def __get_page_text(response: requests.Response, force: bool = False) -> str:
         return None
 
 
-# According to RFC 2616, when two headers with the same name are sent then user agents are technically
-# supposed to combine them with a comma. However, some things (like CSP) are not treated that way,
-# and instead treated as if the policy has been sent multiple times. This checks to see if a header
-# appears multiple times, and, if so, returns a single header joined with `joiner`. `,` is the default
-# joiner, same as RFC 2616.
-def __get_raw_header(response, header, joiner: str = ", ") -> str:
-    return joiner.join([v for k, v in response.raw.headers.items() if k.lower().strip() == header.lower()])
-
-
 def retrieve_all(hostname, **kwargs):
     kwargs['cookies'] = kwargs.get('cookies', {})   # HTTP cookies to send, instead of from the database
     kwargs['headers'] = kwargs.get('headers', {})   # HTTP headers to send, instead of from the database
@@ -208,9 +199,10 @@ def retrieve_all(hostname, **kwargs):
     # Content Security Policy can be delivered as multiple headers, so we'll try to combine them
     # with a semi-colon if necessary
     if ',' in retrievals['responses']['auto'].headers.get('Content-Security-Policy', ''):
-        retrievals['responses']['auto'].headers['Content-Security-Policy'] = \
-            __get_raw_header(retrievals['responses']['auto'],
-                             'Content-Security-Policy',
-                             '; ')
+        pass
+        # retrievals['responses']['auto'].headers['Content-Security-Policy'] = \
+        #     __get_raw_header(retrievals['responses']['auto'],
+        #                      'Content-Security-Policy',
+        #                      '; ')
 
     return retrievals

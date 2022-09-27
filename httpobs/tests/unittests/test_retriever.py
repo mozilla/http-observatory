@@ -4,7 +4,8 @@ import string
 
 from unittest import TestCase
 
-from httpobs.scanner.retriever import retrieve_all
+from httpobs.scanner.retriever import get_duplicate_header_values, retrieve_all
+from httpobs.tests.utils import empty_requests
 
 
 class TestRetriever(TestCase):
@@ -48,3 +49,14 @@ class TestRetriever(TestCase):
         reqs = retrieve_all('expired.badssl.com')
 
         self.assertFalse(reqs['responses']['auto'].verified)
+
+    def test_multiple_csp_headers_in_http(self):
+        reqs = empty_requests()
+
+        reqs['responses']['auto'].raw.headers.add('Content-Security-Policy', "script-src 'unsafe-inline'")
+        reqs['responses']['auto'].raw.headers.add('Content-Security-Policy', 'img-src https://google.com')
+
+        self.assertEquals(
+            get_duplicate_header_values(reqs['responses']['auto'], 'Content-Security-Policy'),
+            ["script-src 'unsafe-inline'", 'img-src https://google.com']
+        )
