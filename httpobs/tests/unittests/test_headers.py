@@ -255,7 +255,6 @@ class TestContentSecurityPolicy(TestCase):
         self.assertTrue(result['meta'])
         self.assertTrue(result['pass'])
 
-
     def test_strict_dynamic(self):
         values = (
             "default-src 'none'; script-src 'strict-dynamic' 'nonce-abc123'",

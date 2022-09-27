@@ -58,7 +58,6 @@ class TestContentSecurityPolicyParser(TestCase):
             'default-src': {"'none'"},
         })
 
-
         # a policy with four differing websites that should end up with 'none'
         policy = [
             "default-src https://mozilla.org https://mozilla.net",
