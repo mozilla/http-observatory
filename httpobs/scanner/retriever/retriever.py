@@ -196,13 +196,4 @@ def retrieve_all(hostname, **kwargs):
     else:
         retrievals['responses']['auto'].http_equiv = {}
 
-    # Content Security Policy can be delivered as multiple headers, so we'll try to combine them
-    # with a semi-colon if necessary
-    if ',' in retrievals['responses']['auto'].headers.get('Content-Security-Policy', ''):
-        pass
-        # retrievals['responses']['auto'].headers['Content-Security-Policy'] = \
-        #     __get_raw_header(retrievals['responses']['auto'],
-        #                      'Content-Security-Policy',
-        #                      '; ')
-
     return retrievals
