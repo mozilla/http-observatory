@@ -221,6 +221,7 @@ def api_get_scanner_stats():
 @sanitized_api_response
 def api_get_scan_results():
     scan_id = request.args.get('scan')
+    display = request.args.get('display', 'object').lower()
 
     if not scan_id:
         return {'error': 'scan-not-found'}
@@ -237,9 +238,14 @@ def api_get_scan_results():
 
     # Get all the test results for the given scan id
     tests = dict(database.select_test_results(scan_id))
+    iterator = tests
+
+    if display == 'array':
+        tests = list(tests.values())
+        iterator = range(0, len(tests))
 
     # For each test, get the test score description and add that in
-    for test in tests:
+    for test in iterator:
         tests[test]['score_description'] = get_score_description(tests[test]['result'])
 
     return tests
