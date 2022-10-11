@@ -1,7 +1,10 @@
-from urllib.parse import urlparse
+from operator import itemgetter
+from typing import Dict, Set
+from urllib.parse import urlparse, urlunparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
+from httpobs.scanner.retriever import get_duplicate_header_values
 
 
 # Ignore the CloudFlare __cfduid tracking cookies. They *are* actually bad, but it is out of a site's
@@ -17,7 +20,7 @@ SHORTEST_DIRECTIVE = 'img-src'
 SHORTEST_DIRECTIVE_LENGTH = len(SHORTEST_DIRECTIVE) - 1  # the shortest policy accepted by the CSP test
 
 
-def __parse_csp(csp_string: str) -> dict:
+def __parse_csp(csp_strings: list) -> Dict[str, Set]:
     """
     Decompose the CSP; could probably do this in one step, but it's complicated enough
     Should look like:
@@ -30,37 +33,112 @@ def __parse_csp(csp_string: str) -> dict:
     }
     """
 
-    # Clean out all the junk
-    csp_string = csp_string.replace('\r', '').replace('\n', '').strip()
+    # Clean out all the junk on each possible entry
+    csp_strings = [csp_string.replace('\r', '').replace('\n', '').strip() for csp_string in csp_strings]
 
     # So technically the shortest directive is img-src, so lets just assume that
     # anything super short is invalid
-    if len(csp_string) < SHORTEST_DIRECTIVE_LENGTH or csp_string.isspace():
-        raise ValueError('CSP policy does not meet minimum length requirements')
+    if not csp_strings:
+        return {}
 
-    # It's actually rather up in the air if CSP is case sensitive or not for directives, see:
-    # https://github.com/w3c/webappsec-csp/issues/236
-    # For now, we shall treat it as case-sensitive, since it's the safer thing to do, even though
-    # Firefox, Safari, and Edge all treat them as case-insensitive.
+    for csp_string in csp_strings:
+        if len(csp_string) < SHORTEST_DIRECTIVE_LENGTH or csp_string.isspace():
+            raise ValueError('CSP policy does not meet minimum length requirements')
+
     csp = {}
 
-    for entry in [directive.strip().split(maxsplit=1) for directive in csp_string.split(';') if directive]:
-        if not entry:  # Catch errant semi-colons
-            continue
+    # since we can have multiple policies, we need to iterate through each policy
+    for policy_index, policy in enumerate(csp_strings):
+        directive_seen_before_in_this_policy = {}
 
-        # Why not use .lower()? See: https://github.com/w3c/webappsec-csp/issues/236
-        directive = entry[0]
+        for entry in [directive.strip().split(maxsplit=1) for directive in policy.split(';') if directive]:
+            if not entry:  # Catch errant semi-colons
+                continue
 
-        # Technically the path part of any source is case-sensitive, but since we don't test
-        # any paths, we can cheat a little bit here
-        values = set([source.lower() for source in entry[-1].split()]) if len(entry) > 1 else {'\'none\''}
+            # Using lower due to directives being case insensitive after CSP3
+            directive = entry[0].lower()
 
-        # While technically valid in that you just use the first entry, we are saying that repeated
-        # directives are invalid so that people notice it
-        if directive in csp:
-            raise ValueError('Repeated policy directives are invalid')
-        else:
-            csp[directive] = values
+            # While technically valid in that you just use the first entry, we are saying that repeated
+            # directives are invalid so that people notice it
+            if directive in directive_seen_before_in_this_policy:
+                raise ValueError('Repeated policy directives are invalid')
+            else:
+                directive_seen_before_in_this_policy[directive] = True
+
+            # Technically the path part of any source is case-sensitive, but since we don't test
+            # any paths, we can cheat a little bit here, TODO: Fix this?
+
+            # each value that gets to the set is a tuple consisting of:
+            # (value, policy index, whether it should kept from the list later in the function)
+            if len(entry) > 1:
+                values = []
+
+                for source in entry[-1].split():
+                    if '://' in source:
+                        # we have to do this to make the domain lowercase for comparisons later
+                        url = urlparse(source)
+                        url = url._replace(netloc=url.netloc.lower())
+                        values.append({
+                            'source': urlunparse(url),
+                            'index': policy_index,
+                            'keep': True if policy_index == 0 else False,
+                        })
+                    else:
+                        values.append({
+                            'source': source.lower(),
+                            'index': policy_index,
+                            'keep': True if policy_index == 0 else False,
+                        })
+            elif len(entry) == 1 and directive.endswith("-src"):  # if it's a source list with no values, it's 'none'
+                values = [{
+                    'source': "'none'",
+                    'index': policy_index,
+                    'keep': True if policy_index == 0 else False,
+                }]
+            else:
+                values = []
+
+            if policy_index == 0:
+                combined_sources = sorted(values, key=itemgetter('source'))
+            else:
+                combined_sources = sorted(csp.get(directive, []) + list(values), key=itemgetter('source'))
+
+            # for the first pass through, we simply remove sources where the previous item in the source
+            # list starts with the current item in the source list, making it redundant
+
+            # If you have multiple CSP policies, a directive has to be in _both_ sets of policies or
+            # it doesn't apply. This is super hard to do in "reverse", as the Observatory does.
+            # To do this, we combine the directive from multiple policies
+
+            if len(combined_sources) > 1:
+                for index, source in enumerate(combined_sources[1:], start=1):
+                    # convenience variable pointing to previous entry in the combined list
+                    prev = combined_sources[index - 1]
+
+                    # if it's from the same policy and they start with the same thing, the longer one is
+                    # superfluous, e.g. https://example.com/foo and https://example.com/foobar
+                    if source['index'] == prev['index'] and source['source'].startswith(prev['source']):
+                        source['keep'] = False
+
+                    # a source _has_ to exist in both policies for it to count
+                    if source['index'] != prev['index'] and source['source'].startswith(prev['source']):
+                        source['keep'] = True
+
+            # now we need to purge anything that's not necessary and store it into the policy
+            csp[directive] = [source for source in combined_sources if source['keep'] is True]
+
+            # the first time through the loop is special case -- everything is marked as True to keep,
+            # and only purged if it has a shorter match. however, if we are going to have more loops through
+            # due to having multiple CSP policies, then everything needs to be marked False to keep and
+            # then forcibly kept in future loops
+            if policy_index == 0 and len(csp_strings) > 1:
+                for source in csp[directive]:
+                    source['keep'] = False
+
+    # now we need to flatten out all the CSP directives (e.g. (source, index, False) back into actual values
+    # if they had defined a directive and didn't have a value remaining, then force it to none
+    for directive, sources in csp.items():
+        csp[directive] = set([source['source'] for source in sources]) if sources else {"'none'"}
 
     return csp
 
@@ -110,22 +188,28 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # What do nonces and hashes start with?
     NONCES_HASHES = ('\'sha256-', '\'sha384-', '\'sha512-', '\'nonce-')
 
-    # First we need to combine the HTTP header and HTTP Equiv "header"
+    # First, let's grab the CSP values from both the HTTP headers and the meta tags
+    http_csp_header = get_duplicate_header_values(response, 'Content-Security-Policy')
+    equiv_csp_header = response.http_equiv.get('Content-Security-Policy', [])
+    output['numPolicies'] = len(http_csp_header) + len(equiv_csp_header)  # TODO: add tests
+
+    # First we need to combine the HTTP headers and HTTP Equiv "headers"
     try:
-        headers = {
-            'http': __parse_csp(response.headers.get('Content-Security-Policy'))
-            if 'Content-Security-Policy' in response.headers else None,
-            'meta': __parse_csp(response.http_equiv.get('Content-Security-Policy'))
-            if 'Content-Security-Policy' in response.http_equiv else None,
-        }
+        csp = __parse_csp(http_csp_header + equiv_csp_header)
     except:
         output['result'] = 'csp-header-invalid'
         return output
 
     # If we have neither HTTP header nor meta, then there isn't any CSP
-    if headers['http'] is None and headers['meta'] is None:
+    if not csp:
         output['result'] = 'csp-not-implemented'
         return output
+
+    # we need the CSP from headers alone, for things like frame-ancestors
+    try:
+        http_header_only_csp = __parse_csp(http_csp_header)
+    except ValueError:
+        http_header_only_csp = {}
 
     # If we make it this far, we have a policy object
     output['policy'] = {
@@ -142,27 +226,13 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
         'unsafeObjects': False,
     }
 
-    # Store in our response object if we're using a header or meta
-    output['http'] = True if headers.get('http') else False
-    output['meta'] = True if headers.get('meta') else False
-
-    if headers['http'] and headers['meta']:
-        # This is technically incorrect. It's very easy to see if a given resource will be allowed
-        # given multiple policies, but it's extremely difficult to generate a singular policy to
-        # represent this. For the purposes of the Observatory, we just create a union of the two
-        # policies. This is incorrect, since if one policy had 'unsafe-inline' and the other one
-        # did not, the policy would not allow 'unsafe-inline'. Nevertheless, we are going to flag
-        # it, because the behavior is probably indicative of something bad and if the other policy
-        # ever disappeared, then bad things could happen that had previously been prevented.
-        csp = {}
-        for k in set(list(headers['http'].keys()) + list(headers['meta'].keys())):
-            csp[k] = headers['http'].get(k, set()).union(headers['meta'].get(k, set()))
-    else:
-        csp = headers['http'] or headers['meta']
+    # mark whether we saw csp there or not
+    output['http'] = True if http_csp_header else False
+    output['meta'] = True if equiv_csp_header else False
 
     # Get the various directives we look at
     base_uri = csp.get('base-uri') or {'*'}
-    frame_ancestors = headers['http'].get('frame-ancestors', {'*'}) if headers['http'] is not None else {'*'}
+    frame_ancestors = http_header_only_csp.get('frame-ancestors', {'*'})
     form_action = csp.get('form-action') or {'*'}
     object_src = csp.get('object-src') or csp.get('default-src') or {'*'}
     script_src = csp.get('script-src') or csp.get('default-src') or {'*'}
@@ -198,8 +268,6 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     passive_csp_sources = [source for source_list in
                            [csp.get(directive, csp.get('default-src', [])) for directive in PASSIVE_DIRECTIVES]
                            for source in source_list]
-
-    # Now to make the piggies squeal
 
     # No 'unsafe-inline' or data: in script-src
     # Also don't allow overly broad schemes such as https: in either object-src or script-src

@@ -14,7 +14,9 @@ HSTS_URL = 'https://raw.githubusercontent.com/chromium/chromium/main/net/http/tr
 
 
 def parse_http_equiv_headers(html: str) -> CaseInsensitiveDict:
-    http_equiv_headers = CaseInsensitiveDict()
+    http_equiv_headers = CaseInsensitiveDict({
+        'Content-Security-Policy': [],
+    })
 
     # Try to parse the HTML
     try:
@@ -31,11 +33,8 @@ def parse_http_equiv_headers(html: str) -> CaseInsensitiveDict:
             # See issue: https://github.com/mozilla/http-observatory/issues/266
             # Note that this is so far only done for CSP and not for other types
             # of http-equiv
-            if (meta.get('http-equiv', '').lower().strip() == 'content-security-policy' and
-               'Content-Security-Policy' in http_equiv_headers):
-                http_equiv_headers['Content-Security-Policy'] += '; ' + meta.get('content')
-            else:
-                http_equiv_headers[meta.get('http-equiv')] = meta.get('content')
+            if meta.get('http-equiv', '').lower().strip() == 'content-security-policy':
+                http_equiv_headers['Content-Security-Policy'].append(meta.get('content'))
 
         # Technically not HTTP Equiv, but I'm treating it that way
         elif meta.get('name', '').lower().strip() == 'referrer' and meta.has_attr('content'):

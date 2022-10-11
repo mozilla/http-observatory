@@ -1,6 +1,9 @@
 from collections import UserDict
 from copy import deepcopy
 from requests.cookies import RequestsCookieJar
+from typing import Union
+from urllib3 import HTTPResponse
+from urllib3._collections import HTTPHeaderDict
 
 import os.path
 
@@ -19,7 +22,7 @@ def empty_requests(http_equiv_file=None) -> dict:
             '/robots.txt': None,
         },
         'responses': {
-            'auto': UserDict(),
+            'auto': HTTPResponse(),
             'cors': None,
             'http': None,
             'https': None,
@@ -41,6 +44,8 @@ def empty_requests(http_equiv_file=None) -> dict:
         'Content-Type': 'text/html',
     }
     req['responses']['auto'].history = []
+    req['responses']['auto'].raw = HTTPResponse()
+    req['responses']['auto'].raw.headers = HTTPHeaderDict()
     req['responses']['auto'].request = UserDict()
     req['responses']['auto'].request.headers = UserDict()
     req['responses']['auto'].status_code = 200
@@ -60,3 +65,13 @@ def empty_requests(http_equiv_file=None) -> dict:
         req['responses']['auto'].http_equiv = {}
 
     return req
+
+
+# if we want to handle multiple of the same header, we need to add it to both headers and raw headers
+def set_header(response: HTTPResponse, header: str, values: Union[str, list]):
+    if isinstance(values, str):
+        values = [values]
+
+    for value in values:
+        response.headers[header] = response.headers[header] + ', ' + value if header in response.headers else value
+        response.raw.headers.add(header, value)
