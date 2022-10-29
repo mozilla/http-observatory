@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())
 
-    # Remove the -- from the name, change - o underscore
+    # Remove the -- from the name, change - to underscore
     args = {k.split('--')[-1].replace('-', '_'): v for k, v in args.items()}
     output_format = args.pop('format').lower()
 
