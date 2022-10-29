@@ -8,6 +8,9 @@ import json
 from operator import itemgetter
 from urllib.parse import urlparse
 
+MIN_GRADE_DEFAULT = 'F'
+MIN_SCORE_DEFAULT = 0
+GRADES = ['F', 'D-', 'D', 'D+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -36,6 +39,15 @@ if __name__ == "__main__":
                         default=argparse.SUPPRESS,
                         help='headers to send in scan (json formatted)',
                         type=json.loads)
+    parser.add_argument('--min-grade',
+                        default=MIN_GRADE_DEFAULT,
+                        help='testing: this grade or better, or exit(1)',
+                        choices=GRADES,
+                        type=str)
+    parser.add_argument('--min-score',
+                        default=MIN_SCORE_DEFAULT,
+                        help='testing: this score or better (>=0), or exit(1)',
+                        type=int)
     parser.add_argument('--format',
                         default='json',
                         help='output format (json or report), default of json',
@@ -46,12 +58,16 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())
 
-    # Remove the -- from the name, change - to underscore
+    # Remove the -- from the name, change - o underscore
     args = {k.split('--')[-1].replace('-', '_'): v for k, v in args.items()}
     output_format = args.pop('format').lower()
 
+    # Get minimum grade and score
+    min_grade = args.pop('min_grade')
+    min_score = args.pop('min_score')
+
     # print out help if no arguments are specified, or bad arguments
-    if len(args) == 0 or output_format not in ('json', 'report'):
+    if len(args) == 0 or output_format not in ('json', 'report') or min_score<0:
         parser.print_help()
         parser.exit(-1)
 
@@ -96,3 +112,21 @@ if __name__ == "__main__":
             print('  {test:<30} [{modifier:>3}]  {reason}'.format(test=score[0],
                                                                   modifier=score[1],
                                                                   reason=score[2]))
+
+    # Check for minimum score
+    score = r['scan']['score']
+    if score<min_score:
+        print(f"Test failed as score ({score}) is lower than the minimum score ({min_score}).")
+        exit(1)
+
+    #Check for minimum grade
+    grade = r['scan']['grade']
+    grade_index = GRADES.index(grade)
+    min_grade_index = GRADES.index(min_grade)
+    if grade_index<min_grade_index:
+        print(f"Test failed as grade ({grade}) is lower than the minimum grade ({min_grade}).")
+        exit(1)
+
+    
+
+
