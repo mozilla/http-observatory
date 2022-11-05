@@ -8,9 +8,15 @@ import json
 from operator import itemgetter
 from urllib.parse import urlparse
 
-MIN_GRADE_DEFAULT = 'F'
-MIN_SCORE_DEFAULT = 0
+NO_MIN_GRADE = ''
+NO_MIN_SCORE = 0
 GRADES = ['F', 'D-', 'D', 'D+', 'C-', 'C', 'C+', 'B-', 'B', 'B+', 'A-', 'A', 'A+']
+
+#All keys used more than once
+FORMAT_JSON_KEY = 'json'
+FORMAT_REPORT_KEY = 'report'
+RESULT_SCAN_KEY = 'scan'
+RESULT_ERROR_KEY = 'error'
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -40,16 +46,16 @@ if __name__ == "__main__":
                         help='headers to send in scan (json formatted)',
                         type=json.loads)
     parser.add_argument('--min-grade',
-                        default=MIN_GRADE_DEFAULT,
+                        default=NO_MIN_GRADE,
                         help='testing: this grade or better, or exit(1)',
                         choices=GRADES,
                         type=str)
     parser.add_argument('--min-score',
-                        default=MIN_SCORE_DEFAULT,
+                        default=NO_MIN_SCORE,
                         help='testing: this score or better (>=0), or exit(1)',
                         type=int)
     parser.add_argument('--format',
-                        default='json',
+                        default=FORMAT_JSON_KEY,
                         help='output format (json or report), default of json',
                         type=str)
     parser.add_argument('hostname',
@@ -58,7 +64,7 @@ if __name__ == "__main__":
 
     args = vars(parser.parse_args())
 
-    # Remove the -- from the name, change - o underscore
+    # Remove the -- from the name, change - to underscore
     args = {k.split('--')[-1].replace('-', '_'): v for k, v in args.items()}
     output_format = args.pop('format').lower()
 
@@ -67,7 +73,7 @@ if __name__ == "__main__":
     min_score = args.pop('min_score')
 
     # print out help if no arguments are specified, or bad arguments
-    if len(args) == 0 or output_format not in ('json', 'report') or min_score<0:
+    if len(args) == 0 or output_format not in ('json', 'report') or min_score<NO_MIN_SCORE:
         parser.print_help()
         parser.exit(-1)
 
@@ -92,12 +98,74 @@ if __name__ == "__main__":
     # Get the scan results
     r = httpobs.scanner.local.scan(**args)
 
+
+    if RESULT_SCAN_KEY not in r.keys():
+        if output_format==FORMAT_JSON_KEY:
+            print(json.dumps(r, indent=4, sort_keys=True))
+        elif output_format==FORMAT_REPORT_KEY and RESULT_ERROR_KEY in r.keys():
+            print(f'Error: {r[RESULT_ERROR_KEY]}')
+        else:
+            print('Unknown error')
+
+        exit(1)
+
+    # Setup thresholding variables
+    score_thresholding_text = ''
+    grade_thresholding_text = ''
+    thresholding_results = {}
+    thresholding_passed = True
+
+    # Compare score to threshold
+    if min_score>NO_MIN_SCORE:
+        thresholding_results['min-score'] = min_score
+        
+        score = r[RESULT_SCAN_KEY]['score']
+        score_thresholding_passed = score>=min_score
+
+        if score_thresholding_passed:
+            score_thresholding_text = f'Score thresholding passed as score ({score}) is higher or equal to min-score ({min_score})'
+        else:
+            score_thresholding_text = f'Score thresholding failed as score ({score}) is lower than the minimum score ({min_score})'
+            thresholding_passed = False
+
+        thresholding_results['score-test-text'] = score_thresholding_text
+        thresholding_results['score-test-passed'] = score_thresholding_passed
+
+    # Compare grade to threshold
+    if min_grade!=NO_MIN_GRADE:
+        thresholding_results['min-grade'] = min_grade
+        grade = r[RESULT_SCAN_KEY]['grade']
+        grade_index = GRADES.index(grade)
+        min_grade_index = GRADES.index(min_grade)
+        grade_thresholding_passed = grade_index>=min_grade_index
+
+        if grade_thresholding_passed:
+            grade_thresholding_text = \
+                f'Grade thresholding passed as grade ({grade}) is higher or equal to min-grade ({min_grade})'
+        else:
+            grade_thresholding_text = \
+                f'Grade thresholding failed as grade ({grade}) is lower than the minimum grade ({min_grade})'
+            thresholding_passed = False
+
+        thresholding_results['grade-test-text'] = grade_thresholding_text
+        thresholding_results['grade-test-passed'] = grade_thresholding_passed
+
+    #Integrate the results
+    if len(thresholding_results):
+        thresholding_results['passed'] = thresholding_passed
+        r['thresholding-results'] = thresholding_results
+
     # print out the results to the command line
     if output_format == 'json':
         print(json.dumps(r, indent=4, sort_keys=True))
     elif output_format == 'report':
-        print('Score: {0} [{1}]'.format(r['scan']['score'],
-                                        r['scan']['grade']))
+        print('Score: {0} [{1}]'.format(score, grade))
+
+        if len(score_thresholding_text):
+            print(f'Score threshold: {score_thresholding_text}')
+
+        if len(grade_thresholding_text):
+            print(f'Grade threshold: {grade_thresholding_text}')
 
         print('Modifiers:')
 
@@ -113,20 +181,7 @@ if __name__ == "__main__":
                                                                   modifier=score[1],
                                                                   reason=score[2]))
 
-    # Check for minimum score
-    score = r['scan']['score']
-    if score<min_score:
-        print(f"Test failed as score ({score}) is lower than the minimum score ({min_score}).")
+    if thresholding_passed==False:
         exit(1)
-
-    #Check for minimum grade
-    grade = r['scan']['grade']
-    grade_index = GRADES.index(grade)
-    min_grade_index = GRADES.index(min_grade)
-    if grade_index<min_grade_index:
-        print(f"Test failed as grade ({grade}) is lower than the minimum grade ({min_grade}).")
-        exit(1)
-
-    
 
 
