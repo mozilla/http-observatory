@@ -20,7 +20,6 @@ def add_response_headers(headers=None, default_headers=None, cors=False):
             'Strict-Transport-Security': 'max-age=63072000',
             'X-Content-Type-Options': 'nosniff',
             'X-Frame-Options': 'DENY',
-            'X-XSS-Protection': '1; mode=block',
         }
     headers.update(default_headers)
 

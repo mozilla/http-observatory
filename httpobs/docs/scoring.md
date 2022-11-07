@@ -143,13 +143,3 @@ x-frame-options-allow-from-origin | `X-Frame-Options` (XFO) header uses `ALLOW-F
 x-frame-options-sameorigin-or-deny | `X-Frame-Options` (XFO) header set to `SAMEORIGIN` or `DENY` | 0
 x-frame-options-not-implemented | `X-Frame-Options` (XFO) header not implemented | -20
 x-frame-options-header-invalid | `X-Frame-Options` (XFO) header cannot be recognized | -20
-<br>
-
-[X-XSS-Protection](https://infosec.mozilla.org/guidelines/web_security#x-xss-protection) | Description | Modifier
---- | --- | :---:
-x-xss-protection-not-needed-due-to-csp | `X-XSS-Protection` header not needed due to strong Content Security Policy (CSP) header | 0
-x-xss-protection-enabled-mode-block | `X-XSS-Protection` header set to `1; mode=block` | 0
-x-xss-protection-enabled | `X-XSS-Protection` header set to `1` | 0
-x-xss-protection-disabled | `X-XSS-Protection` header set to `0` (disabled) | -10
-x-xss-protection-not-implemented | `X-XSS-Protection` header not implemented | -10
-x-xss-protection-header-invalid | `X-XSS-Protection` header cannot be recognized | -10

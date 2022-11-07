@@ -361,32 +361,6 @@ SCORE_TABLE = {
         'modifier': -20,
     },
 
-    # X-XSS-Protection
-    'x-xss-protection-enabled-mode-block': {
-        'description': 'X-XSS-Protection header set to "1; mode=block"',
-        'modifier': 0,
-    },
-    'x-xss-protection-enabled': {
-        'description': 'X-XSS-Protection header set to "1"',
-        'modifier': 0,
-    },
-    'x-xss-protection-not-needed-due-to-csp': {
-        'description': 'X-XSS-Protection header not needed due to strong Content Security Policy (CSP) header',
-        'modifier': 0,
-    },
-    'x-xss-protection-disabled': {
-        'description': 'X-XSS-Protection header set to "0" (disabled)',
-        'modifier': -10,
-    },
-    'x-xss-protection-not-implemented': {
-        'description': 'X-XSS-Protection header not implemented',
-        'modifier': -10,
-    },
-    'x-xss-protection-header-invalid': {
-        'description': 'X-XSS-Protection header cannot be recognized',
-        'modifier': -10,
-    },
-
     # Generic results
     'html-not-parsable': {
         'description': 'Claims to be html, but cannot be parsed',
