@@ -483,17 +483,6 @@ Example:
     "result": "x-frame-options-sameorigin-or-deny",
     "score_description": "X-Frame-Options (XFO) header set to SAMEORIGIN or DENY",
     "score_modifier": 0
-  },
-  "x-xss-protection": {
-    "expectation": "x-xss-protection-1-mode-block",
-    "name": "x-xss-protection",
-    "output": {
-      "data": "1; mode=block"
-    },
-    "pass": true,
-    "result": "x-xss-protection-enabled-mode-block",
-    "score_description": "X-XSS-Protection header set to \"1; mode=block\"",
-    "score_modifier": 0
   }
 }
 ```
