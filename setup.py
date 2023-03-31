@@ -56,7 +56,7 @@ setup(
         'vine==1.1.4',
         'Werkzeug==0.14.1',
         'psycopg2>=2.7,<2.8',
-        'redis==2.10.6',
+        'redis==4.4.4',
         'psutil==5.9.0',
         'publicsuffixlist==0.7.12',
         'requests==2.27.1',
