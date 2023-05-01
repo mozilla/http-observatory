@@ -60,7 +60,7 @@ setup(
         'psutil==5.9.0',
         'publicsuffixlist==0.7.12',
         'requests==2.27.1',
-        'Flask==1.0.2',
+        'Flask==2.3.2',
         'uWSGI==2.0.17.1'
     ],
     scripts=['httpobs/scripts/httpobs-local-scan',
