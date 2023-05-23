@@ -59,7 +59,7 @@ setup(
         'redis==2.10.6',
         'psutil==5.9.0',
         'publicsuffixlist==0.7.12',
-        'requests==2.27.1',
+        'requests==2.31.0',
         'Flask==1.0.2',
         'uWSGI==2.0.17.1'
     ],
