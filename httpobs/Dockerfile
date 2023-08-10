@@ -1,6 +1,6 @@
 # http-observatory
 
-FROM python:3.5
+FROM python:3.7
 MAINTAINER https://github.com/mozilla/http-observatory
 
 RUN groupadd --gid 1001 app && \
