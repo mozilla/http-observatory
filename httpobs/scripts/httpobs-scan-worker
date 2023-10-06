@@ -26,15 +26,15 @@ fi
 # Execute celery
 celery \
   -A httpobs.scanner.tasks \
-  --autoscale=$CONCURRENCY,4 \
   --broker=$HTTPOBS_BROKER_URL \
-  --detach \
+  worker \
+  --autoscale=$CONCURRENCY,4 \
   --hostname='scanner@%h' \
   --logfile='/var/log/httpobs/scanner.log' \
   --loglevel=$LOGLEVEL \
-  --maxtasksperchild=16 \
+  --max-tasks-per-child=16 \
   --pidfile='/var/run/httpobs/scanner.pid' \
-worker
+  &
 
 # Run the scanner
 python3 -u httpobs/scanner/main.py >> /var/log/httpobs/scan-worker.log 2>&1

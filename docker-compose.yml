@@ -1,7 +1,7 @@
 version: '2'
 services:
   website:
-    build: ./httpobs
+    build: .
     command: uwsgi --http :57001 --wsgi-file /app/httpobs/website/main.py --processes 8 --callable app --master
     depends_on:
       - postgres
@@ -18,7 +18,7 @@ services:
 
   # celery task for scanner
   scanner:
-    build: ./httpobs
+    build: .
     command: /app/httpobs/scripts/httpobs-scan-worker
     depends_on:
       - postgres

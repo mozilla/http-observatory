@@ -227,14 +227,14 @@ def select_scan_host_history(site_id: int) -> list:
                     (site_id, STATE_FINISHED))
 
     if cur.rowcount > 0:
-        return([
+        return [
             {
                 'scan_id': row['id'],
                 'grade': row['grade'],
                 'score': row['score'],
                 'end_time': row['end_time'],
                 'end_time_unix_timestamp': int(row['end_time'].timestamp())
-            } for row in cur.fetchall()])
+            } for row in cur.fetchall()]
     else:
         return []
 

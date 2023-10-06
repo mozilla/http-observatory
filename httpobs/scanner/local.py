@@ -63,7 +63,7 @@ def scan(hostname, **kwargs):
     tests_passed = sum([1 if result.get('pass') else 0 for result in results])
 
     # Return the results
-    return({
+    return {
         'scan': {
             'grade': grades[1],
             'likelihood_indicator': grades[2],
@@ -74,4 +74,4 @@ def scan(hostname, **kwargs):
             'tests_quantity': NUM_TESTS,
         },
         'tests': {result.pop('name'): result for result in results}
-    })
+    }

@@ -1,2 +1,0 @@
-psycopg2>=2.7,<2.8 --no-binary psycopg2  # By constraining psycopg2 to less than 2.8 we can't use Python 3.8 due to https://github.com/psycopg/psycopg2/issues/854#issuecomment-611791946
-redis==2.10.6

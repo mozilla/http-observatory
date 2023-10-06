@@ -1,14 +1,14 @@
-from httpobs.conf import BROKER_URL
+from httpobs.conf import BROKER_URL as broker_url
 
 
 # Set the Celery task queue
-BROKER_URL = BROKER_URL
+broker_url = broker_url
 
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_IGNORE_RESULTS = True
-CELERY_REDIRECT_STDOUTS_LEVEL = 'WARNING'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
+accept_content = ['json']
+task_ignore_resultS = True
+worker_redirect_stdouts_level = 'WARNING'
+result_serializer = 'json'
+task_serializer = 'json'
 
-CELERYD_TASK_SOFT_TIME_LIMIT = 751
-CELERYD_TASK_TIME_LIMIT = 1129
+task_soft_time_limit = 751
+task_time_limit = 1129

@@ -398,7 +398,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
         # There are certain cookies we ignore, because they are set by service providers and sites have
         # no control over them.
         for cookie in COOKIES_TO_DELETE:
-            del(session.cookies[cookie])
+            del session.cookies[cookie]
 
         for cookie in session.cookies:
             # The HttpOnly and SameSite functionality is a bit broken

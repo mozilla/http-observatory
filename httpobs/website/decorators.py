@@ -70,7 +70,7 @@ def sanitized_api_response(fn):
 
             # Remove 'error' if it's null
             if output['error'] is None:
-                del(output['error'])
+                del output['error']
 
             # Delete any other things that might have made their way into the results
             output = {k: output[k] for k in SCAN_VALID_KEYS if k in output}
