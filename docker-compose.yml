@@ -6,7 +6,6 @@ services:
     depends_on:
       - postgres
     environment:
-      - HTTPOBS_BROKER_URL=redis://redis:6379/0
       - HTTPOBS_DATABASE_HOST=postgres
       - HTTPOBS_DATABASE_PASS=httpobsapipassword
       - HTTPOBS_DATABASE_USER=httpobsapi
@@ -16,7 +15,13 @@ services:
       - "57001:57001"
     restart: always
 
-  # celery task for scanner
+  postgres:
+    build: ./httpobs/database
+    environment:
+      - POSTGRES_USER=httpobs
+      - POSTGRES_PASSWORD=totallyfakepassword
+      - POSTGRES_DB=http_observatory
+
   scanner:
     build: .
     command: /app/httpobs/scripts/httpobs-scan-worker
@@ -32,13 +37,6 @@ services:
     links:
       - postgres
       - redis
-
-  postgres:
-    build: ./httpobs/database
-    environment:
-      - POSTGRES_USER=httpobs
-      - POSTGRES_PASSWORD=totallyfakepassword
-      - POSTGRES_DB=http_observatory
 
   redis:
     image: redis

@@ -16,7 +16,6 @@ from .database import (get_cursor,
                        update_scans_dequeue_scans)
 
 __all__ = [
-    'abort_broken_scans',
     'get_cursor',
     'insert_scan',
     'insert_scan_grade',
