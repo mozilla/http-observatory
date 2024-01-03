@@ -14,8 +14,9 @@ def add_response_headers(headers=None, default_headers=None, cors=False):
 
     if not default_headers:
         default_headers = {
-            'Content-Security-Policy': ("default-src 'none'; base-uri 'none'; "
-                                        "form-action 'none'; frame-ancestors 'none'"),
+            'Content-Security-Policy': (
+                "default-src 'none'; base-uri 'none'; " "form-action 'none'; frame-ancestors 'none'"
+            ),
             'Referrer-Policy': 'no-referrer',
             'Strict-Transport-Security': 'max-age=63072000',
             'X-Content-Type-Options': 'nosniff',
@@ -35,16 +36,19 @@ def add_response_headers(headers=None, default_headers=None, cors=False):
 
             # Append the CORS headers
             if cors:
-                headers.update({
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': ', '.join(request.url_rule.methods),
-                    'Access-Control-Max-Age': '86400',
-                })
+                headers.update(
+                    {
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': ', '.join(request.url_rule.methods),
+                        'Access-Control-Max-Age': '86400',
+                    }
+                )
 
             # Append the headers to the response
             for header, value in headers.items():
                 resp.headers[header] = value
             return resp
+
         return wrapper
 
     return decorator
@@ -55,11 +59,34 @@ def sanitized_api_response(fn):
     def wrapper(*args, **kwargs):
         output = fn(*args, **kwargs)
 
-        SCAN_VALID_KEYS = ('algorithm_version', 'end_time', 'error', 'grade', 'hidden', 'likelihood_indicator',
-                           'response_headers', 'scan_id', 'score', 'start_time', 'state', 'status_code',
-                           'tests_completed', 'tests_failed', 'tests_passed', 'tests_quantity')
-        TEST_RESULT_VALID_KEYS = ('error', 'expectation', 'name', 'output', 'pass', 'result',
-                                  'score_description', 'score_modifier')
+        SCAN_VALID_KEYS = (
+            'algorithm_version',
+            'end_time',
+            'error',
+            'grade',
+            'hidden',
+            'likelihood_indicator',
+            'response_headers',
+            'scan_id',
+            'score',
+            'start_time',
+            'state',
+            'status_code',
+            'tests_completed',
+            'tests_failed',
+            'tests_passed',
+            'tests_quantity',
+        )
+        TEST_RESULT_VALID_KEYS = (
+            'error',
+            'expectation',
+            'name',
+            'output',
+            'pass',
+            'result',
+            'score_description',
+            'score_modifier',
+        )
 
         # Convert it to a dict (in case it's a DictRow)
         output = dict(output)
@@ -81,4 +108,5 @@ def sanitized_api_response(fn):
                 output[test] = {k: output[test][k] for k in output[test] if k in TEST_RESULT_VALID_KEYS}
 
         return jsonify(output)
+
     return wrapper

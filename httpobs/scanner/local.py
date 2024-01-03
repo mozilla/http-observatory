@@ -73,5 +73,5 @@ def scan(hostname, **kwargs):
             'tests_passed': tests_passed,
             'tests_quantity': NUM_TESTS,
         },
-        'tests': {result.pop('name'): result for result in results}
+        'tests': {result.pop('name'): result for result in results},
     }

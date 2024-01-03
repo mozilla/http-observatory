@@ -124,12 +124,14 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
     response = reqs['responses']['auto']
 
     # The order of how "good" the results are
-    goodness = ['sri-implemented-and-all-scripts-loaded-securely',
-                'sri-implemented-and-external-scripts-loaded-securely',
-                'sri-implemented-but-external-scripts-not-loaded-securely',
-                'sri-not-implemented-but-external-scripts-loaded-securely',
-                'sri-not-implemented-and-external-scripts-not-loaded-securely',
-                'sri-not-implemented-response-not-html']
+    goodness = [
+        'sri-implemented-and-all-scripts-loaded-securely',
+        'sri-implemented-and-external-scripts-loaded-securely',
+        'sri-implemented-but-external-scripts-not-loaded-securely',
+        'sri-not-implemented-but-external-scripts-loaded-securely',
+        'sri-not-implemented-and-external-scripts-not-loaded-securely',
+        'sri-not-implemented-response-not-html',
+    ]
 
     # If the content isn't HTML, there's no scripts to load; this is okay
     if response.headers.get('Content-Type', '').split(';')[0] not in HTML_TYPES:
@@ -158,8 +160,11 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                 # Check to see if they're on the same second-level domain
                 # TODO: update the PSL list on startup
                 psl = PublicSuffixList()
-                samesld = True if (psl.privatesuffix(urlparse(response.url).netloc) ==
-                                   psl.privatesuffix(src.netloc)) else False
+                samesld = (
+                    True
+                    if (psl.privatesuffix(urlparse(response.url).netloc) == psl.privatesuffix(src.netloc))
+                    else False
+                )
 
                 if src.scheme == '':
                     if src.netloc == '':
@@ -189,29 +194,28 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
 
                 # Add it to the scripts data result, if it's not a relative URI
                 if not secureorigin:
-                    output['data'][script['src']] = {
-                        'crossorigin': crossorigin,
-                        'integrity': integrity
-                    }
+                    output['data'][script['src']] = {'crossorigin': crossorigin, 'integrity': integrity}
 
                     if integrity and not securescheme:
-                        output['result'] = only_if_worse('sri-implemented-but-external-scripts-not-loaded-securely',
-                                                         output['result'],
-                                                         goodness)
+                        output['result'] = only_if_worse(
+                            'sri-implemented-but-external-scripts-not-loaded-securely', output['result'], goodness
+                        )
                     elif not integrity and securescheme:
-                        output['result'] = only_if_worse('sri-not-implemented-but-external-scripts-loaded-securely',
-                                                         output['result'],
-                                                         goodness)
+                        output['result'] = only_if_worse(
+                            'sri-not-implemented-but-external-scripts-loaded-securely', output['result'], goodness
+                        )
                     elif not integrity and not securescheme and samesld:
-                        output['result'] = only_if_worse('sri-not-implemented-and-external-scripts'
-                                                         '-not-loaded-securely',
-                                                         output['result'],
-                                                         goodness)
+                        output['result'] = only_if_worse(
+                            'sri-not-implemented-and-external-scripts' '-not-loaded-securely',
+                            output['result'],
+                            goodness,
+                        )
                     elif not integrity and not securescheme:
-                        output['result'] = only_if_worse('sri-not-implemented-and-external-scripts'
-                                                         '-not-loaded-securely',
-                                                         output['result'],
-                                                         goodness)
+                        output['result'] = only_if_worse(
+                            'sri-not-implemented-and-external-scripts' '-not-loaded-securely',
+                            output['result'],
+                            goodness,
+                        )
 
                 # Grant bonus even if they use SRI on the same origin
                 else:
@@ -228,20 +232,22 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
 
         # If the page loaded from a foreign origin, but everything included SRI
         elif scripts and scripts_on_foreign_origin and not output['result']:
-            output['result'] = only_if_worse('sri-implemented-and-external-scripts-loaded-securely',
-                                             output['result'],
-                                             goodness)
+            output['result'] = only_if_worse(
+                'sri-implemented-and-external-scripts-loaded-securely', output['result'], goodness
+            )
 
     # Code defensively on the size of the data
     output['data'] = output['data'] if len(str(output['data'])) < 32768 else {}
 
     # Check to see if the test passed or failed
-    if output['result'] in ('sri-implemented-and-all-scripts-loaded-securely',
-                            'sri-implemented-and-external-scripts-loaded-securely',
-                            'sri-not-implemented-response-not-html',
-                            'sri-not-implemented-but-all-scripts-loaded-from-secure-origin',
-                            'sri-not-implemented-but-no-scripts-loaded',
-                            expectation):
+    if output['result'] in (
+        'sri-implemented-and-all-scripts-loaded-securely',
+        'sri-implemented-and-external-scripts-loaded-securely',
+        'sri-not-implemented-response-not-html',
+        'sri-not-implemented-but-all-scripts-loaded-from-secure-origin',
+        'sri-not-implemented-but-no-scripts-loaded',
+        expectation,
+    ):
         output['pass'] = True
 
     return output

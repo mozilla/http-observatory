@@ -2,19 +2,19 @@ from random import randrange
 from time import sleep
 from urllib.parse import parse_qs, urlparse
 
-from httpobs.conf import (BROKER_URL,
-                          SCANNER_ALLOW_KICKSTART,
-                          SCANNER_ALLOW_KICKSTART_NUM_ABORTED,
-                          SCANNER_BROKER_RECONNECTION_SLEEP_TIME,
-                          SCANNER_CYCLE_SLEEP_TIME,
-                          SCANNER_DATABASE_RECONNECTION_SLEEP_TIME,
-                          SCANNER_MAINTENANCE_CYCLE_FREQUENCY,
-                          SCANNER_MATERIALIZED_VIEW_REFRESH_FREQUENCY,
-                          SCANNER_MAX_CPU_UTILIZATION,
-                          SCANNER_MAX_LOAD)
-from httpobs.database import (periodic_maintenance,
-                              refresh_materialized_views,
-                              update_scans_dequeue_scans)
+from httpobs.conf import (
+    BROKER_URL,
+    SCANNER_ALLOW_KICKSTART,
+    SCANNER_ALLOW_KICKSTART_NUM_ABORTED,
+    SCANNER_BROKER_RECONNECTION_SLEEP_TIME,
+    SCANNER_CYCLE_SLEEP_TIME,
+    SCANNER_DATABASE_RECONNECTION_SLEEP_TIME,
+    SCANNER_MAINTENANCE_CYCLE_FREQUENCY,
+    SCANNER_MATERIALIZED_VIEW_REFRESH_FREQUENCY,
+    SCANNER_MAX_CPU_UTILIZATION,
+    SCANNER_MAX_LOAD,
+)
+from httpobs.database import periodic_maintenance, refresh_materialized_views, update_scans_dequeue_scans
 from httpobs.scanner.tasks import scan
 
 import datetime
@@ -50,10 +50,12 @@ def main():
             if headroom <= 0:
                 # If the cycle sleep time is .5, sleep 2 seconds at a minimum, 10 seconds at a maximum
                 sleep_time = min(max(abs(headroom), SCANNER_CYCLE_SLEEP_TIME * 4), 10)
-                print('[{time}] WARNING: Load too high. Sleeping for {num} second(s).'.format(
-                    time=str(datetime.datetime.now()).split('.')[0],
-                    num=sleep_time),
-                    file=sys.stderr)
+                print(
+                    '[{time}] WARNING: Load too high. Sleeping for {num} second(s).'.format(
+                        time=str(datetime.datetime.now()).split('.')[0], num=sleep_time
+                    ),
+                    file=sys.stderr,
+                )
 
                 sleep(sleep_time)
                 continue
@@ -69,35 +71,49 @@ def main():
         # If it fails, we don't care. Of course, nobody reads the comments, so I should say that *I* don't care.
         try:
             if dequeue_loop_count % SCANNER_MAINTENANCE_CYCLE_FREQUENCY == 0:
-                print('[{time}] INFO: Performing periodic maintenance.'.format(
-                    time=str(datetime.datetime.now()).split('.')[0]),
-                    file=sys.stderr)
+                print(
+                    '[{time}] INFO: Performing periodic maintenance.'.format(
+                        time=str(datetime.datetime.now()).split('.')[0]
+                    ),
+                    file=sys.stderr,
+                )
 
                 dequeue_loop_count = 0
                 num = periodic_maintenance()
 
             if num > 0:
-                print('[{time}] INFO: Cleared {num} broken scan(s).'.format(
-                    time=str(datetime.datetime.now()).split('.')[0],
-                    num=num),
-                    file=sys.stderr)
+                print(
+                    '[{time}] INFO: Cleared {num} broken scan(s).'.format(
+                        time=str(datetime.datetime.now()).split('.')[0], num=num
+                    ),
+                    file=sys.stderr,
+                )
 
             # Forcibly restart if things are going real bad, sleep for a bit to avoid flagging
             if num > SCANNER_ALLOW_KICKSTART_NUM_ABORTED and SCANNER_ALLOW_KICKSTART:
                 sleep(10)
                 try:
-                    print('[{time}] ERROR: Celery appears to be hung. Attempting to kickstart the scanners.'.format(
-                        time=str(datetime.datetime.now()).split('.')[0]),
-                        file=sys.stderr)
+                    print(
+                        '[{time}] ERROR: Celery appears to be hung. Attempting to kickstart the scanners.'.format(
+                            time=str(datetime.datetime.now()).split('.')[0]
+                        ),
+                        file=sys.stderr,
+                    )
                     subprocess.call(['pkill', '-u', 'httpobs'])
                 except FileNotFoundError:
-                    print('[{time}] ERROR: Tried to kickstart, but no pkill found.'.format(
-                        time=str(datetime.datetime.now()).split('.')[0]),
-                        file=sys.stderr)
+                    print(
+                        '[{time}] ERROR: Tried to kickstart, but no pkill found.'.format(
+                            time=str(datetime.datetime.now()).split('.')[0]
+                        ),
+                        file=sys.stderr,
+                    )
                 except:
-                    print('[{time}] ERROR: Tried to kickstart, but failed for unknown reasons.'.format(
-                        time=str(datetime.datetime.now()).split('.')[0]),
-                        file=sys.stderr)
+                    print(
+                        '[{time}] ERROR: Tried to kickstart, but failed for unknown reasons.'.format(
+                            time=str(datetime.datetime.now()).split('.')[0]
+                        ),
+                        file=sys.stderr,
+                    )
         except:
             pass
         finally:
@@ -107,16 +123,22 @@ def main():
         # Every so often we need to refresh the materialized views that the statistics depend on
         try:
             if materialized_view_loop_count % SCANNER_MATERIALIZED_VIEW_REFRESH_FREQUENCY == 0:
-                print('[{time}] INFO: Refreshing materialized views.'.format(
-                    time=str(datetime.datetime.now()).split('.')[0]),
-                    file=sys.stderr)
+                print(
+                    '[{time}] INFO: Refreshing materialized views.'.format(
+                        time=str(datetime.datetime.now()).split('.')[0]
+                    ),
+                    file=sys.stderr,
+                )
 
                 materialized_view_loop_count = 0
                 refresh_materialized_views()
 
-                print('[{time}] INFO: Materialized views refreshed.'.format(
-                    time=str(datetime.datetime.now()).split('.')[0]),
-                    file=sys.stderr)
+                print(
+                    '[{time}] INFO: Materialized views refreshed.'.format(
+                        time=str(datetime.datetime.now()).split('.')[0]
+                    ),
+                    file=sys.stderr,
+                )
         except:
             pass
         finally:
@@ -125,25 +147,27 @@ def main():
         # Verify that the broker is still up; if it's down, let's sleep and try again later
         try:
             if broker_url.scheme.lower() == 'redis':
-                conn = redis.Connection(host=broker_url.hostname,
-                                        port=broker_url.port or 6379,
-                                        db=int(broker_url.path[1:] if len(broker_url.path) > 0 else 0),
-                                        password=broker_url.password)
+                conn = redis.Connection(
+                    host=broker_url.hostname,
+                    port=broker_url.port or 6379,
+                    db=int(broker_url.path[1:] if len(broker_url.path) > 0 else 0),
+                    password=broker_url.password,
+                )
             else:
-                conn = redis.UnixDomainSocketConnection(path=broker_url.path,
-                                                        db=int(parse_qs(broker_url.query).get(
-                                                            'virtual_host', ['0'])
-                                                            [0]))
+                conn = redis.UnixDomainSocketConnection(
+                    path=broker_url.path, db=int(parse_qs(broker_url.query).get('virtual_host', ['0'])[0])
+                )
 
             conn.connect()
             conn.can_read()
             conn.disconnect()
             del conn
         except:
-            print('[{time}] ERROR: Unable to connect to to redis. Sleeping for {num} seconds.'.format(
-                time=str(datetime.datetime.now()).split('.')[0],
-                num=SCANNER_BROKER_RECONNECTION_SLEEP_TIME),
-                file=sys.stderr
+            print(
+                '[{time}] ERROR: Unable to connect to to redis. Sleeping for {num} seconds.'.format(
+                    time=str(datetime.datetime.now()).split('.')[0], num=SCANNER_BROKER_RECONNECTION_SLEEP_TIME
+                ),
+                file=sys.stderr,
             )
             sleep(SCANNER_BROKER_RECONNECTION_SLEEP_TIME)
             continue
@@ -152,21 +176,24 @@ def main():
         try:
             sites_to_scan = update_scans_dequeue_scans(dequeue_quantity)
         except IOError:
-            print('[{time}] ERROR: Unable to retrieve lists of sites to scan. Sleeping for {num} seconds.'.format(
-                time=str(datetime.datetime.now()).split('.')[0],
-                num=SCANNER_DATABASE_RECONNECTION_SLEEP_TIME),
-                file=sys.stderr
+            print(
+                '[{time}] ERROR: Unable to retrieve lists of sites to scan. Sleeping for {num} seconds.'.format(
+                    time=str(datetime.datetime.now()).split('.')[0], num=SCANNER_DATABASE_RECONNECTION_SLEEP_TIME
+                ),
+                file=sys.stderr,
             )
             sleep(SCANNER_DATABASE_RECONNECTION_SLEEP_TIME)
             continue
 
         try:
             if sites_to_scan:
-                print('[{time}] INFO: Dequeuing {num} site(s): {sites}.'.format(
-                    time=str(datetime.datetime.now()).split('.')[0],
-                    num=len(sites_to_scan),
-                    sites=', '.join([site[0] for site in sites_to_scan])),
-                    file=sys.stderr
+                print(
+                    '[{time}] INFO: Dequeuing {num} site(s): {sites}.'.format(
+                        time=str(datetime.datetime.now()).split('.')[0],
+                        num=len(sites_to_scan),
+                        sites=', '.join([site[0] for site in sites_to_scan]),
+                    ),
+                    file=sys.stderr,
                 )
 
                 for site in sites_to_scan:
@@ -180,9 +207,10 @@ def main():
             print('Exiting scanner backend')
             sys.exit(1)
         except:  # this shouldn't trigger, but we don't want a scan breakage to kill the scanner
-            print('[{time}] ERROR: Unknown celery error.'.format(
-                time=str(datetime.datetime.now()).split('.')[0]),
-                file=sys.stderr)
+            print(
+                '[{time}] ERROR: Unknown celery error.'.format(time=str(datetime.datetime.now()).split('.')[0]),
+                file=sys.stderr,
+            )
 
 
 if __name__ == '__main__':

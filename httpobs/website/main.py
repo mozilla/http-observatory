@@ -27,5 +27,4 @@ def main() -> str:
 
 
 if __name__ == '__main__':
-    app.run(debug=DEVELOPMENT_MODE,
-            port=API_PORT)
+    app.run(debug=DEVELOPMENT_MODE, port=API_PORT)

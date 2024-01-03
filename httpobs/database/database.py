@@ -3,21 +3,25 @@ from json import dumps
 from types import SimpleNamespace
 from os import getpid
 
-from httpobs.conf import (API_CACHED_RESULT_TIME,
-                          DATABASE_CA_CERT,
-                          DATABASE_DB,
-                          DATABASE_HOST,
-                          DATABASE_PASSWORD,
-                          DATABASE_PORT,
-                          DATABASE_SSL_MODE,
-                          DATABASE_USER,
-                          SCANNER_ABORT_SCAN_TIME)
-from httpobs.scanner import (ALGORITHM_VERSION,
-                             STATE_ABORTED,
-                             STATE_FAILED,
-                             STATE_FINISHED,
-                             STATE_PENDING,
-                             STATE_STARTING)
+from httpobs.conf import (
+    API_CACHED_RESULT_TIME,
+    DATABASE_CA_CERT,
+    DATABASE_DB,
+    DATABASE_HOST,
+    DATABASE_PASSWORD,
+    DATABASE_PORT,
+    DATABASE_SSL_MODE,
+    DATABASE_USER,
+    SCANNER_ABORT_SCAN_TIME,
+)
+from httpobs.scanner import (
+    ALGORITHM_VERSION,
+    STATE_ABORTED,
+    STATE_FAILED,
+    STATE_FINISHED,
+    STATE_PENDING,
+    STATE_STARTING,
+)
 from httpobs.scanner.analyzer import NUM_TESTS
 from httpobs.scanner.grader import get_grade_and_likelihood_for_score, MINIMUM_SCORE_FOR_EXTRA_CREDIT
 
@@ -35,13 +39,15 @@ class SimpleDatabaseConnection:
 
     def _connect(self):
         try:
-            self._conn = psycopg2.connect(database=DATABASE_DB,
-                                          host=DATABASE_HOST,
-                                          password=DATABASE_PASSWORD,
-                                          port=DATABASE_PORT,
-                                          sslmode=DATABASE_SSL_MODE,
-                                          sslrootcert=DATABASE_CA_CERT,
-                                          user=DATABASE_USER)
+            self._conn = psycopg2.connect(
+                database=DATABASE_DB,
+                host=DATABASE_HOST,
+                password=DATABASE_PASSWORD,
+                port=DATABASE_PORT,
+                sslmode=DATABASE_SSL_MODE,
+                sslrootcert=DATABASE_CA_CERT,
+                user=DATABASE_USER,
+            )
 
             if not self._connected:
                 print('INFO: Connected to PostgreSQL', file=sys.stderr)
@@ -99,32 +105,34 @@ except IOError:
 
 def insert_scan(site_id: int, hidden: bool = False) -> dict:
     with get_cursor() as cur:
-        cur.execute("""INSERT INTO scans (site_id, state, start_time, algorithm_version, tests_quantity, hidden)
+        cur.execute(
+            """INSERT INTO scans (site_id, state, start_time, algorithm_version, tests_quantity, hidden)
                          VALUES (%s, %s, NOW(), %s, %s, %s)
                          RETURNING *""",
-                    (site_id, STATE_PENDING, ALGORITHM_VERSION, NUM_TESTS, hidden))
+            (site_id, STATE_PENDING, ALGORITHM_VERSION, NUM_TESTS, hidden),
+        )
 
         return dict(cur.fetchone())
 
 
 def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
     with get_cursor() as cur:
-        cur.execute("""UPDATE scans
+        cur.execute(
+            """UPDATE scans
                          SET (grade, score) =
                          (%s, %s)
                          WHERE id = %s
                          RETURNING *""",
-                    (scan_grade, scan_score, scan_id))
+            (scan_grade, scan_score, scan_id),
+        )
 
         return dict(cur.fetchone())
 
 
 # TODO: Separate out some of this logic so it doesn't need to be duplicated in local.scan()
-def insert_test_results(site_id: int,
-                        scan_id: int,
-                        tests: list,
-                        response_headers: dict,
-                        status_code: int = None) -> dict:
+def insert_test_results(
+    site_id: int, scan_id: int, tests: list, response_headers: dict, status_code: int = None
+) -> dict:
     with get_cursor() as cur:
         tests_failed = tests_passed = 0
         score_with_extra_credit = uncurved_score = 100
@@ -148,9 +156,11 @@ def insert_test_results(site_id: int,
                 uncurved_score += score_modifier
 
             # Insert test result to the database
-            cur.execute("""INSERT INTO tests (site_id, scan_id, name, expectation, result, pass, output, score_modifier)
+            cur.execute(
+                """INSERT INTO tests (site_id, scan_id, name, expectation, result, pass, output, score_modifier)
                              VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-                        (site_id, scan_id, name, expectation, result, passed, dumps(test), score_modifier))
+                (site_id, scan_id, name, expectation, result, passed, dumps(test), score_modifier),
+            )
 
         # Only record the full score if the uncurved score already receives an A
         score = score_with_extra_credit if uncurved_score >= MINIMUM_SCORE_FOR_EXTRA_CREDIT else uncurved_score
@@ -159,14 +169,25 @@ def insert_test_results(site_id: int,
         score, grade, likelihood_indicator = get_grade_and_likelihood_for_score(score)
 
         # Update the scans table
-        cur.execute("""UPDATE scans
+        cur.execute(
+            """UPDATE scans
                          SET (end_time, tests_failed, tests_passed, grade, score, likelihood_indicator,
                          state, response_headers, status_code) =
                          (NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
                          WHERE id = %s
                          RETURNING *""",
-                    (tests_failed, tests_passed, grade, score, likelihood_indicator, STATE_FINISHED,
-                        dumps(response_headers), status_code, scan_id))
+            (
+                tests_failed,
+                tests_passed,
+                grade,
+                score,
+                likelihood_indicator,
+                STATE_FINISHED,
+                dumps(response_headers),
+                status_code,
+                scan_id,
+            ),
+        )
 
         row = dict(cur.fetchone())
 
@@ -181,13 +202,15 @@ def periodic_maintenance() -> int:
     """
     with get_cursor() as cur:
         # Mark all scans that have been sitting unfinished for at least SCANNER_ABORT_SCAN_TIME as ABORTED
-        cur.execute("""UPDATE scans
+        cur.execute(
+            """UPDATE scans
                          SET (state, end_time) = (%s, NOW())
                          WHERE state != %s
                            AND state != %s
                            AND state != %s
                            AND start_time < NOW() - INTERVAL '%s seconds';""",
-                    (STATE_ABORTED, STATE_ABORTED, STATE_FAILED, STATE_FINISHED, SCANNER_ABORT_SCAN_TIME))
+            (STATE_ABORTED, STATE_ABORTED, STATE_FAILED, STATE_FINISHED, SCANNER_ABORT_SCAN_TIME),
+        )
 
     return cur.rowcount
 
@@ -220,11 +243,13 @@ def select_star_from(table: str) -> dict:
 def select_scan_host_history(site_id: int) -> list:
     # Get all of the site's historic scans
     with get_cursor() as cur:
-        cur.execute("""SELECT id, grade, score, end_time FROM scans
+        cur.execute(
+            """SELECT id, grade, score, end_time FROM scans
                          WHERE site_id = %s
                          AND state = %s
                          ORDER BY end_time ASC;""",
-                    (site_id, STATE_FINISHED))
+            (site_id, STATE_FINISHED),
+        )
 
     if cur.rowcount > 0:
         return [
@@ -233,8 +258,10 @@ def select_scan_host_history(site_id: int) -> list:
                 'grade': row['grade'],
                 'score': row['score'],
                 'end_time': row['end_time'],
-                'end_time_unix_timestamp': int(row['end_time'].timestamp())
-            } for row in cur.fetchall()]
+                'end_time_unix_timestamp': int(row['end_time'].timestamp()),
+            }
+            for row in cur.fetchall()
+        ]
     else:
         return []
 
@@ -265,13 +292,15 @@ def select_scan_scanner_statistics(verbose: bool = False) -> dict:
             states = dict(cur.fetchall())
 
             # Get the recent scan count
-            cur.execute("""SELECT DATE_TRUNC('hour', end_time) AS hour, COUNT(*) as num_scans
+            cur.execute(
+                """SELECT DATE_TRUNC('hour', end_time) AS hour, COUNT(*) as num_scans
                              FROM scans
                              WHERE (end_time < DATE_TRUNC('hour', NOW()))
                                AND (end_time >= DATE_TRUNC('hour', NOW()) - INTERVAL '24 hours')
                              GROUP BY hour
                              ORDER BY hour DESC;""",
-                        (STATE_FINISHED,))
+                (STATE_FINISHED,),
+            )
             recent_scans = dict(cur.fetchall()).items()
         else:
             recent_scans = {}
@@ -292,7 +321,8 @@ def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) 
     # Used for /api/v1/getRecentScans
     # Fix from: https://gist.github.com/april/61efa9ff197828bf5ab13e5a00be9138
     with get_cursor() as cur:
-        cur.execute("""SELECT sites.domain, s2.grade
+        cur.execute(
+            """SELECT sites.domain, s2.grade
                          FROM
                            (SELECT DISTINCT ON (s1.site_id) s1.site_id, s1.grade, s1.end_time
                               FROM
@@ -307,19 +337,22 @@ def select_scan_recent_finished_scans(num_scans=10, min_score=0, max_score=100) 
                                   ORDER BY s1.site_id, s1.end_time DESC) s2
                                   INNER JOIN sites ON (sites.id = s2.site_id)
                                 ORDER BY s2.end_time DESC LIMIT %s;""",
-                    (STATE_FINISHED, min_score, max_score, num_scans * 2, num_scans))
+            (STATE_FINISHED, min_score, max_score, num_scans * 2, num_scans),
+        )
 
         return dict(cur.fetchall())
 
 
 def select_scan_recent_scan(site_id: int, recent_in_seconds=API_CACHED_RESULT_TIME) -> dict:
     with get_cursor() as cur:
-        cur.execute("""SELECT * FROM scans
+        cur.execute(
+            """SELECT * FROM scans
                          WHERE site_id = %s
                          AND start_time >= NOW() - INTERVAL '%s seconds'
                          ORDER BY start_time DESC
                          LIMIT 1""",
-                    (site_id, recent_in_seconds))
+            (site_id, recent_in_seconds),
+        )
 
         if cur.rowcount > 0:
             return dict(cur.fetchone())
@@ -330,11 +363,13 @@ def select_scan_recent_scan(site_id: int, recent_in_seconds=API_CACHED_RESULT_TI
 def select_site_headers(hostname: str) -> dict:
     # Return the site's headers
     with get_cursor() as cur:
-        cur.execute("""SELECT public_headers, private_headers, cookies FROM sites
+        cur.execute(
+            """SELECT public_headers, private_headers, cookies FROM sites
                          WHERE domain = %s
                          ORDER BY creation_time DESC
                          LIMIT 1""",
-                    (hostname,))
+            (hostname,),
+        )
 
         # If it has headers, merge the public and private headers together
         if cur.rowcount > 0:
@@ -344,10 +379,7 @@ def select_site_headers(hostname: str) -> dict:
             private_headers = {} if row.get('private_headers') is None else row.get('private_headers')
             headers.update(private_headers)
 
-            return {
-                'cookies': {} if row.get('cookies') is None else row.get('cookies'),
-                'headers': headers
-            }
+            return {'cookies': {} if row.get('cookies') is None else row.get('cookies'), 'headers': headers}
         else:
             return {}
 
@@ -355,20 +387,25 @@ def select_site_headers(hostname: str) -> dict:
 def select_site_id(hostname: str) -> int:
     # See if the site exists already
     with get_cursor() as cur:
-        cur.execute("""SELECT id FROM sites
+        cur.execute(
+            """SELECT id FROM sites
                          WHERE domain = %s
                          ORDER BY creation_time DESC
                          LIMIT 1""",
-                    (hostname,))
+            (hostname,),
+        )
 
         if cur.rowcount > 0:
             return cur.fetchone()['id']
 
     # If not, let's create the site
     with get_cursor() as cur:
-        cur.execute("""INSERT INTO sites (domain, creation_time)
+        cur.execute(
+            """INSERT INTO sites (domain, creation_time)
                          VALUES (%s, NOW())
-                         RETURNING id""", (hostname,))
+                         RETURNING id""",
+            (hostname,),
+        )
 
         return cur.fetchone()['id']
 
@@ -390,21 +427,25 @@ def select_test_results(scan_id: int) -> dict:
 def update_scan_state(scan_id, state: str, error=None) -> dict:
     if error:
         with get_cursor() as cur:
-            cur.execute("""UPDATE scans
+            cur.execute(
+                """UPDATE scans
                              SET (state, end_time, error) = (%s, NOW(), %s)
                              WHERE id = %s
                              RETURNING *""",
-                        (state, error, scan_id))
+                (state, error, scan_id),
+            )
 
             row = dict(cur.fetchone())
 
     else:
         with get_cursor() as cur:
-            cur.execute("""UPDATE scans
+            cur.execute(
+                """UPDATE scans
                              SET state = %s
                              WHERE id = %s
                              RETURNING *""",
-                        (state, scan_id))
+                (state, scan_id),
+            )
 
             row = dict(cur.fetchone())
 
@@ -413,7 +454,8 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
 
 def update_scans_dequeue_scans(num_to_dequeue: int = 0) -> dict:
     with get_cursor() as cur:
-        cur.execute("""UPDATE scans
+        cur.execute(
+            """UPDATE scans
                          SET state = %s
                          FROM (
                            SELECT sites.domain, scans.site_id, scans.id AS scan_id, scans.state
@@ -424,6 +466,7 @@ def update_scans_dequeue_scans(num_to_dequeue: int = 0) -> dict:
                              FOR UPDATE) sub
                          WHERE scans.id = sub.scan_id
                          RETURNING sub.domain, sub.site_id, sub.scan_id""",
-                    (STATE_STARTING, STATE_PENDING, num_to_dequeue))
+            (STATE_STARTING, STATE_PENDING, num_to_dequeue),
+        )
 
         return cur.fetchall()

@@ -44,8 +44,11 @@ if __name__ == '__main__':
 
         available = MAX_QUEUE - r.get('PENDING', 0) - r.get('RUNNING', 0) - r.get('STARTING', 0)
 
-        print('Queue availability: {queue_avail}. Total scanned: {total_scanned}. Pending: {pending}.'.format(
-            queue_avail=available, total_scanned=total_scanned, pending=r.get('PENDING', 0)))
+        print(
+            'Queue availability: {queue_avail}. Total scanned: {total_scanned}. Pending: {pending}.'.format(
+                queue_avail=available, total_scanned=total_scanned, pending=r.get('PENDING', 0)
+            )
+        )
 
         # Quit if the scanner reports that nothing is pending
         if not hosts and r.get('PENDING', 0) == 0:

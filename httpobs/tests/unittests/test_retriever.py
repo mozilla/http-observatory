@@ -58,5 +58,5 @@ class TestRetriever(TestCase):
 
         self.assertEquals(
             get_duplicate_header_values(reqs['responses']['auto'], 'Content-Security-Policy'),
-            ["script-src 'unsafe-inline'", 'img-src https://google.com']
+            ["script-src 'unsafe-inline'", 'img-src https://google.com'],
         )

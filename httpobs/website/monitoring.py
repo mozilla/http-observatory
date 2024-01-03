@@ -27,5 +27,4 @@ def lbheartbeat():
 
 @monitoring_api.route('/__version__')
 def version():
-    return jsonify({'source': SOURCE_URL,
-                    'version': VERSION})
+    return jsonify({'source': SOURCE_URL, 'version': VERSION})
