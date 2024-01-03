@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     # Because it makes sense this way
     if args['http_port'] == 80:
-        del(args['http_port'])
+        del (args['http_port'])
 
     if args['https_port'] == 443:
         del (args['https_port'])
