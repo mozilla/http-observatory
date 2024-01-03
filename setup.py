@@ -2,9 +2,9 @@
 
 import os
 
-from httpobs import SOURCE_URL, VERSION
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
+from httpobs import SOURCE_URL, VERSION
 
 __dirname = os.path.abspath(os.path.dirname(__file__))
 

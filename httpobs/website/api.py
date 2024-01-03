@@ -1,16 +1,15 @@
-from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN
-from httpobs.scanner import STATES
-from httpobs.scanner.grader import get_score_description, GRADES
-from httpobs.scanner.utils import valid_hostname
-from httpobs.website import add_response_headers, sanitized_api_response
+import json
+import os.path
 
 from flask import Blueprint, jsonify, make_response, request
 from werkzeug.http import http_date
 
 import httpobs.database as database
-import json
-import os.path
-
+from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN
+from httpobs.scanner import STATES
+from httpobs.scanner.grader import GRADES, get_score_description
+from httpobs.scanner.utils import valid_hostname
+from httpobs.website import add_response_headers, sanitized_api_response
 
 api = Blueprint('api', __name__)
 

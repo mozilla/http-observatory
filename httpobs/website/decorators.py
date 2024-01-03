@@ -1,5 +1,6 @@
-from flask import jsonify, make_response, request
 from functools import wraps
+
+from flask import jsonify, make_response, request
 
 
 def add_response_headers(headers=None, default_headers=None, cors=False):

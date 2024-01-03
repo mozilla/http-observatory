@@ -1,8 +1,7 @@
-from flask import abort, Blueprint, jsonify
+from flask import Blueprint, abort, jsonify
 
 from httpobs import SOURCE_URL, VERSION
 from httpobs.database import get_cursor
-
 
 monitoring_api = Blueprint('monitoring-api', __name__)
 

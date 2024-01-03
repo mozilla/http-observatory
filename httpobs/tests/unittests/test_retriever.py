@@ -1,8 +1,8 @@
 import random
-import requests
 import string
-
 from unittest import TestCase
+
+import requests
 
 from httpobs.scanner.retriever import get_duplicate_header_values, retrieve_all
 from httpobs.tests.utils import empty_requests

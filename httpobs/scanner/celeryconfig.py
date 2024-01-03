@@ -1,6 +1,5 @@
 from httpobs.conf import BROKER_URL as broker_url
 
-
 # Set the Celery task queue
 broker_url = broker_url
 

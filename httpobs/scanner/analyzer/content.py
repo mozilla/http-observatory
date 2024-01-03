@@ -1,15 +1,13 @@
+import json
+from urllib.parse import urlparse
+
 from bs4 import BeautifulSoup as bs
 from publicsuffixlist import PublicSuffixList
-from urllib.parse import urlparse
 
 from httpobs.conf import SCANNER_MOZILLA_DOMAINS
 from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import only_if_worse
 from httpobs.scanner.retriever.retriever import HTML_TYPES
-
-
-import json
-
 
 # Compat between Python 3.4 and Python 3.5 (see: https://github.com/mozilla/http-observatory-website/issues/14)
 if not hasattr(json, 'JSONDecodeError'):  # pragma: no cover

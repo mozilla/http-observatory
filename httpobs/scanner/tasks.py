@@ -1,15 +1,14 @@
+import sys
+
 from celery import Celery
 from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded, WorkerLostError, WorkerShutdown, WorkerTerminate
 
 from httpobs.conf import DEVELOPMENT_MODE
 from httpobs.database import insert_test_results, select_site_headers, update_scan_state
-from httpobs.scanner import celeryconfig, STATE_ABORTED, STATE_FAILED, STATE_RUNNING
+from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_RUNNING, celeryconfig
 from httpobs.scanner.analyzer import tests
 from httpobs.scanner.retriever import retrieve_all
 from httpobs.scanner.utils import sanitize_headers
-
-import sys
-
 
 # Create the scanner task queue
 scanner = Celery()

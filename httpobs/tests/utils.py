@@ -1,11 +1,11 @@
+import os.path
 from collections import UserDict
 from copy import deepcopy
-from requests.cookies import RequestsCookieJar
 from typing import Union
+
+from requests.cookies import RequestsCookieJar
 from urllib3 import HTTPResponse
 from urllib3._collections import HTTPHeaderDict
-
-import os.path
 
 from httpobs.scanner.utils import parse_http_equiv_headers
 

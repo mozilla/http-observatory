@@ -1,5 +1,4 @@
 import httpobs.conf
-
 from httpobs.scanner.analyzer import NUM_TESTS, tests
 from httpobs.scanner.grader import get_grade_and_likelihood_for_score, get_score_description
 from httpobs.scanner.retriever import retrieve_all

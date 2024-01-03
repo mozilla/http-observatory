@@ -1,17 +1,16 @@
-from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
+import logging
 from urllib.parse import urlparse
 
-from httpobs.conf import RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_CORS_ORIGIN, RETRIEVER_READ_TIMEOUT, RETRIEVER_USER_AGENT
-from httpobs.scanner.utils import parse_http_equiv_headers
-
-import logging
 import requests
-
+from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 
 # Disable the requests InsecureRequestWarning -- we will track certificate errors manually when
 # verification is disabled. Also disable requests errors at levels lower than CRITICAL, see:
 # https://github.com/celery/celery/issues/3633 for crashy details
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+from httpobs.conf import RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_CORS_ORIGIN, RETRIEVER_READ_TIMEOUT, RETRIEVER_USER_AGENT
+from httpobs.scanner.utils import parse_http_equiv_headers
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 logging.getLogger('requests').setLevel(logging.CRITICAL)

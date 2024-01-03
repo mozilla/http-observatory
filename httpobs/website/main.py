@@ -2,7 +2,7 @@ import sys
 
 from flask import Flask
 
-from httpobs.conf import DEVELOPMENT_MODE, API_PORT, API_PROPAGATE_EXCEPTIONS
+from httpobs.conf import API_PORT, API_PROPAGATE_EXCEPTIONS, DEVELOPMENT_MODE
 from httpobs.website import add_response_headers
 from httpobs.website.api import api
 from httpobs.website.monitoring import monitoring_api

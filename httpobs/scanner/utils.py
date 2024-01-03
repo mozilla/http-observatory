@@ -1,13 +1,13 @@
 import json
 import os.path
-import requests
 import socket
 import sys
 
+import requests
 from bs4 import BeautifulSoup as bs
-from httpobs.conf import SCANNER_ALLOW_LOCALHOST, SCANNER_PINNED_DOMAINS
 from requests.structures import CaseInsensitiveDict
 
+from httpobs.conf import SCANNER_ALLOW_LOCALHOST, SCANNER_PINNED_DOMAINS
 
 HSTS_URL = 'https://raw.githubusercontent.com/chromium/chromium/main/net/http/transport_security_state_static.json'
 

@@ -1,6 +1,12 @@
+import datetime
+import subprocess
+import sys
 from random import randrange
 from time import sleep
 from urllib.parse import parse_qs, urlparse
+
+import psutil
+import redis
 
 from httpobs.conf import (
     BROKER_URL,
@@ -16,12 +22,6 @@ from httpobs.conf import (
 )
 from httpobs.database import periodic_maintenance, refresh_materialized_views, update_scans_dequeue_scans
 from httpobs.scanner.tasks import scan
-
-import datetime
-import psutil
-import redis
-import subprocess
-import sys
 
 
 def main():

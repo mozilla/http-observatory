@@ -1,7 +1,12 @@
+import sys
 from contextlib import contextmanager
 from json import dumps
-from types import SimpleNamespace
 from os import getpid
+from types import SimpleNamespace
+
+import psycopg2
+import psycopg2.extras
+import psycopg2.pool
 
 from httpobs.conf import (
     API_CACHED_RESULT_TIME,
@@ -23,12 +28,7 @@ from httpobs.scanner import (
     STATE_STARTING,
 )
 from httpobs.scanner.analyzer import NUM_TESTS
-from httpobs.scanner.grader import get_grade_and_likelihood_for_score, MINIMUM_SCORE_FOR_EXTRA_CREDIT
-
-import psycopg2
-import psycopg2.extras
-import psycopg2.pool
-import sys
+from httpobs.scanner.grader import MINIMUM_SCORE_FOR_EXTRA_CREDIT, get_grade_and_likelihood_for_score
 
 
 class SimpleDatabaseConnection:

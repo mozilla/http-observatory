@@ -1,9 +1,7 @@
-from os import environ, cpu_count
-
 import configparser
 import os.path
 import sys
-
+from os import cpu_count, environ
 
 # Read in the default config file if /etc/httpobs.conf doesn't already exist
 __dirname = os.path.abspath(os.path.dirname(__file__))

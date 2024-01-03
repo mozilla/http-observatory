@@ -6,8 +6,8 @@ from .headers import (
     referrer_policy,
     strict_transport_security,
     x_content_type_options,
-    x_xss_protection,
     x_frame_options,
+    x_xss_protection,
 )
 from .misc import cross_origin_resource_sharing, redirection
 

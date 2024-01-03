@@ -2,13 +2,14 @@
 
 from __future__ import print_function
 
-from httpobs.conf import API_URL
-
-import grequests
 import os
-import requests
 import sys
 import time
+
+import grequests
+import requests
+
+from httpobs.conf import API_URL
 
 if 'HTTPOBS_DEV' in os.environ:  # TODO: use httpobs.conf
     MAX_QUEUE = 64
