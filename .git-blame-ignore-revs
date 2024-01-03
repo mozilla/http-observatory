@@ -1,0 +1,7 @@
+# .git-blame-ignore-revs
+# run pre-commit against all files
+376413493eca8298b8f2c17c8f02fc0d04285136
+# format all files with black
+1583d515c0a767e2b69b3cdcd785008d2dd0cd0b
+# format all files with isort
+73b2a811edc4f366516c3a63da73fc5e769761e7
