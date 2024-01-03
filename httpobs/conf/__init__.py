@@ -1,7 +1,7 @@
 import configparser
 import os.path
 import sys
-from os import cpu_count, environ
+from os import environ
 
 # Read in the default config file if /etc/httpobs.conf doesn't already exist
 __dirname = os.path.abspath(os.path.dirname(__file__))
@@ -49,9 +49,6 @@ API_PROPAGATE_EXCEPTIONS = (
 )
 API_URL = environ.get('HTTPOBS_API_URL') or __conf('api', 'url')
 
-# Broker configuration
-BROKER_URL = environ.get('HTTPOBS_BROKER_URL') or __conf('scanner', 'broker')
-
 # Database configuration
 DATABASE_DB = environ.get('HTTPOBS_DATABASE_DB') or __conf('database', 'database')
 DATABASE_HOST = environ.get('HTTPOBS_DATABASE_HOST') or __conf('database', 'host')
@@ -77,36 +74,6 @@ RETRIEVER_CORS_ORIGIN = environ.get('HTTPOBS_RETRIEVER_CORS_ORIGIN') or __conf('
 
 # Scanner configuration
 SCANNER_ABORT_SCAN_TIME = int(environ.get('HTTPOBS_SCANNER_ABORT_SCAN_TIME') or __conf('scanner', 'abort_scan_time'))
-SCANNER_ALLOW_KICKSTART = environ.get('HTTPOBS_SCANNER_ALLOW_KICKSTART') == 'yes' or __conf(
-    'scanner', 'allow_kickstart', bool
-)
-SCANNER_ALLOW_KICKSTART_NUM_ABORTED = int(
-    environ.get('HTTPOBS_SCANNER_ALLOW_KICKSTART_NUM_ABORTED') or __conf('scanner', 'allow_kickstart_num_aborted')
-)
-SCANNER_BROKER_RECONNECTION_SLEEP_TIME = float(
-    environ.get('HTTPOBS_SCANNER_BROKER_RECONNECTION_SLEEP_TIME') or __conf('scanner', 'broker_reconnection_sleep_time')
-)
-SCANNER_CYCLE_SLEEP_TIME = float(
-    environ.get('HTTPOBS_SCANNER_CYCLE_SLEEP_TIME') or __conf('scanner', 'cycle_sleep_time')
-)
-SCANNER_DATABASE_RECONNECTION_SLEEP_TIME = float(
-    environ.get('HTTPOBS_SCANNER_DATABASE_RECONNECTION_SLEEP_TIME')
-    or __conf('scanner', 'database_reconnection_sleep_time')
-)
-SCANNER_MAINTENANCE_CYCLE_FREQUENCY = int(
-    environ.get('HTTPOBS_MAINTENANCE_CYCLE_FREQUENCY') or __conf('scanner', 'maintenance_cycle_frequency')
-)
-SCANNER_MATERIALIZED_VIEW_REFRESH_FREQUENCY = int(
-    environ.get('HTTPOBS_SCANNER_MATERIALIZED_VIEW_REFRESH_FREQUENCY')
-    or __conf('scanner', 'materialized_view_refresh_frequency')
-)
-SCANNER_MAX_CPU_UTILIZATION = int(
-    environ.get('HTTPOBS_SCANNER_MAX_CPU_UTILIZATION') or __conf('scanner', 'max_cpu_utilization')
-)
-SCANNER_MAX_LOAD_RATIO = int(
-    environ.get('HTTPOBS_SCANNER_MAX_LOAD_RATIO_PER_CPU') or __conf('scanner', 'max_load_ratio_per_cpu')
-)
-SCANNER_MAX_LOAD = cpu_count() * SCANNER_MAX_LOAD_RATIO
 SCANNER_MOZILLA_DOMAINS = [
     domain.strip()
     for domain in (environ.get('HTTPOBS_SCANNER_MOZILLA_DOMAINS') or __conf('scanner', 'mozilla_domains')).split(',')

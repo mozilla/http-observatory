@@ -18,7 +18,6 @@ jobs:
       matrix:
         python-version: [ '3.11' ]
     env:
-      HTTPOBS_BROKER_URL: fakebrokerurl
       HTTPOBS_DATABASE_HOST: fakehost
       HTTPOBS_DATABASE_PASS: foo
       HTTPOBS_DATABASE_USER: bar
