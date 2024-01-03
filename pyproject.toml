@@ -22,6 +22,7 @@ publicsuffixlist = "^0.10.0.20231002"
 requests = "^2.31.0"
 Flask = "^3.0.0"
 uWSGI = "^2.0.22"
+pre-commit = "^3.6.0"
 
 [build-system]
 requires = ["poetry-core"]
