@@ -23,7 +23,14 @@ requests = "^2.31.0"
 Flask = "^3.0.0"
 uWSGI = "^2.0.22"
 pre-commit = "^3.6.0"
+black = "^23.12.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+target-version = ["py311"]
+required-version = "23"
+line-length = 120
+skip-string-normalization = true
