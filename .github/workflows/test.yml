@@ -28,12 +28,11 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: pre-commit/action@v3.0.0
       - name: Install dependencies
         run: |
           pip install poetry
           poetry config virtualenvs.create false
           poetry install
-      - name: Run flake8 tests
-        run: flake8 --config .flake8 httpobs
       - name: Run nose tests
         run: nosetests httpobs/tests -e insert_test_result -e scored_test -e select_test_results -e test_retrieve --with-coverage --cover-package=httpobs
