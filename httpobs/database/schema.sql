@@ -61,13 +61,6 @@ CREATE INDEX tests_name_idx              ON tests (name);
 CREATE INDEX tests_result_idx            ON tests (result);
 CREATE INDEX tests_pass_idx              ON tests (pass);
 
-CREATE USER httpobsscanner;
-GRANT SELECT on sites, scans, expectations, tests TO httpobsscanner;
-GRANT UPDATE (domain) ON sites to httpobsscanner;  /* TODO: there's got to be a better way with SELECT ... FOR UPDATE */
-GRANT UPDATE on scans TO httpobsscanner;
-GRANT INSERT on tests TO httpobsscanner;
-GRANT USAGE ON SEQUENCE tests_id_seq TO httpobsscanner;
-
 CREATE USER httpobsapi;
 GRANT SELECT ON expectations, scans, tests to httpobsapi;
 GRANT SELECT (id, domain, creation_time, public_headers) ON sites TO httpobsapi;
@@ -77,6 +70,12 @@ GRANT UPDATE ON scans TO httpobsapi;
 GRANT USAGE ON SEQUENCE sites_id_seq TO httpobsapi;
 GRANT USAGE ON SEQUENCE scans_id_seq TO httpobsapi;
 GRANT USAGE ON SEQUENCE expectations_id_seq TO httpobsapi;
+
+GRANT SELECT on sites, scans, expectations, tests TO httpobsapi;
+GRANT UPDATE (domain) ON sites to httpobsapi;  /* TODO: there's got to be a better way with SELECT ... FOR UPDATE */
+GRANT UPDATE on scans TO httpobsapi;
+GRANT INSERT on tests TO httpobsapi;
+GRANT USAGE ON SEQUENCE tests_id_seq TO httpobsapi;
 
 CREATE INDEX scans_site_id_finished_state_end_time_idx ON scans (site_id, state, end_time DESC) WHERE state = 'FINISHED';
 
@@ -129,7 +128,7 @@ ALTER TABLE scans ADD COLUMN likelihood_indicator VARCHAR NULL;
 /* Update to frequently refresh latest_scans */
 /*
 GRANT SELECT ON latest_scans TO httpobsapi;
-ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsscanner;
+ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsapi;
 */
 
 /* Update to add earliest scans and a way to compare earliest and latest */
@@ -163,13 +162,13 @@ CREATE UNIQUE INDEX scan_score_difference_distribution_summation_difference_idx 
 COMMENT ON MATERIALIZED VIEW scan_score_difference_distribution_summation IS 'How many sites have improved by how many points';
 GRANT SELECT ON scan_score_difference_distribution_summation TO httpobsapi;
 
-ALTER MATERIALIZED VIEW grade_distribution OWNER TO httpobsscanner;  /* so it can refresh */
-ALTER MATERIALIZED VIEW grade_distribution_all_scans OWNER TO httpobsscanner;  /* so it can refresh */
-ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsscanner;
-ALTER MATERIALIZED VIEW earliest_scans OWNER TO httpobsscanner;
-ALTER MATERIALIZED VIEW scan_score_difference_distribution OWNER TO httpobsscanner;
-ALTER MATERIALIZED VIEW scan_score_difference_distribution_summation OWNER TO httpobsscanner;
-ALTER MATERIALIZED VIEW latest_tests OWNER TO httpobsscanner;
+ALTER MATERIALIZED VIEW grade_distribution OWNER TO httpobsapi;  /* so it can refresh */
+ALTER MATERIALIZED VIEW grade_distribution_all_scans OWNER TO httpobsapi;  /* so it can refresh */
+ALTER MATERIALIZED VIEW latest_scans OWNER TO httpobsapi;
+ALTER MATERIALIZED VIEW earliest_scans OWNER TO httpobsapi;
+ALTER MATERIALIZED VIEW scan_score_difference_distribution OWNER TO httpobsapi;
+ALTER MATERIALIZED VIEW scan_score_difference_distribution_summation OWNER TO httpobsapi;
+ALTER MATERIALIZED VIEW latest_tests OWNER TO httpobsapi;
 
 /* Database updates to allow us to track changes in scoring over time */
 /*

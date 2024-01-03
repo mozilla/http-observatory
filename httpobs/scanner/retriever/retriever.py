@@ -2,7 +2,6 @@ import logging
 from urllib.parse import urlparse
 
 import requests
-from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 
 # Disable the requests InsecureRequestWarning -- we will track certificate errors manually when
 # verification is disabled. Also disable requests errors at levels lower than CRITICAL, see:
@@ -60,9 +59,6 @@ def __create_session(url: str, **kwargs) -> dict:
 
         # No tls errors
         r.verified = True
-    # Let celery exceptions percolate upward
-    except (SoftTimeLimitExceeded, TimeLimitExceeded):
-        raise
     # We can try again if there's an SSL error, making sure to note it in the session
     except requests.exceptions.SSLError:
         try:
@@ -103,9 +99,6 @@ def __get(session, relative_path='/', headers=None, cookies=None):
             cookies=cookies,
             timeout=TIMEOUT,
         )
-    # Let celery exceptions percolate upward
-    except (SoftTimeLimitExceeded, TimeLimitExceeded):
-        raise
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
