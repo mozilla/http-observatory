@@ -83,9 +83,6 @@ SCANNER_ALLOW_KICKSTART = environ.get('HTTPOBS_SCANNER_ALLOW_KICKSTART') == 'yes
 SCANNER_ALLOW_KICKSTART_NUM_ABORTED = int(
     environ.get('HTTPOBS_SCANNER_ALLOW_KICKSTART_NUM_ABORTED') or __conf('scanner', 'allow_kickstart_num_aborted')
 )
-SCANNER_ALLOW_LOCALHOST = environ.get('HTTPOBS_SCANNER_ALLOW_LOCALHOST') == 'yes' or __conf(
-    'scanner', 'allow_localhost', bool
-)
 SCANNER_BROKER_RECONNECTION_SLEEP_TIME = float(
     environ.get('HTTPOBS_SCANNER_BROKER_RECONNECTION_SLEEP_TIME') or __conf('scanner', 'broker_reconnection_sleep_time')
 )

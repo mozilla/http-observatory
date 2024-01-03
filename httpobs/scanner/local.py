@@ -1,4 +1,3 @@
-import httpobs.conf
 from httpobs.scanner.analyzer import NUM_TESTS, tests
 from httpobs.scanner.grader import get_grade_and_likelihood_for_score, get_score_description
 from httpobs.scanner.retriever import retrieve_all
@@ -42,8 +41,6 @@ def scan(hostname, **kwargs):
             }
         }
     """
-    # Always allow localhost scans when run in this way
-    httpobs.conf.SCANNER_ALLOW_LOCALHOST = True
 
     # Attempt to retrieve all the resources, not capturing exceptions
     reqs = retrieve_all(hostname, **kwargs)

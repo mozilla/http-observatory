@@ -9,8 +9,8 @@ from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN
 from httpobs.scanner import STATES
 from httpobs.scanner.grader import GRADES, get_score_description
 from httpobs.scanner.tasks import scan
-from httpobs.scanner.utils import valid_hostname
 from httpobs.website import add_response_headers, sanitized_api_response
+from httpobs.website.utils import valid_hostname
 
 api = Blueprint('api', __name__)
 
