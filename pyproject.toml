@@ -24,6 +24,7 @@ Flask = "^3.0.0"
 uWSGI = "^2.0.22"
 pre-commit = "^3.6.0"
 black = "^23.12.1"
+isort = "^5.13.2"
 
 [build-system]
 requires = ["poetry-core"]
@@ -34,3 +35,8 @@ target-version = ["py311"]
 required-version = "23"
 line-length = 120
 skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+line_length = 120
