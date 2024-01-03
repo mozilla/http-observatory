@@ -1,12 +1,13 @@
 import json
 import os.path
+import sys
 
 from flask import Blueprint, jsonify, make_response, request
 from werkzeug.http import http_date
 
 import httpobs.database as database
-from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN
-from httpobs.scanner import STATES
+from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN, DEVELOPMENT_MODE
+from httpobs.scanner import STATE_FAILED, STATE_RUNNING, STATES
 from httpobs.scanner.grader import GRADES, get_score_description
 from httpobs.scanner.tasks import scan
 from httpobs.website import add_response_headers, sanitized_api_response
@@ -66,7 +67,35 @@ def api_post_scan_hostname():
         # Begin the dispatch process if it was a POST
         if request.method == 'POST':
             row = database.insert_scan(site_id, hidden=hidden)
-            row = scan(hostname, site_id, row["id"])
+            scan_id = row["id"]
+
+            # Once celery kicks off the task, let's update the scan state from PENDING to RUNNING
+            database.update_scan_state(scan_id, STATE_RUNNING)
+
+            # Get the site's cookies and headers
+            headers = database.select_site_headers(hostname)
+
+            try:
+                result = scan(hostname, site_id, scan_id, headers)
+
+                if result is None:
+                    row = database.update_scan_state(scan_id, STATE_FAILED, error="site down")
+                else:
+                    row = database.insert_test_results(
+                        site_id,
+                        scan_id,
+                        result,
+                    )
+            except Exception as e:
+                # If we are unsuccessful, close out the scan in the database
+                row = database.update_scan_state(scan_id, STATE_FAILED, error=repr(e))
+
+                # Print the exception to stderr if we're in dev
+                if DEVELOPMENT_MODE:
+                    import traceback
+
+                    print("Error detected in scan for : " + hostname)
+                    traceback.print_exc(file=sys.stderr)
         else:
             return {
                 'error': 'recent-scan-not-found',
