@@ -1,4 +1,3 @@
-from httpobs.scanner import ALGORITHM_VERSION
 from httpobs.scanner.analyzer import NUM_TESTS, tests
 from httpobs.scanner.grader import (
     MINIMUM_SCORE_FOR_EXTRA_CREDIT,
@@ -7,6 +6,9 @@ from httpobs.scanner.grader import (
 )
 from httpobs.scanner.retriever import retrieve_all
 from httpobs.scanner.utils import sanitize_headers
+
+# Current algorithm version
+ALGORITHM_VERSION = 2
 
 
 def scan(hostname: str, **kwargs):

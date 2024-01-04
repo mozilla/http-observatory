@@ -1,2 +1,3 @@
-# Current algorithm version
-ALGORITHM_VERSION = 2
+from .scanner import scan
+
+__all__ = ["scan"]
