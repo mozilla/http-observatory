@@ -19,15 +19,7 @@ from httpobs.conf import (
     DATABASE_USER,
     SCANNER_ABORT_SCAN_TIME,
 )
-from httpobs.scanner import (
-    ALGORITHM_VERSION,
-    STATE_ABORTED,
-    STATE_FAILED,
-    STATE_FINISHED,
-    STATE_PENDING,
-    STATE_STARTING,
-)
-from httpobs.scanner.analyzer import NUM_TESTS
+from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_RUNNING
 
 
 class SimpleDatabaseConnection:
@@ -105,24 +97,10 @@ except IOError:
 def insert_scan(site_id: int, hidden: bool = False) -> dict:
     with get_cursor() as cur:
         cur.execute(
-            """INSERT INTO scans (site_id, state, start_time, algorithm_version, tests_quantity, hidden)
-                         VALUES (%s, %s, NOW(), %s, %s, %s)
+            """INSERT INTO scans (site_id, state, start_time, tests_quantity, hidden)
+                         VALUES (%s, %s, NOW(), 0, %s)
                          RETURNING *""",
-            (site_id, STATE_PENDING, ALGORITHM_VERSION, NUM_TESTS, hidden),
-        )
-
-        return dict(cur.fetchone())
-
-
-def insert_scan_grade(scan_id, scan_grade, scan_score) -> dict:
-    with get_cursor() as cur:
-        cur.execute(
-            """UPDATE scans
-                         SET (grade, score) =
-                         (%s, %s)
-                         WHERE id = %s
-                         RETURNING *""",
-            (scan_grade, scan_score, scan_id),
+            (site_id, STATE_RUNNING, hidden),
         )
 
         return dict(cur.fetchone())
@@ -145,8 +123,10 @@ def insert_test_results(site_id: int, scan_id: int, data: dict) -> dict:
             )
 
         scan = data["scan"]
+        algorithm_version = scan["algorithm_version"]
         tests_failed = scan["tests_failed"]
         tests_passed = scan["tests_passed"]
+        tests_quantity = scan["tests_quantity"]
         grade = scan["grade"]
         score = scan["score"]
         likelihood_indicator = scan["likelihood_indicator"]
@@ -157,8 +137,8 @@ def insert_test_results(site_id: int, scan_id: int, data: dict) -> dict:
         cur.execute(
             """UPDATE scans
                          SET (end_time, tests_failed, tests_passed, grade, score, likelihood_indicator,
-                         state, response_headers, status_code) =
-                         (NOW(), %s, %s, %s, %s, %s, %s, %s, %s)
+                         state, response_headers, status_code, algorithm_version, tests_quantity) =
+                         (NOW(), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                          WHERE id = %s
                          RETURNING *""",
             (
@@ -170,6 +150,8 @@ def insert_test_results(site_id: int, scan_id: int, data: dict) -> dict:
                 STATE_FINISHED,
                 dumps(response_headers),
                 status_code,
+                algorithm_version,
+                tests_quantity,
                 scan_id,
             ),
         )
@@ -435,23 +417,3 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
             row = dict(cur.fetchone())
 
     return row
-
-
-def update_scans_dequeue_scans(num_to_dequeue: int = 0) -> dict:
-    with get_cursor() as cur:
-        cur.execute(
-            """UPDATE scans
-                         SET state = %s
-                         FROM (
-                           SELECT sites.domain, scans.site_id, scans.id AS scan_id, scans.state
-                             FROM scans
-                             INNER JOIN sites ON scans.site_id = sites.id
-                             WHERE state = %s
-                             LIMIT %s
-                             FOR UPDATE) sub
-                         WHERE scans.id = sub.scan_id
-                         RETURNING sub.domain, sub.site_id, sub.scan_id""",
-            (STATE_STARTING, STATE_PENDING, num_to_dequeue),
-        )
-
-        return cur.fetchall()

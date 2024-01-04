@@ -1,3 +1,4 @@
+from httpobs.scanner import ALGORITHM_VERSION
 from httpobs.scanner.analyzer import NUM_TESTS, tests
 from httpobs.scanner.grader import MINIMUM_SCORE_FOR_EXTRA_CREDIT, get_grade_and_likelihood_for_score
 from httpobs.scanner.retriever import retrieve_all
@@ -40,6 +41,7 @@ def scan(hostname: str, site_id: int, scan_id: int, headers: dict):
 
     return {
         "scan": {
+            "algorithm_version": ALGORITHM_VERSION,
             "grade": grade,
             "likelihood_indicator": likelihood_indicator,
             "response_headers": response_headers,

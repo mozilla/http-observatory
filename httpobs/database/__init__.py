@@ -1,7 +1,6 @@
 from .database import (
     get_cursor,
     insert_scan,
-    insert_scan_grade,
     insert_test_results,
     periodic_maintenance,
     refresh_materialized_views,
@@ -14,13 +13,11 @@ from .database import (
     select_star_from,
     select_test_results,
     update_scan_state,
-    update_scans_dequeue_scans,
 )
 
 __all__ = [
     'get_cursor',
     'insert_scan',
-    'insert_scan_grade',
     'insert_test_results',
     'refresh_materialized_views',
     'select_scan_host_history',
@@ -33,5 +30,4 @@ __all__ = [
     'select_test_results',
     'update_scan_state',
     'periodic_maintenance',
-    'update_scans_dequeue_scans',
 ]
