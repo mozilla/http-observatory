@@ -5,9 +5,10 @@ import json
 from operator import itemgetter
 from urllib.parse import urlparse
 
-import httpobs.scanner.local
+import httpobs.scanner
 
-if __name__ == "__main__":
+
+def main():
     parser = argparse.ArgumentParser()
 
     # Add the various arguments
@@ -56,7 +57,7 @@ if __name__ == "__main__":
         args['verify'] = False
 
     # Get the scan results
-    r = httpobs.scanner.local.scan(**args)
+    r = httpobs.scanner.scan(**args)
 
     # print out the results to the command line
     if output_format == 'json':
@@ -76,3 +77,7 @@ if __name__ == "__main__":
             if score[1] > 0:
                 score[1] = '+' + str(score[1])  # display 5 as +5
             print('  {test:<30} [{modifier:>3}]  {reason}'.format(test=score[0], modifier=score[1], reason=score[2]))
+
+
+if __name__ == "__main__":
+    main()
