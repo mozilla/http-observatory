@@ -76,10 +76,10 @@ def api_post_scan_hostname():
             headers = database.select_site_headers(hostname)
 
             try:
-                result = scan(hostname, site_id, scan_id, headers)
+                result = scan(hostname, headers=headers.get("headers", {}), cookies=headers.get("cookies", {}))
 
-                if result is None:
-                    row = database.update_scan_state(scan_id, STATE_FAILED, error="site down")
+                if "error" in result:
+                    row = database.update_scan_state(scan_id, STATE_FAILED, error=result["error"])
                 else:
                     row = database.insert_test_results(
                         site_id,

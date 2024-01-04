@@ -108,12 +108,12 @@ def insert_scan(site_id: int, hidden: bool = False) -> dict:
 
 def insert_test_results(site_id: int, scan_id: int, data: dict) -> dict:
     with get_cursor() as cur:
-        for test in data["tests"]:
-            name = test.pop('name')
+        for name, test in data["tests"].items():
             expectation = test.pop('expectation')
             passed = test.pop('pass')
             result = test.pop('result')
             score_modifier = test.pop('score_modifier')
+            del test["score_description"]
 
             # Insert test result to the database
             cur.execute(

@@ -1,17 +1,57 @@
 from httpobs.scanner import ALGORITHM_VERSION
 from httpobs.scanner.analyzer import NUM_TESTS, tests
-from httpobs.scanner.grader import MINIMUM_SCORE_FOR_EXTRA_CREDIT, get_grade_and_likelihood_for_score
+from httpobs.scanner.grader import (
+    MINIMUM_SCORE_FOR_EXTRA_CREDIT,
+    get_grade_and_likelihood_for_score,
+    get_score_description,
+)
 from httpobs.scanner.retriever import retrieve_all
 from httpobs.scanner.utils import sanitize_headers
 
 
-def scan(hostname: str, site_id: int, scan_id: int, headers: dict):
+def scan(hostname: str, **kwargs):
+    """Performs an Observatory scan.
+
+    Args:
+        hostname (str): domain name for host to be scanned. Must not include
+            protocol (http://, https://) or port number (:80).
+
+    Kwargs:
+        http_port (int): port to scan for HTTP, instead of 80
+        https_port (int): port to be scanned for HTTPS, instead of 443
+        path (str): path to scan, instead of "/"
+        verify (bool): whether to enable or disable certificate verification,
+            enabled by default. This can allow tested sites to pass the HSTS
+            and HPKP tests, even with self-signed certificates.
+
+        cookies (dict): Cookies sent to the system being scanned. Matches the
+            requests cookie dict.
+        headers (dict): HTTP headers sent to the system being scanned. Format
+            matches the requests headers dict.
+
+    Returns:
+        A dict representing the analyze (scan) and getScanResults (test) API call.  Example:
+
+        {
+            'scan': {
+                'grade': 'A'
+                ...
+            },
+            'test': {
+                'content-security-policy': {
+                    'pass': True
+                    ...
+                }
+            }
+        }
+    """
+
     # Attempt to retrieve all the resources
-    reqs = retrieve_all(hostname, cookies=headers['cookies'], headers=headers['headers'])
+    reqs = retrieve_all(hostname, **kwargs)
 
     # If we can't connect at all, let's abort the test
     if reqs['responses']['auto'] is None:
-        return
+        return {'error': 'site down'}
 
     results = [test(reqs) for test in tests]
     response_headers = sanitize_headers(reqs["responses"]["auto"].headers)
@@ -21,6 +61,8 @@ def scan(hostname: str, site_id: int, scan_id: int, headers: dict):
     score_with_extra_credit = uncurved_score = 100
 
     for result in results:
+        result["score_description"] = get_score_description(result['result'])
+
         passed = result.get("pass")
         score_modifier = result.get("score_modifier")
 
@@ -51,5 +93,5 @@ def scan(hostname: str, site_id: int, scan_id: int, headers: dict):
             "tests_quantity": NUM_TESTS,
             "status_code": status_code,
         },
-        "tests": results,
+        "tests": {result.pop("name"): result for result in results},
     }
