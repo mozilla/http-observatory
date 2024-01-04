@@ -8,6 +8,7 @@ import psycopg2
 import psycopg2.extras
 import psycopg2.pool
 
+from httpobs import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_RUNNING
 from httpobs.conf import (
     API_CACHED_RESULT_TIME,
     DATABASE_CA_CERT,
@@ -19,7 +20,6 @@ from httpobs.conf import (
     DATABASE_USER,
     SCANNER_ABORT_SCAN_TIME,
 )
-from httpobs.scanner import STATE_ABORTED, STATE_FAILED, STATE_FINISHED, STATE_RUNNING
 
 
 class SimpleDatabaseConnection:

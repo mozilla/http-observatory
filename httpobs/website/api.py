@@ -6,8 +6,8 @@ from flask import Blueprint, jsonify, make_response, request
 from werkzeug.http import http_date
 
 import httpobs.database as database
+from httpobs import STATE_FAILED, STATE_RUNNING, STATES
 from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN, DEVELOPMENT_MODE
-from httpobs.scanner import STATE_FAILED, STATE_RUNNING, STATES
 from httpobs.scanner.grader import GRADES, get_score_description
 from httpobs.scanner.tasks import scan
 from httpobs.website import add_response_headers, sanitized_api_response
