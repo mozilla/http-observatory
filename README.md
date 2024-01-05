@@ -16,7 +16,7 @@ Sites can be scanned using:
 * [observatory-cli](https://github.com/mozilla/observatory-cli) - the official node.js command line interface
 * [java-http-observatory-api](https://github.com/stoennies/java-http-observatory-api) - a third party java library and command line interface
 
-## Contributing
+## Development
 
 ### Prerequisites
 * Python 3.11
@@ -39,6 +39,11 @@ $ poetry install
 $ poetry shell
 # Install the pre-commit hooks
 $ pre-commit install
+# copy and edit the config file
+$ cp httpobs/conf/httpobs.conf ~/.httpobs.conf
+$ nano ~/.httpobs.conf
+# start the dev server
+$ httpobs-server
 ```
 
 ## Running a scan from the local codebase, without DB, for continuous integration

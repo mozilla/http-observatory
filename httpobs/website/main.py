@@ -26,5 +26,9 @@ def main() -> str:
     return 'Welcome to the HTTP Observatory!'
 
 
-if __name__ == '__main__':
+def run():
     app.run(debug=DEVELOPMENT_MODE, port=API_PORT)
+
+
+if __name__ == '__main__':
+    run()
