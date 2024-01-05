@@ -35,4 +35,4 @@ jobs:
       - name: Run pre-commit against all files
         run: pre-commit run --all-files
       - name: Run nose tests
-        run: nosetests httpobs/tests -e insert_test_result -e scored_test -e select_test_results -e test_retrieve --with-coverage --cover-package=httpobs
+        run: nosetests httpobs/tests --with-coverage --cover-package=httpobs

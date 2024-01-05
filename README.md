@@ -46,6 +46,12 @@ $ nano ~/.httpobs.conf
 $ httpobs-server
 ```
 
+### Running tests
+
+```bash
+$ nosetests httpobs/tests --with-coverage --cover-package=httpobs
+```
+
 ## Running a scan from the local codebase, without DB, for continuous integration
 ```bash
 # Install the HTTP Observatory
