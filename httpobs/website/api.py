@@ -26,11 +26,13 @@ def api_post_scan_hostname():
     # TODO: Allow people to accidentally use https://mozilla.org and convert to mozilla.org
 
     # Get the hostname
-    hostname = request.args.get('host', '').lower()
+    hostname = request.args.get('host', '').lower().strip()
 
     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
     ip = True if valid_hostname(hostname) is None else False
-    hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
+    hostname = valid_hostname(hostname) or (
+        valid_hostname('www.' + hostname) if hostname else False
+    )  # prepend www. if necessary
 
     if ip:
         return {
