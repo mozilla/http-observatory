@@ -86,15 +86,15 @@ def api_post_scan_hostname():
                         scan_id,
                         result,
                     )
-            except Exception as e:
+            except:
                 # If we are unsuccessful, close out the scan in the database
-                row = database.update_scan_state(scan_id, STATE_FAILED, error=repr(e))
+                row = database.update_scan_state(scan_id, STATE_FAILED)
 
                 # Print the exception to stderr if we're in dev
                 if DEVELOPMENT_MODE:
                     import traceback
 
-                    print("Error detected in scan for : " + hostname)
+                    print("Error detected in scan for: " + hostname)
                     traceback.print_exc(file=sys.stderr)
         else:
             return {
