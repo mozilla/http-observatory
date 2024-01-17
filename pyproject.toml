@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "httpobs"
+version = "0.9.3"
+description = "HTTP Observatory: a set of tests and tools to scan your website for basic web hygeine."
+license = "MPL-2.0"
+authors = ["April King <april@mozilla.com>"]
+maintainers = ["Leo McArdle <leo@mozilla.com>"]
+
+[tool.poetry.scripts]
+httpobs-local-scan = 'httpobs.scripts.scan:main'
+httpobs-server = "httpobs.website.main:run"
+httpobs-regen-hsts-preload = "httpobs.scanner.utils:retrieve_store_hsts_preload_list"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+beautifulsoup4 = "^4.12.2"
+flake8 = "^6.1.0"
+pep8 = "^1.7.1"
+psycopg2 = "^2.9.9"
+publicsuffixlist = "^0.10.0.20231002"
+requests = "^2.31.0"
+Flask = "^3.0.0"
+uWSGI = "^2.0.22"
+pre-commit = "^3.6.0"
+black = "^23.12.1"
+isort = "^5.13.2"
+
+[tool.poetry.group.test.dependencies]
+coverage = "^7.4.0"
+pynose = "^1.4.8"
+urllib3 = "^2.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+target-version = ["py311"]
+required-version = "23"
+line-length = 120
+skip-string-normalization = true
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+line_length = 120

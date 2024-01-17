@@ -46,8 +46,9 @@ class TestCORS(TestCase):
 
     def test_acao_universal_with_acao(self):
         self.reqs['responses']['cors'].request.headers['Origin'] = 'https://http-observatory.security.mozilla.org'
-        self.reqs['responses']['cors'].headers['Access-Control-Allow-Origin'] = \
-            'https://http-observatory.security.mozilla.org'
+        self.reqs['responses']['cors'].headers[
+            'Access-Control-Allow-Origin'
+        ] = 'https://http-observatory.security.mozilla.org'
         self.reqs['responses']['cors'].headers['Access-Control-Allow-Credentials'] = 'true'
 
         result = cross_origin_resource_sharing(self.reqs)
@@ -56,7 +57,9 @@ class TestCORS(TestCase):
         self.assertFalse(result['pass'])
 
     def test_acao_restricted_with_crossdomain(self):
-        self.reqs['resources']['/crossdomain.xml'] = """
+        self.reqs['resources'][
+            '/crossdomain.xml'
+        ] = """
         <cross-domain-policy>
           <allow-access-from domain="http-observatory.security.mozilla.org" secure="true"/>
           <allow-access-from domain="github.com" secure="true"/>
@@ -69,7 +72,9 @@ class TestCORS(TestCase):
         self.assertTrue(result['pass'])
 
     def test_acao_universal_with_crossdomain(self):
-        self.reqs['resources']['/crossdomain.xml'] = """
+        self.reqs['resources'][
+            '/crossdomain.xml'
+        ] = """
         <cross-domain-policy>
           <allow-access-from domain="*" secure="true"/>
         </cross-domain-policy>"""
@@ -80,7 +85,9 @@ class TestCORS(TestCase):
         self.assertFalse(result['pass'])
 
     def test_acao_restricted_with_clientaccess(self):
-        self.reqs['resources']['/clientaccesspolicy.xml'] = """
+        self.reqs['resources'][
+            '/clientaccesspolicy.xml'
+        ] = """
         <access-policy>
           <cross-domain-access>
             <policy>
@@ -95,12 +102,13 @@ class TestCORS(TestCase):
         result = cross_origin_resource_sharing(self.reqs)
 
         self.assertEquals('cross-origin-resource-sharing-implemented-with-restricted-access', result['result'])
-        self.assertEquals(['http-observatory.security.mozilla.org', 'github.com'],
-                          result['data']['clientaccesspolicy'])
+        self.assertEquals(['http-observatory.security.mozilla.org', 'github.com'], result['data']['clientaccesspolicy'])
         self.assertTrue(result['pass'])
 
     def test_acao_universal_with_clientaccess(self):
-        self.reqs['resources']['/clientaccesspolicy.xml'] = """
+        self.reqs['resources'][
+            '/clientaccesspolicy.xml'
+        ] = """
         <access-policy>
           <cross-domain-access>
             <policy>
@@ -164,8 +172,10 @@ class TestRedirection(TestCase):
         result = redirection(self.reqs)
 
         self.assertEquals('redirection-to-https', result['result'])
-        self.assertEquals(['http://http-observatory.security.mozilla.org/',
-                           'https://http-observatory.security.mozilla.org/'], result['route'])
+        self.assertEquals(
+            ['http://http-observatory.security.mozilla.org/', 'https://http-observatory.security.mozilla.org/'],
+            result['route'],
+        )
         self.assertTrue(result['pass'])
 
     def test_redirects_to_https_with_port_number(self):
@@ -181,8 +191,10 @@ class TestRedirection(TestCase):
         result = redirection(self.reqs)
 
         self.assertEquals('redirection-to-https', result['result'])
-        self.assertEquals(['http://http-observatory.security.mozilla.org/',
-                           'https://http-observatory.security.mozilla.org:443/'], result['route'])
+        self.assertEquals(
+            ['http://http-observatory.security.mozilla.org/', 'https://http-observatory.security.mozilla.org:443/'],
+            result['route'],
+        )
         self.assertTrue(result['pass'])
 
     def test_redirects_invalid_cert(self):
@@ -237,10 +249,12 @@ class TestRedirection(TestCase):
     def test_all_redirections_preloaded(self):
         self.reqs['responses']['http'].url = 'https://www.pokeinthe.io/foo/bar'
 
-        for url in ('http://pokeinthe.io/',
-                    'https://pokeinthe.io/',
-                    'https://www.pokeinthe.io/',
-                    'https://baz.pokeinthe.io/foo'):
+        for url in (
+            'http://pokeinthe.io/',
+            'https://pokeinthe.io/',
+            'https://www.pokeinthe.io/',
+            'https://baz.pokeinthe.io/foo',
+        ):
             history = UserDict()
             history.request = UserDict()
             history.request.url = url

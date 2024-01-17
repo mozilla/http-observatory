@@ -1,5 +1,6 @@
-from bs4 import BeautifulSoup as bs
 from urllib.parse import urlparse
+
+from bs4 import BeautifulSoup as bs
 
 from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import is_hsts_preloaded
@@ -17,8 +18,9 @@ def __parse_acao_xml_get_domains(xml, type='crossdomain') -> list:
 
     # Parse the files
     if type == 'crossdomain':
-        return [domains.get('domain').strip()
-                for domains in soup.find_all('allow-access-from') if domains.get('domain')]
+        return [
+            domains.get('domain').strip() for domains in soup.find_all('allow-access-from') if domains.get('domain')
+        ]
     elif type == 'clientaccesspolicy':
         return [domains.get('uri').strip() for domains in soup.find_all('domain') if domains.get('uri')]
 
@@ -40,11 +42,7 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
         result: short string describing the result of the test
     """
     output = {
-        'data': {
-            'acao': None,
-            'clientaccesspolicy': None,
-            'crossdomain': None
-        },
+        'data': {'acao': None, 'clientaccesspolicy': None, 'crossdomain': None},
         'expectation': expectation,
         'pass': False,
         'result': 'cross-origin-resource-sharing-not-implemented',
@@ -59,8 +57,10 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
 
             if output['data']['acao'] == '*':
                 output['result'] = 'cross-origin-resource-sharing-implemented-with-public-access'
-            elif (acao.request.headers.get('Origin') == acao.headers['Access-Control-Allow-Origin'] and
-                  acao.headers.get('Access-Control-Allow-Credentials', '').lower().strip() == 'true'):
+            elif (
+                acao.request.headers.get('Origin') == acao.headers['Access-Control-Allow-Origin']
+                and acao.headers.get('Access-Control-Allow-Credentials', '').lower().strip() == 'true'
+            ):
                 output['result'] = 'cross-origin-resource-sharing-implemented-with-universal-access'
             else:
                 output['result'] = 'cross-origin-resource-sharing-implemented-with-restricted-access'
@@ -88,9 +88,11 @@ def cross_origin_resource_sharing(reqs: dict, expectation='cross-origin-resource
             output['result'] = 'cross-origin-resource-sharing-implemented-with-restricted-access'
 
     # Check to see if the test passed or failed
-    if output['result'] in ('cross-origin-resource-sharing-implemented-with-public-access',
-                            'cross-origin-resource-sharing-implemented-with-restricted-access',
-                            expectation):
+    if output['result'] in (
+        'cross-origin-resource-sharing-implemented-with-public-access',
+        'cross-origin-resource-sharing-implemented-with-restricted-access',
+        expectation,
+    ):
         output['pass'] = True
 
     return output
@@ -165,8 +167,7 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
         # If it's an http -> https redirection, make sure it redirects to the same host. If that's not done, then
         # HSTS cannot be properly set on the original host
         # TODO: Check for redirections like: http://www.example.com -> https://example.com -> https://www.example.com
-        elif (route[0].scheme == 'http' and route[1].scheme == 'https' and
-              route[0].hostname != route[1].hostname):
+        elif route[0].scheme == 'http' and route[1].scheme == 'https' and route[0].hostname != route[1].hostname:
             output['result'] = 'redirection-off-host-from-http'
             output['status_code'] = response.history[-1].status_code
         else:
@@ -177,9 +178,7 @@ def redirection(reqs: dict, expectation='redirection-to-https') -> dict:
     output['status_code'] = output['status_code'] if len(str(output['status_code'])) < 5 else None
 
     # Check to see if the test passed or failed
-    if output['result'] in ('redirection-not-needed-no-http',
-                            'redirection-all-redirects-preloaded',
-                            expectation):
+    if output['result'] in ('redirection-not-needed-no-http', 'redirection-all-redirects-preloaded', expectation):
         output['pass'] = True
 
     return output

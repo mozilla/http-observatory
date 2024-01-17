@@ -1,22 +1,22 @@
 import json
 import os.path
-import requests
-import socket
 import sys
 
+import requests
 from bs4 import BeautifulSoup as bs
-from httpobs.conf import (SCANNER_ALLOW_LOCALHOST,
-                          SCANNER_PINNED_DOMAINS)
 from requests.structures import CaseInsensitiveDict
 
+from httpobs.conf import SCANNER_PINNED_DOMAINS
 
 HSTS_URL = 'https://raw.githubusercontent.com/chromium/chromium/main/net/http/transport_security_state_static.json'
 
 
 def parse_http_equiv_headers(html: str) -> CaseInsensitiveDict:
-    http_equiv_headers = CaseInsensitiveDict({
-        'Content-Security-Policy': [],
-    })
+    http_equiv_headers = CaseInsensitiveDict(
+        {
+            'Content-Security-Policy': [],
+        }
+    )
 
     # Try to parse the HTML
     try:
@@ -54,13 +54,16 @@ def retrieve_store_hsts_preload_list():
         r = json.loads(r)
 
         # Mapping of site -> whether it includes subdomains
-        hsts = {site['name']: {
-            'includeSubDomains': site.get('include_subdomains', False),
-            'includeSubDomainsForPinning':
-                site.get('include_subdomains', False) or site.get('include_subdomains_for_pinning', False),
-            'mode': site.get('mode'),
-            'pinned': True if 'pins' in site else False,
-        } for site in r['entries']}
+        hsts = {
+            site['name']: {
+                'includeSubDomains': site.get('include_subdomains', False),
+                'includeSubDomainsForPinning': site.get('include_subdomains', False)
+                or site.get('include_subdomains_for_pinning', False),
+                'mode': site.get('mode'),
+                'pinned': True if 'pins' in site else False,
+            }
+            for site in r['entries']
+        }
 
         # Add in the manually pinned domains
         for pinned_domain in SCANNER_PINNED_DOMAINS:
@@ -68,7 +71,7 @@ def retrieve_store_hsts_preload_list():
                 'includeSubDomains': True,
                 'includeSubDomainsForPinning': True,
                 'mode': 'force-https',
-                'pinned': True
+                'pinned': True,
             }
 
         # Write json file to disk
@@ -95,46 +98,6 @@ def sanitize_headers(headers: dict) -> dict:
 
     except:
         return None
-
-
-def valid_hostname(hostname: str):
-    """
-    :param hostname: The hostname requested in the scan
-    :return: Hostname if it's valid, None if it's an IP address, otherwise False
-    """
-
-    # Block attempts to scan things like 'localhost' if not allowed
-    if ('.' not in hostname or 'localhost' in hostname) and not SCANNER_ALLOW_LOCALHOST:
-        return False
-
-    # First, let's try to see if it's an IPv4 address
-    try:
-        socket.inet_aton(hostname)  # inet_aton() will throw an exception if hostname is not a valid IP address
-        return None                 # If we get this far, it's an IP address and therefore not a valid fqdn
-    except:
-        pass
-
-    # And IPv6
-    try:
-        socket.inet_pton(socket.AF_INET6, hostname)  # same as inet_aton(), but for IPv6
-        return None
-    except:
-        pass
-
-    # Then, try to do a lookup on the hostname; this should return at least one entry and should be the first time
-    # that the validator is making a network connection -- the same that requests would make.
-    try:
-        hostname_ips = socket.getaddrinfo(hostname, 443)
-
-        # This shouldn't trigger, since getaddrinfo should generate saierror if there's no A records.  Nevertheless,
-        # I want to be careful in case of edge cases.  This does make it hard to test.
-        if len(hostname_ips) < 1:
-            return False
-    except:
-        return False
-
-    # If we've made it this far, then everything is good to go!  Woohoo!
-    return hostname
 
 
 # allow for this file to be run directly to fetch the HSTS preload list via the debugger

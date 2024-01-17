@@ -6,7 +6,6 @@ from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
 from httpobs.scanner.retriever import get_duplicate_header_values
 
-
 # Ignore the CloudFlare __cfduid tracking cookies. They *are* actually bad, but it is out of a site's
 # control.  See https://github.com/mozilla/http-observatory/issues/121 for additional details. Hopefully
 # this will eventually be fixed on CloudFlare's end.
@@ -78,23 +77,29 @@ def __parse_csp(csp_strings: list) -> Dict[str, Set]:
                         # we have to do this to make the domain lowercase for comparisons later
                         url = urlparse(source)
                         url = url._replace(netloc=url.netloc.lower())
-                        values.append({
-                            'source': urlunparse(url),
-                            'index': policy_index,
-                            'keep': True if policy_index == 0 else False,
-                        })
+                        values.append(
+                            {
+                                'source': urlunparse(url),
+                                'index': policy_index,
+                                'keep': True if policy_index == 0 else False,
+                            }
+                        )
                     else:
-                        values.append({
-                            'source': source.lower(),
-                            'index': policy_index,
-                            'keep': True if policy_index == 0 else False,
-                        })
+                        values.append(
+                            {
+                                'source': source.lower(),
+                                'index': policy_index,
+                                'keep': True if policy_index == 0 else False,
+                            }
+                        )
             elif len(entry) == 1 and directive.endswith("-src"):  # if it's a source list with no values, it's 'none'
-                values = [{
-                    'source': "'none'",
-                    'index': policy_index,
-                    'keep': True if policy_index == 0 else False,
-                }]
+                values = [
+                    {
+                        'source': "'none'",
+                        'index': policy_index,
+                        'keep': True if policy_index == 0 else False,
+                    }
+                ]
             else:
                 values = []
 
@@ -167,8 +172,8 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     output = {
         'data': None,
         'expectation': expectation,
-        'http': False,    # whether an HTTP header was available
-        'meta': False,    # whether an HTTP meta-equiv was available
+        'http': False,  # whether an HTTP header was available
+        'meta': False,  # whether an HTTP meta-equiv was available
         'pass': False,
         'policy': None,
         'result': None,
@@ -251,73 +256,79 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     # 3. Remove 'self' and 'unsafe-inline'
     if any(source.startswith(NONCES_HASHES) for source in script_src) and '\'strict-dynamic\'' in script_src:
         for source in set(script_src):
-            if (source.startswith(DANGEROUSLY_BROAD) or
-               source == '\'self\'' or
-               source == '\'unsafe-inline\''):
+            if source.startswith(DANGEROUSLY_BROAD) or source == '\'self\'' or source == '\'unsafe-inline\'':
                 script_src.remove(source)
         output['policy']['strictDynamic'] = True
     # 'strict-dynamic' in script-src without hash or nonce
     elif '\'strict-dynamic\'' in script_src:
-        output['result'] = ('csp-header-invalid' if output['result'] is None
-                            else output['result'])
+        output['result'] = 'csp-header-invalid' if output['result'] is None else output['result']
 
     # Some checks look only at active/passive CSP directives
     # This could be inlined, but the code is quite hard to read at that point
-    active_csp_sources = [source for directive, source_list in csp.items() for source in source_list if
-                          directive not in PASSIVE_DIRECTIVES and directive not in 'script-src'] + list(script_src)
-    passive_csp_sources = [source for source_list in
-                           [csp.get(directive, csp.get('default-src', [])) for directive in PASSIVE_DIRECTIVES]
-                           for source in source_list]
+    active_csp_sources = [
+        source
+        for directive, source_list in csp.items()
+        for source in source_list
+        if directive not in PASSIVE_DIRECTIVES and directive not in 'script-src'
+    ] + list(script_src)
+    passive_csp_sources = [
+        source
+        for source_list in [csp.get(directive, csp.get('default-src', [])) for directive in PASSIVE_DIRECTIVES]
+        for source in source_list
+    ]
 
     # No 'unsafe-inline' or data: in script-src
     # Also don't allow overly broad schemes such as https: in either object-src or script-src
     # Likewise, if you don't have object-src or script-src defined, then all sources are allowed
-    if (script_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE) or
-       object_src.intersection(DANGEROUSLY_BROAD)):
-        output['result'] = ('csp-implemented-with-unsafe-inline' if output['result'] is None
-                            else output['result'])
+    if script_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE) or object_src.intersection(DANGEROUSLY_BROAD):
+        output['result'] = 'csp-implemented-with-unsafe-inline' if output['result'] is None else output['result']
         output['policy']['unsafeInline'] = True
 
     # If the site is https, it shouldn't allow any http: as a source (active content)
-    if (urlparse(response.url).scheme == 'https' and
-       [source for source in active_csp_sources if 'http:' in source or 'ftp:' in source] and
-       not output['policy']['strictDynamic']):
-        output['result'] = ('csp-implemented-with-insecure-scheme' if output['result'] is None
-                            else output['result'])
+    if (
+        urlparse(response.url).scheme == 'https'
+        and [source for source in active_csp_sources if 'http:' in source or 'ftp:' in source]
+        and not output['policy']['strictDynamic']
+    ):
+        output['result'] = 'csp-implemented-with-insecure-scheme' if output['result'] is None else output['result']
         output['policy']['insecureSchemeActive'] = True
 
     # Don't allow 'unsafe-eval' in script-src or style-src
     if script_src.union(style_src).intersection({'\'unsafe-eval\''}):
-        output['result'] = ('csp-implemented-with-unsafe-eval' if output['result'] is None
-                            else output['result'])
+        output['result'] = 'csp-implemented-with-unsafe-eval' if output['result'] is None else output['result']
         output['policy']['unsafeEval'] = True
 
     # If the site is https, it shouldn't allow any http: as a source (passive content)
-    if (urlparse(response.url).scheme == 'https' and
-       [source for source in passive_csp_sources if 'http:' in source or 'ftp:' in source]):
-        output['result'] = ('csp-implemented-with-insecure-scheme-in-passive-content-only' if output['result'] is None
-                            else output['result'])
+    if urlparse(response.url).scheme == 'https' and [
+        source for source in passive_csp_sources if 'http:' in source or 'ftp:' in source
+    ]:
+        output['result'] = (
+            'csp-implemented-with-insecure-scheme-in-passive-content-only'
+            if output['result'] is None
+            else output['result']
+        )
         output['policy']['insecureSchemePassive'] = True
 
     # Don't allow 'unsafe-inline', data:, or overly broad sources in style-src
     if style_src.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE):
-        output['result'] = ('csp-implemented-with-unsafe-inline-in-style-src-only' if output['result'] is None
-                            else output['result'])
+        output['result'] = (
+            'csp-implemented-with-unsafe-inline-in-style-src-only' if output['result'] is None else output['result']
+        )
         output['policy']['unsafeInlineStyle'] = True
 
     # Only if default-src is 'none' and 'none' alone, since additional uris override 'none'
     if csp.get('default-src') == {'\'none\''}:
-        output['result'] = ('csp-implemented-with-no-unsafe-default-src-none' if output['result'] is None
-                            else output['result'])
+        output['result'] = (
+            'csp-implemented-with-no-unsafe-default-src-none' if output['result'] is None else output['result']
+        )
         output['policy']['defaultNone'] = True
     else:
-        output['result'] = ('csp-implemented-with-no-unsafe' if output['result'] is None
-                            else output['result'])
+        output['result'] = 'csp-implemented-with-no-unsafe' if output['result'] is None else output['result']
 
     # Some other checks for the CSP analyzer
-    output['policy']['antiClickjacking'] = (not bool(frame_ancestors.intersection(DANGEROUSLY_BROAD)))
+    output['policy']['antiClickjacking'] = not bool(frame_ancestors.intersection(DANGEROUSLY_BROAD))
     output['policy']['insecureBaseUri'] = bool(base_uri.intersection(DANGEROUSLY_BROAD + UNSAFE_INLINE))
-    output['policy']['insecureFormAction'] = (bool(form_action.intersection(DANGEROUSLY_BROAD)))
+    output['policy']['insecureFormAction'] = bool(form_action.intersection(DANGEROUSLY_BROAD))
     output['policy']['unsafeObjects'] = bool(object_src.intersection(DANGEROUSLY_BROAD))
 
     # Once we're done, convert every set() in csp to an array
@@ -329,10 +340,12 @@ def content_security_policy(reqs: dict, expectation='csp-implemented-with-no-uns
     output['data'] = csp if len(str(csp)) < 32768 else {}
 
     # Check to see if the test passed or failed
-    if output['result'] in (expectation,
-                            'csp-implemented-with-no-unsafe-default-src-none',
-                            'csp-implemented-with-unsafe-inline-in-style-src-only',
-                            'csp-implemented-with-insecure-scheme-in-passive-content-only'):
+    if output['result'] in (
+        expectation,
+        'csp-implemented-with-no-unsafe-default-src-none',
+        'csp-implemented-with-unsafe-inline-in-style-src-only',
+        'csp-implemented-with-insecure-scheme-in-passive-content-only',
+    ):
         output['pass'] = True
 
     return output
@@ -374,13 +387,15 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     session = reqs['session']  # all requests and their associated cookies
 
     # The order of how bad the various results are
-    goodness = ['cookies-without-secure-flag-but-protected-by-hsts',
-                'cookies-without-secure-flag',
-                'cookies-session-without-secure-flag-but-protected-by-hsts',
-                'cookies-samesite-flag-invalid',
-                'cookies-anticsrf-without-samesite-flag',
-                'cookies-session-without-httponly-flag',
-                'cookies-session-without-secure-flag']
+    goodness = [
+        'cookies-without-secure-flag-but-protected-by-hsts',
+        'cookies-without-secure-flag',
+        'cookies-session-without-secure-flag-but-protected-by-hsts',
+        'cookies-samesite-flag-invalid',
+        'cookies-anticsrf-without-samesite-flag',
+        'cookies-session-without-httponly-flag',
+        'cookies-session-without-secure-flag',
+    ]
 
     # TODO: Support cookies set over http-equiv (ugh)
     # https://github.com/mozilla/http-observatory/issues/265
@@ -398,7 +413,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
         # There are certain cookies we ignore, because they are set by service providers and sites have
         # no control over them.
         for cookie in COOKIES_TO_DELETE:
-            del(session.cookies[cookie])
+            del session.cookies[cookie]
 
         for cookie in session.cookies:
             # The HttpOnly and SameSite functionality is a bit broken
@@ -415,54 +430,44 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
                     elif samesiteVal.strip().lower() == 'none':
                         cookie.samesite = 'None'
                     else:
-                        output['result'] = only_if_worse('cookies-samesite-flag-invalid',
-                                                         output['result'],
-                                                         goodness)
+                        output['result'] = only_if_worse('cookies-samesite-flag-invalid', output['result'], goodness)
 
             # Add it to the jar
-            jar[cookie.name] = {i: getattr(cookie, i, None) for i in ['domain', 'expires', 'httponly',
-                                                                      'max-age', 'path', 'port', 'samesite', 'secure']}
+            jar[cookie.name] = {
+                i: getattr(cookie, i, None)
+                for i in ['domain', 'expires', 'httponly', 'max-age', 'path', 'port', 'samesite', 'secure']
+            }
 
             # Is it a session identifier or an anti-csrf token?
             sessionid = any(i in cookie.name.lower() for i in ('login', 'sess'))
             anticsrf = True if 'csrf' in cookie.name.lower() else False
 
             if not cookie.secure and cookie.samesite == 'None':
-                output['result'] = only_if_worse('cookies-samesite-flag-invalid',
-                                                 output['result'],
-                                                 goodness)
+                output['result'] = only_if_worse('cookies-samesite-flag-invalid', output['result'], goodness)
 
             if not cookie.secure and hsts:
-                output['result'] = only_if_worse('cookies-without-secure-flag-but-protected-by-hsts',
-                                                 output['result'],
-                                                 goodness)
+                output['result'] = only_if_worse(
+                    'cookies-without-secure-flag-but-protected-by-hsts', output['result'], goodness
+                )
 
             elif not cookie.secure:
-                output['result'] = only_if_worse('cookies-without-secure-flag',
-                                                 output['result'],
-                                                 goodness)
+                output['result'] = only_if_worse('cookies-without-secure-flag', output['result'], goodness)
 
             # Anti-CSRF tokens should be set using the SameSite option
             if anticsrf and not cookie.samesite:
-                output['result'] = only_if_worse('cookies-anticsrf-without-samesite-flag',
-                                                 output['result'],
-                                                 goodness)
+                output['result'] = only_if_worse('cookies-anticsrf-without-samesite-flag', output['result'], goodness)
 
             # Login and session cookies should be set with Secure
             if sessionid and not cookie.secure and hsts:
-                output['result'] = only_if_worse('cookies-session-without-secure-flag-but-protected-by-hsts',
-                                                 output['result'],
-                                                 goodness)
+                output['result'] = only_if_worse(
+                    'cookies-session-without-secure-flag-but-protected-by-hsts', output['result'], goodness
+                )
             elif sessionid and not cookie.secure:
-                output['result'] = only_if_worse('cookies-session-without-secure-flag',
-                                                 output['result'],
-                                                 goodness)
+                output['result'] = only_if_worse('cookies-session-without-secure-flag', output['result'], goodness)
 
             # Login and session cookies should be set with HttpOnly
             if sessionid and not cookie.httponly:
-                output['result'] = only_if_worse('cookies-session-without-httponly-flag',
-                                                 output['result'],
-                                                 goodness)
+                output['result'] = only_if_worse('cookies-session-without-httponly-flag', output['result'], goodness)
 
         # Store whether or not we saw SameSite cookies, if cookies were set
         if output['result'] is None:
@@ -477,9 +482,7 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
         output['data'] = jar if len(str(jar)) < 32768 else {}
 
     # Check to see if the test passed or failed
-    if output['result'] in ('cookies-not-found',
-                            'cookies-secure-with-httponly-sessions-and-samesite',
-                            expectation):
+    if output['result'] in ('cookies-not-found', 'cookies-secure-with-httponly-sessions-and-samesite', expectation):
         output['pass'] = True
 
     return output
@@ -594,20 +597,15 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
     output = {
         'data': None,
         'expectation': expectation,
-        'http': False,    # whether an HTTP header was available
-        'meta': False,    # whether an HTTP meta-equiv was available
+        'http': False,  # whether an HTTP header was available
+        'meta': False,  # whether an HTTP meta-equiv was available
         'pass': False,
         'result': None,
     }
 
-    goodness = ['no-referrer',
-                'same-origin',
-                'strict-origin',
-                'strict-origin-when-cross-origin']
+    goodness = ['no-referrer', 'same-origin', 'strict-origin', 'strict-origin-when-cross-origin']
 
-    badness = ['origin',
-               'origin-when-cross-origin',
-               'unsafe-url']
+    badness = ['origin', 'origin-when-cross-origin', 'unsafe-url']
 
     valid = goodness + badness + ['no-referrer-when-downgrade']
 
@@ -619,8 +617,9 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
 
     # If it's in both a header and http-equiv, http-equiv gets precedence (aka comes last)
     if 'Referrer-Policy' in response.headers and 'Referrer-Policy' in response.http_equiv:
-        output['data'] = ', '.join([response.headers['Referrer-Policy'],
-                                   response.http_equiv['Referrer-Policy']])[0:256]  # Code defensively
+        output['data'] = ', '.join([response.headers['Referrer-Policy'], response.http_equiv['Referrer-Policy']])[
+            0:256
+        ]  # Code defensively
     elif 'Referrer-Policy' in response.headers or 'Referrer-Policy' in response.http_equiv:
         output['data'] = (response.http_equiv.get('Referrer-Policy') or response.headers.get('Referrer-Policy'))[0:256]
     else:
@@ -642,10 +641,12 @@ def referrer_policy(reqs: dict, expectation='referrer-policy-private') -> dict:
         output['result'] = 'referrer-policy-header-invalid'
 
     # Test passed or failed
-    if output['result'] in ('referrer-policy-private',
-                            'referrer-policy-not-implemented',
-                            'referrer-policy-no-referrer-when-downgrade',
-                            expectation):
+    if output['result'] in (
+        'referrer-policy-private',
+        'referrer-policy-not-implemented',
+        'referrer-policy-no-referrer-when-downgrade',
+        expectation,
+    ):
         output['pass'] = True
 
     return output
@@ -732,9 +733,7 @@ def strict_transport_security(reqs: dict, expectation='hsts-implemented-max-age-
             output['preloaded'] = True
 
     # Check to see if the test passed or failed
-    if output['result'] in ('hsts-implemented-max-age-at-least-six-months',
-                            'hsts-preloaded',
-                            expectation):
+    if output['result'] in ('hsts-implemented-max-age-at-least-six-months', 'hsts-preloaded', expectation):
         output['pass'] = True
 
     return output
@@ -825,10 +824,12 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
             output['result'] = 'x-frame-options-implemented-via-csp'
 
     # Check to see if the test passed or failed
-    if output['result'] in ('x-frame-options-allow-from-origin',
-                            'x-frame-options-sameorigin-or-deny',
-                            'x-frame-options-implemented-via-csp',
-                            expectation):
+    if output['result'] in (
+        'x-frame-options-allow-from-origin',
+        'x-frame-options-sameorigin-or-deny',
+        'x-frame-options-implemented-via-csp',
+        expectation,
+    ):
         output['pass'] = True
 
     return output
@@ -862,7 +863,7 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
     }
 
     enabled = False  # XXSSP enabled or not
-    valid = True     # XXSSP header valid or not
+    valid = True  # XXSSP header valid or not
     response = reqs['responses']['auto']
     header = response.headers.get('X-XSS-Protection', '').strip()
     xxssp = {}

@@ -1,12 +1,11 @@
 version: '2'
 services:
   website:
-    build: ./httpobs
-    command: uwsgi --http :57001 --wsgi-file /app/httpobs/website/main.py --processes 8 --callable app --master
+    build: .
+    command: uwsgi --http :57001 --wsgi-file /app/httpobs/website/main.py --processes 1 --callable app --master
     depends_on:
       - postgres
     environment:
-      - HTTPOBS_BROKER_URL=redis://redis:6379/0
       - HTTPOBS_DATABASE_HOST=postgres
       - HTTPOBS_DATABASE_PASS=httpobsapipassword
       - HTTPOBS_DATABASE_USER=httpobsapi
@@ -14,24 +13,7 @@ services:
       - postgres
     ports:
       - "57001:57001"
-    restart: always
-
-  # celery task for scanner
-  scanner:
-    build: ./httpobs
-    command: /app/httpobs/scripts/httpobs-scan-worker
-    depends_on:
-      - postgres
-      - redis
-    environment:
-      - HTTPOBS_BROKER_URL=redis://redis:6379/0
-      - HTTPOBS_DATABASE_HOST=postgres
-      - HTTPOBS_DATABASE_PASS=httpobsscannerpassword
-      - HTTPOBS_DATABASE_USER=httpobsscanner
-      - HTTPOBS_MAX_CONCURRENCY=16
-    links:
-      - postgres
-      - redis
+    restart: unless-stopped
 
   postgres:
     build: ./httpobs/database
@@ -39,6 +21,3 @@ services:
       - POSTGRES_USER=httpobs
       - POSTGRES_PASSWORD=totallyfakepassword
       - POSTGRES_DB=http_observatory
-
-  redis:
-    image: redis

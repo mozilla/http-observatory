@@ -4,14 +4,14 @@
     "repository": {
         "url": "https://github.com/mozilla/http-observatory",
         "license": "MPL2",
-        "tests": "https://travis-ci.org/mozilla/http-observatory"
+        "tests": "https://github.com/mozilla/http-observatory/actions"
     },
     "participate": {
         "home": "https://observatory.mozilla.org/",
         "docs": "https://github.com/mozilla/http-observatory/tree/master/httpobs/docs",
-        "irc": "irc://irc.mozilla.org/#observatory",
-        "irc-contacts": [
-            "April"
+        "slack": "https://mozilla.slack.com/",
+        "slack-contacts": [
+            "leo"
         ]
     },
     "bugs": {
@@ -21,8 +21,8 @@
     },
     "urls": {
         "prod": "https://observatory.mozilla.org/",
-        "stage": "https://mozilla.github.io/http-observatory-website/",
-        "dev": "https://mozilla.github.io/http-observatory-website/"
+        "stage": "https://observatory.allizom.org/",
+        "dev": "https://observatory.allizom.org/"
     },
     "keywords": [
         "python",

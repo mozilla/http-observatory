@@ -1,8 +1,8 @@
 import random
-import requests
 import string
-
 from unittest import TestCase
+
+import requests
 
 from httpobs.scanner.retriever import get_duplicate_header_values, retrieve_all
 from httpobs.tests.utils import empty_requests
@@ -22,10 +22,10 @@ class TestRetriever(TestCase):
         self.assertEquals(domain, reqs['hostname'])
         self.assertEquals({}, reqs['resources'])
 
-    def test_retrieve_mozilla(self):
-        reqs = retrieve_all('mozilla.org')
+    def test_retrieve_mdn(self):
+        reqs = retrieve_all('developer.mozilla.org')
 
-        # Various things we know about mozilla.org
+        # Various things we know about developer.mozilla.org
         self.assertIsNotNone(reqs['resources']['__path__'])
         self.assertIsNotNone(reqs['resources']['/contribute.json'])
         self.assertIsNotNone(reqs['resources']['/robots.txt'])
@@ -38,12 +38,12 @@ class TestRetriever(TestCase):
         self.assertIsInstance(reqs['responses']['https'], requests.Response)
         self.assertIsInstance(reqs['session'], requests.Session)
 
-        self.assertEquals(reqs['hostname'], 'mozilla.org')
+        self.assertEquals(reqs['hostname'], 'developer.mozilla.org')
 
         self.assertEquals('text/html', reqs['responses']['auto'].headers['Content-Type'][0:9])
-        self.assertEquals(2, len(reqs['responses']['auto'].history))
+        self.assertEquals(1, len(reqs['responses']['auto'].history))
         self.assertEquals(200, reqs['responses']['auto'].status_code)
-        self.assertEquals('https://www.mozilla.org/en-US/', reqs['responses']['auto'].url)
+        self.assertEquals('https://developer.mozilla.org/en-US/', reqs['responses']['auto'].url)
 
     def test_retrieve_invalid_cert(self):
         reqs = retrieve_all('expired.badssl.com')
@@ -58,5 +58,5 @@ class TestRetriever(TestCase):
 
         self.assertEquals(
             get_duplicate_header_values(reqs['responses']['auto'], 'Content-Security-Policy'),
-            ["script-src 'unsafe-inline'", 'img-src https://google.com']
+            ["script-src 'unsafe-inline'", 'img-src https://google.com'],
         )

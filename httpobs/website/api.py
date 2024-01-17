@@ -1,21 +1,23 @@
-from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN
-from httpobs.scanner import STATES
-from httpobs.scanner.grader import get_score_description, GRADES
-from httpobs.scanner.utils import valid_hostname
-from httpobs.website import add_response_headers, sanitized_api_response
+import json
+import os.path
+import sys
 
 from flask import Blueprint, jsonify, make_response, request
 from werkzeug.http import http_date
 
 import httpobs.database as database
-import json
-import os.path
-
+from httpobs import STATE_FAILED, STATE_RUNNING, STATES
+from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN, DEVELOPMENT_MODE
+from httpobs.scanner import scan
+from httpobs.scanner.grader import GRADES, get_score_description
+from httpobs.website import add_response_headers, sanitized_api_response
+from httpobs.website.utils import valid_hostname
 
 api = Blueprint('api', __name__)
 
 
 # TODO: Implement API to write public and private headers to the database
+
 
 @api.route('/api/v1/analyze', methods=['GET', 'OPTIONS', 'POST'])
 @add_response_headers(cors=True)
@@ -24,11 +26,13 @@ def api_post_scan_hostname():
     # TODO: Allow people to accidentally use https://mozilla.org and convert to mozilla.org
 
     # Get the hostname
-    hostname = request.args.get('host', '').lower()
+    hostname = request.args.get('host', '').lower().strip()
 
     # Fail if it's not a valid hostname (not in DNS, not a real hostname, etc.)
     ip = True if valid_hostname(hostname) is None else False
-    hostname = valid_hostname(hostname) or valid_hostname('www.' + hostname)  # prepend www. if necessary
+    hostname = valid_hostname(hostname) or (
+        valid_hostname('www.' + hostname) if hostname else False
+    )  # prepend www. if necessary
 
     if ip:
         return {
@@ -65,18 +69,48 @@ def api_post_scan_hostname():
         # Begin the dispatch process if it was a POST
         if request.method == 'POST':
             row = database.insert_scan(site_id, hidden=hidden)
+            scan_id = row["id"]
+
+            # Once celery kicks off the task, let's update the scan state from PENDING to RUNNING
+            database.update_scan_state(scan_id, STATE_RUNNING)
+
+            # Get the site's cookies and headers
+            headers = database.select_site_headers(hostname)
+
+            try:
+                result = scan(hostname, headers=headers.get("headers", {}), cookies=headers.get("cookies", {}))
+
+                if "error" in result:
+                    row = database.update_scan_state(scan_id, STATE_FAILED, error=result["error"])
+                else:
+                    row = database.insert_test_results(
+                        site_id,
+                        scan_id,
+                        result,
+                    )
+            except:
+                # If we are unsuccessful, close out the scan in the database
+                row = database.update_scan_state(scan_id, STATE_FAILED)
+
+                # Print the exception to stderr if we're in dev
+                if DEVELOPMENT_MODE:
+                    import traceback
+
+                    print("Error detected in scan for: " + hostname)
+                    traceback.print_exc(file=sys.stderr)
         else:
             return {
                 'error': 'recent-scan-not-found',
                 'text': 'Recently completed scan for {hostname} not found'.format(
-                    hostname=request.args.get('host', ''))
+                    hostname=request.args.get('host', '')
+                ),
             }
 
     # If there was a rescan attempt and it returned a row, it's because the rescan was done within the cooldown window
     elif rescan and request.method == 'POST':
         return {
             'error': 'rescan-attempt-too-soon',
-            'text': '{hostname} is on temporary cooldown'.format(hostname=request.args.get('host', ''))
+            'text': '{hostname} is on temporary cooldown'.format(hostname=request.args.get('host', '')),
         }
 
     # Return the scan row
@@ -120,8 +154,9 @@ def api_get_host_history():
         return jsonify({'error': 'No history found'})
 
     # Prune for when the score doesn't change; thanks to chuck for the elegant list comprehension
-    pruned_history = [v for k, v in enumerate(history) if history[k].get('score') is not history[k - 1].get('score') or
-                      k == 0]
+    pruned_history = [
+        v for k, v in enumerate(history) if history[k].get('score') is not history[k - 1].get('score') or k == 0
+    ]
 
     # Return the host history
     return jsonify(pruned_history)
@@ -142,9 +177,9 @@ def api_get_recent_scans():
     except ValueError:
         return {'error': 'invalid-parameters'}
 
-    return jsonify(database.select_scan_recent_finished_scans(num_scans=num_scans,
-                                                              min_score=min_score,
-                                                              max_score=max_score))
+    return jsonify(
+        database.select_scan_recent_finished_scans(num_scans=num_scans, min_score=min_score, max_score=max_score)
+    )
 
 
 # TODO: Deprecate
@@ -185,31 +220,38 @@ def api_get_scanner_stats():
     stats['most_recent_scan_datetime'] = http_date(stats['most_recent_scan_datetime'].utctimetuple())
     stats['recent_scans'] = {http_date(i.utctimetuple()): v for i, v in stats['recent_scans']}
 
-    resp = make_response(json.dumps({
-        'gradeDistribution': {
-            'latest': grade_distribution,
-            'all': grade_distribution_all_scans,
-        },
-        'gradeImprovements': grade_improvements,
-        'misc': {
-            'mostRecentScanDate': stats['most_recent_scan_datetime'],
-            'numHoursWithoutScansInLast24Hours': 24 - len(stats['recent_scans']) if verbose else -1,
-            'numImprovedSites': sum([v for k, v in grade_improvements_all.items() if k > 0]),
-            'numScans': stats['scan_count'],
-            'numScansLast24Hours': sum(stats['recent_scans'].values()) if verbose else -1,
-            'numSuccessfulScans': sum(grade_distribution_all_scans.values()),
-            'numUniqueSites': sum(grade_improvements_all.values())
-        },
-        'recent': {
-            'scans': {
-                'best': database.select_scan_recent_finished_scans(13, 90, 1000),   # 13, as there are 13 grades
-                'recent': database.select_scan_recent_finished_scans(13, 0, 1000),  # 13, as there are 13 grades
-                'worst': database.select_scan_recent_finished_scans(13, 0, 20),     # 13, as there are 13 grades
-                'numPerHourLast24Hours': stats['recent_scans'],
+    resp = make_response(
+        json.dumps(
+            {
+                'gradeDistribution': {
+                    'latest': grade_distribution,
+                    'all': grade_distribution_all_scans,
+                },
+                'gradeImprovements': grade_improvements,
+                'misc': {
+                    'mostRecentScanDate': stats['most_recent_scan_datetime'],
+                    'numHoursWithoutScansInLast24Hours': 24 - len(stats['recent_scans']) if verbose else -1,
+                    'numImprovedSites': sum([v for k, v in grade_improvements_all.items() if k > 0]),
+                    'numScans': stats['scan_count'],
+                    'numScansLast24Hours': sum(stats['recent_scans'].values()) if verbose else -1,
+                    'numSuccessfulScans': sum(grade_distribution_all_scans.values()),
+                    'numUniqueSites': sum(grade_improvements_all.values()),
+                },
+                'recent': {
+                    'scans': {
+                        'best': database.select_scan_recent_finished_scans(13, 90, 1000),  # 13, as there are 13 grades
+                        'recent': database.select_scan_recent_finished_scans(13, 0, 1000),  # 13, as there are 13 grades
+                        'worst': database.select_scan_recent_finished_scans(13, 0, 20),  # 13, as there are 13 grades
+                        'numPerHourLast24Hours': stats['recent_scans'],
+                    },
+                },
+                'states': {state: stats['states'].get(state, 0) for state in STATES},
             },
-        },
-        'states': {state: stats['states'].get(state, 0) for state in STATES},
-    }, indent=4 if pretty else None, sort_keys=pretty, default=str))
+            indent=4 if pretty else None,
+            sort_keys=pretty,
+            default=str,
+        )
+    )
 
     resp.mimetype = 'application/json'
 

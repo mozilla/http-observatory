@@ -1,20 +1,16 @@
-from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
+import logging
 from urllib.parse import urlparse
 
-from httpobs.conf import (RETRIEVER_CONNECT_TIMEOUT,
-                          RETRIEVER_CORS_ORIGIN,
-                          RETRIEVER_READ_TIMEOUT,
-                          RETRIEVER_USER_AGENT)
-from httpobs.scanner.utils import parse_http_equiv_headers
-
-import logging
 import requests
-
 
 # Disable the requests InsecureRequestWarning -- we will track certificate errors manually when
 # verification is disabled. Also disable requests errors at levels lower than CRITICAL, see:
 # https://github.com/celery/celery/issues/3633 for crashy details
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+from httpobs.conf import RETRIEVER_CONNECT_TIMEOUT, RETRIEVER_CORS_ORIGIN, RETRIEVER_READ_TIMEOUT, RETRIEVER_USER_AGENT
+from httpobs.scanner.utils import parse_http_equiv_headers
+
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 logging.getLogger('requests').setLevel(logging.CRITICAL)
 
@@ -52,18 +48,17 @@ def __create_session(url: str, **kwargs) -> dict:
 
     # Override the User-Agent; some sites (like twitter) don't send the CSP header unless you have a modern
     # user agent
-    s.headers.update({
-        'User-Agent': RETRIEVER_USER_AGENT,
-    })
+    s.headers.update(
+        {
+            'User-Agent': RETRIEVER_USER_AGENT,
+        }
+    )
 
     try:
         r = s.get(url, timeout=TIMEOUT)
 
         # No tls errors
         r.verified = True
-    # Let celery exceptions percolate upward
-    except (SoftTimeLimitExceeded, TimeLimitExceeded):
-        raise
     # We can try again if there's an SSL error, making sure to note it in the session
     except requests.exceptions.SSLError:
         try:
@@ -98,13 +93,12 @@ def __get(session, relative_path='/', headers=None, cookies=None):
         # TODO: limit the maximum size of the response, to keep malicious site operators from killing us
         # TODO: Perhaps we can naively do it for now by simply setting a timeout?
         # TODO: catch TLS errors instead of just setting it to None?
-        return session.get(session.url.scheme + '://' + session.url.netloc + relative_path,
-                           headers=headers,
-                           cookies=cookies,
-                           timeout=TIMEOUT)
-    # Let celery exceptions percolate upward
-    except (SoftTimeLimitExceeded, TimeLimitExceeded):
-        raise
+        return session.get(
+            session.url.scheme + '://' + session.url.netloc + relative_path,
+            headers=headers,
+            cookies=cookies,
+            timeout=TIMEOUT,
+        )
     except (KeyboardInterrupt, SystemExit):
         raise
     except:
@@ -126,8 +120,8 @@ def __get_page_text(response: requests.Response, force: bool = False) -> str:
 
 
 def retrieve_all(hostname, **kwargs):
-    kwargs['cookies'] = kwargs.get('cookies', {})   # HTTP cookies to send, instead of from the database
-    kwargs['headers'] = kwargs.get('headers', {})   # HTTP headers to send, instead of from the database
+    kwargs['cookies'] = kwargs.get('cookies', {})  # HTTP cookies to send, instead of from the database
+    kwargs['headers'] = kwargs.get('headers', {})  # HTTP headers to send, instead of from the database
 
     # This way of doing it keeps the urls tidy even if makes the code ugly
     kwargs['http_port'] = ':' + str(kwargs.get('http_port', '')) if 'http_port' in kwargs else ''
@@ -137,8 +131,7 @@ def retrieve_all(hostname, **kwargs):
 
     retrievals = {
         'hostname': hostname,
-        'resources': {
-        },
+        'resources': {},
         'responses': {
             'auto': None,  # whichever of 'http' or 'https' actually works, with 'https' as higher priority
             'cors': None,  # CORS preflight test
@@ -149,12 +142,7 @@ def retrieve_all(hostname, **kwargs):
     }
 
     # The list of resources to get
-    resources = (
-        '/clientaccesspolicy.xml',
-        '/contribute.json',
-        '/crossdomain.xml',
-        '/robots.txt'
-    )
+    resources = ('/clientaccesspolicy.xml', '/contribute.json', '/crossdomain.xml', '/robots.txt')
 
     # Create some reusable sessions, one for HTTP and one for HTTPS
     http_session = __create_session('http://' + hostname + kwargs['http_port'] + kwargs['path'], **kwargs)
@@ -180,9 +168,9 @@ def retrieve_all(hostname, **kwargs):
         retrievals['resources']['__path__'] = __get_page_text(retrievals['responses']['auto'], force=True)
 
         # Do a CORS preflight request
-        retrievals['responses']['cors'] = __get(retrievals['session'],
-                                                kwargs['path'],
-                                                headers={'Origin': RETRIEVER_CORS_ORIGIN})
+        retrievals['responses']['cors'] = __get(
+            retrievals['session'], kwargs['path'], headers={'Origin': RETRIEVER_CORS_ORIGIN}
+        )
 
         # Store all the files we retrieve
         for resource in resources:
@@ -190,8 +178,10 @@ def retrieve_all(hostname, **kwargs):
             retrievals['resources'][resource] = __get_page_text(resp)
 
     # Parse out the HTTP meta-equiv headers
-    if (retrievals['responses']['auto'].headers.get('Content-Type', '').split(';')[0] in HTML_TYPES and
-            retrievals['resources']['__path__']):
+    if (
+        retrievals['responses']['auto'].headers.get('Content-Type', '').split(';')[0] in HTML_TYPES
+        and retrievals['resources']['__path__']
+    ):
         retrievals['responses']['auto'].http_equiv = parse_http_equiv_headers(retrievals['resources']['__path__'])
     else:
         retrievals['responses']['auto'].http_equiv = {}

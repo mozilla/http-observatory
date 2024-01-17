@@ -2,35 +2,41 @@ on:
   push:
     branches:
       - master
+      - next
   pull_request:
     branches:
       - master
+      - next
 
 name: Run tests
 
 jobs:
   test:
-    name: nose tests
+    name: lint and test
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7' ]
+        python-version: ["3.11"]
     env:
-      HTTPOBS_BROKER_URL: fakebrokerurl
       HTTPOBS_DATABASE_HOST: fakehost
       HTTPOBS_DATABASE_PASS: foo
       HTTPOBS_DATABASE_USER: bar
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install . -r requirements.txt
-      - name: Run flake8 tests
-        run: flake8 --config .flake8 httpobs
-      - name: Run nose tests
-        run: nosetests httpobs/tests -e insert_test_result -e scored_test -e select_test_results -e test_retrieve --with-coverage --cover-package=httpobs
+          cache: "poetry"
+      - run: poetry install
 
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit|${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Run pre-commit against all files
+        run: poetry run pre-commit run --all-files
+
+      - name: Run nose tests
+        run: poetry run nosetests httpobs/tests --with-coverage --cover-package=httpobs

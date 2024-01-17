@@ -41,7 +41,9 @@ class TestContribute(TestCase):
         self.assertEquals(result['data'], {})
 
     def test_with_required_keys(self):
-        self.reqs['resources']['/contribute.json'] = """
+        self.reqs['resources'][
+            '/contribute.json'
+        ] = """
         {
             "name": "Bedrock",
             "description": "The app powering www.mozilla.org.",
@@ -86,7 +88,9 @@ class TestContribute(TestCase):
         self.assertTrue(result['pass'])
 
     def test_missing_required_keys(self):
-        self.reqs['resources']['/contribute.json'] = """
+        self.reqs['resources'][
+            '/contribute.json'
+        ] = """
         {
             "name": "Bedrock",
             "description": "The app powering www.mozilla.org.",
@@ -152,7 +156,9 @@ class TestSubResourceIntegrity(TestCase):
 
         # json, like what an API might return
         self.reqs['responses']['auto'].headers['Content-Type'] = 'application/json'
-        self.reqs['resources']['__path__'] = """
+        self.reqs['resources'][
+            '__path__'
+        ] = """
         {
             'foo': 'bar'
         }

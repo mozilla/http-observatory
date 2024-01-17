@@ -19,20 +19,14 @@ GRADE_CHART = {
     15: 'F',
     10: 'F',
     5: 'F',
-    0: 'F'
+    0: 'F',
 }
 
 # See https://wiki.mozilla.org/Security/Standard_Levels for a definition of the risk levels
 # We cannot make an accurate decision on HIGH and MAXIMUM risk likelihood indicators with the current checks,
 # thus the likelihood indicator is currently at best (or worse) MEDIUM. Modifiers (A-A+B+B-, ... are normalized
 # A,B, ...) in the calling function.
-LIKELIHOOD_INDICATOR_CHART = {
-    'A': 'LOW',
-    'B': 'MEDIUM',
-    'C': 'MEDIUM',
-    'D': 'MEDIUM',
-    'F': 'MEDIUM'
-}
+LIKELIHOOD_INDICATOR_CHART = {'A': 'LOW', 'B': 'MEDIUM', 'C': 'MEDIUM', 'D': 'MEDIUM', 'F': 'MEDIUM'}
 
 # The minimum required score to receive extra credit
 MINIMUM_SCORE_FOR_EXTRA_CREDIT = 90
@@ -61,7 +55,6 @@ SCORE_TABLE = {
         'description': 'Contribute.json file cannot be parsed',
         'modifier': -10,
     },
-
     # CSP
     'csp-implemented-with-no-unsafe-default-src-none': {
         'description': 'Content Security Policy (CSP) implemented with default-src \'none\' and no \'unsafe\'',
@@ -72,13 +65,17 @@ SCORE_TABLE = {
         'modifier': 5,
     },
     'csp-implemented-with-unsafe-inline-in-style-src-only': {
-        'description': ('Content Security Policy (CSP) implemented with unsafe sources inside style-src. '
-                        'This includes \'unsafe-inline\', data: or overly broad sources such as https:.'),
+        'description': (
+            'Content Security Policy (CSP) implemented with unsafe sources inside style-src. '
+            'This includes \'unsafe-inline\', data: or overly broad sources such as https:.'
+        ),
         'modifier': 0,
     },
     'csp-implemented-with-insecure-scheme-in-passive-content-only': {
-        'description': ('Content Security Policy (CSP) implemented, '
-                        'but secure site allows images or media to be loaded over HTTP'),
+        'description': (
+            'Content Security Policy (CSP) implemented, '
+            'but secure site allows images or media to be loaded over HTTP'
+        ),
         'modifier': -10,
     },
     'csp-implemented-with-unsafe-eval': {
@@ -86,15 +83,18 @@ SCORE_TABLE = {
         'modifier': -10,
     },
     'csp-implemented-with-unsafe-inline': {
-        'description': ('Content Security Policy (CSP) implemented unsafely. '
-                        'This includes \'unsafe-inline\' or data: inside script-src, '
-                        'overly broad sources such as https: inside object-src or script-src, '
-                        'or not restricting the sources for object-src or script-src.'),
+        'description': (
+            'Content Security Policy (CSP) implemented unsafely. '
+            'This includes \'unsafe-inline\' or data: inside script-src, '
+            'overly broad sources such as https: inside object-src or script-src, '
+            'or not restricting the sources for object-src or script-src.'
+        ),
         'modifier': -20,
     },
     'csp-implemented-with-insecure-scheme': {
-        'description': ('Content Security Policy (CSP) implemented, '
-                        'but secure site allows resources to be loaded over HTTP'),
+        'description': (
+            'Content Security Policy (CSP) implemented, ' 'but secure site allows resources to be loaded over HTTP'
+        ),
         'modifier': -20,
     },
     'csp-header-invalid': {
@@ -105,13 +105,13 @@ SCORE_TABLE = {
         'description': 'Content Security Policy (CSP) header not implemented',
         'modifier': -25,
     },
-
     # Cookies
     'cookies-secure-with-httponly-sessions-and-samesite': {
-        'description': ('All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin '
-                        'restrictions are in place via the SameSite flag'),
+        'description': (
+            'All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin '
+            'restrictions are in place via the SameSite flag'
+        ),
         'modifier': 5,
-
     },
     'cookies-secure-with-httponly-sessions': {
         'description': 'All cookies use the Secure flag and all session cookies use the HttpOnly flag',
@@ -149,27 +149,28 @@ SCORE_TABLE = {
         'description': 'Session cookie set without using the Secure flag or set over HTTP',
         'modifier': -40,
     },
-
     # Cross-origin resource sharing
     'cross-origin-resource-sharing-not-implemented': {
         'description': 'Content is not visible via cross-origin resource sharing (CORS) files or headers',
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-public-access': {
-        'description': ('Public content is visible via cross-origin resource sharing (CORS) '
-                        'Access-Control-Allow-Origin header'),
+        'description': (
+            'Public content is visible via cross-origin resource sharing (CORS) ' 'Access-Control-Allow-Origin header'
+        ),
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-restricted-access': {
-        'description': ('Content is visible via cross-origin resource sharing (CORS) files or headers, '
-                        'but is restricted to specific domains'),
+        'description': (
+            'Content is visible via cross-origin resource sharing (CORS) files or headers, '
+            'but is restricted to specific domains'
+        ),
         'modifier': 0,
     },
     'cross-origin-resource-sharing-implemented-with-universal-access': {
         'description': 'Content is visible via cross-origin resource sharing (CORS) file or headers',
         'modifier': -50,
     },
-
     # Public Key Pinning
     'hpkp-preloaded': {
         'description': 'Preloaded via the HTTP Public Key Pinning (HPKP) preloading process',
@@ -192,15 +193,15 @@ SCORE_TABLE = {
         'modifier': 0,
     },
     'hpkp-invalid-cert': {
-        'description': ('HTTP Public Key Pinning (HPKP) header cannot be set, '
-                        'as site contains an invalid certificate chain'),
+        'description': (
+            'HTTP Public Key Pinning (HPKP) header cannot be set, ' 'as site contains an invalid certificate chain'
+        ),
         'modifier': 0,
     },
     'hpkp-header-invalid': {
         'description': 'HTTP Public Key Pinning (HPKP) header cannot be recognized',
         'modifier': -5,
     },
-
     # Redirection
     'redirection-all-redirects-preloaded': {
         'description': 'All hosts redirected to are in the HTTP Strict Transport Security (HSTS) preload list',
@@ -234,11 +235,12 @@ SCORE_TABLE = {
         'description': 'Invalid certificate chain encountered during redirection',
         'modifier': -20,
     },
-
     # Referrer Policy
     'referrer-policy-private': {
-        'description': ('Referrer-Policy header set to "no-referrer", "same-origin", "strict-origin" or '
-                        '"strict-origin-when-cross-origin"'),
+        'description': (
+            'Referrer-Policy header set to "no-referrer", "same-origin", "strict-origin" or '
+            '"strict-origin-when-cross-origin"'
+        ),
         'modifier': 5,
     },
     'referrer-policy-no-referrer-when-downgrade': {
@@ -257,7 +259,6 @@ SCORE_TABLE = {
         'description': 'Referrer-Policy header cannot be recognized',
         'modifier': -5,
     },
-
     # Strict Transport Security (HSTS)
     'hsts-preloaded': {
         'description': 'Preloaded via the HTTP Strict Transport Security (HSTS) preloading process',
@@ -284,11 +285,12 @@ SCORE_TABLE = {
         'modifier': -20,
     },
     'hsts-invalid-cert': {
-        'description': ('HTTP Strict Transport Security (HSTS) header cannot be set, '
-                        'as site contains an invalid certificate chain'),
+        'description': (
+            'HTTP Strict Transport Security (HSTS) header cannot be set, '
+            'as site contains an invalid certificate chain'
+        ),
         'modifier': -20,
     },
-
     # Subresource Integrity (SRI)
     'sri-implemented-and-all-scripts-loaded-securely': {
         'description': 'Subresource Integrity (SRI) is implemented and all scripts are loaded from a similar origin',
@@ -315,16 +317,19 @@ SCORE_TABLE = {
         'modifier': -5,
     },
     'sri-implemented-but-external-scripts-not-loaded-securely': {
-        'description': ('Subresource Integrity (SRI) implemented, but external scripts are loaded over HTTP or use '
-                        'protocol-relative URLs via src="//..."'),
+        'description': (
+            'Subresource Integrity (SRI) implemented, but external scripts are loaded over HTTP or use '
+            'protocol-relative URLs via src="//..."'
+        ),
         'modifier': -20,
     },
     'sri-not-implemented-and-external-scripts-not-loaded-securely': {
-        'description': ('Subresource Integrity (SRI) not implemented, and external scripts are loaded over HTTP or '
-                        'use protocol-relative URLs via src="//..."'),
+        'description': (
+            'Subresource Integrity (SRI) not implemented, and external scripts are loaded over HTTP or '
+            'use protocol-relative URLs via src="//..."'
+        ),
         'modifier': -50,
     },
-
     # X-Content-Type-Options
     'x-content-type-options-nosniff': {
         'description': 'X-Content-Type-Options header set to "nosniff"',
@@ -338,7 +343,6 @@ SCORE_TABLE = {
         'description': 'X-Content-Type-Options header cannot be recognized',
         'modifier': -5,
     },
-
     # X-Frame-Options
     'x-frame-options-implemented-via-csp': {
         'description': 'X-Frame-Options (XFO) implemented via the CSP frame-ancestors directive',
@@ -360,7 +364,6 @@ SCORE_TABLE = {
         'description': 'X-Frame-Options (XFO) header cannot be recognized',
         'modifier': -20,
     },
-
     # X-XSS-Protection
     'x-xss-protection-enabled-mode-block': {
         'description': 'X-XSS-Protection header set to "1; mode=block"',
@@ -386,7 +389,6 @@ SCORE_TABLE = {
         'description': 'X-XSS-Protection header cannot be recognized',
         'modifier': -10,
     },
-
     # Generic results
     'html-not-parsable': {
         'description': 'Claims to be html, but cannot be parsed',
@@ -399,7 +401,7 @@ SCORE_TABLE = {
     'xml-not-parsable': {
         'description': 'Claims to be xml, but cannot be parsed',
         'modifier': -20,  # can't run an ACAO check if the xml files can't be parsed
-    }
+    },
 }
 
 
