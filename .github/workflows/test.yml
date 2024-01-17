@@ -1,12 +1,10 @@
 on:
   push:
     branches:
-      - master
-      - next
+      - main
   pull_request:
     branches:
-      - master
-      - next
+      - main
 
 name: Run tests
 
