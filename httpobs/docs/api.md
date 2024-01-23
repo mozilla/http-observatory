@@ -485,7 +485,7 @@ Example:
     "score_modifier": 0
   },
   "x-xss-protection": {
-    "expectation": "x-xss-protection-1-mode-block",
+    "expectation": "x-xss-protection-disabled",
     "name": "x-xss-protection",
     "output": {
       "data": "1; mode=block"

@@ -836,14 +836,13 @@ def x_frame_options(reqs: dict, expectation='x-frame-options-sameorigin-or-deny'
 
 
 @scored_test
-def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') -> dict:
+def x_xss_protection(reqs: dict, expectation='x-xss-protection-disabled') -> dict:
     """
     :param reqs: dictionary containing all the request and response objects
     :param expectation: test expectation
-        x-xss-protection-enabled-mode-block: X-XSS-Protection set to "1; block" [default]
+        x-xss-protection-enabled-mode-block: X-XSS-Protection set to "1; block"
         x-xss-protection-enabled: X-XSS-Protection set to "1"
-        x-xss-protection-not-needed-due-to-csp: no X-XSS-Protection header, but CSP blocks inline nonsense
-        x-xss-protection-disabled: X-XSS-Protection set to "0" (disabled)
+        x-xss-protection-disabled: X-XSS-Protection set to "0" (disabled) [default]
         x-xss-protection-not-implemented: X-XSS-Protection header missing
         x-xss-protection-header-invalid
     :return: dictionary with:
@@ -908,15 +907,10 @@ def x_xss_protection(reqs: dict, expectation='x-xss-protection-1-mode-block') ->
             output['pass'] = True
         elif valid and not enabled:
             output['result'] = 'x-xss-protection-disabled'
+            output['pass'] = True
 
     else:
         output['result'] = 'x-xss-protection-not-implemented'
-
-    # Allow sites to skip out of having X-XSS-Protection if they implement a strong CSP policy
-    # Note that having an invalid XXSSP setting will still trigger, even with a good CSP policy
-    if valid and output['pass'] is False:
-        if content_security_policy(reqs)['pass']:
-            output['pass'] = True
-            output['result'] = 'x-xss-protection-not-needed-due-to-csp'
+        output['pass'] = True
 
     return output
