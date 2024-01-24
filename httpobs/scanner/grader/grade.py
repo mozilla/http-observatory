@@ -366,28 +366,24 @@ SCORE_TABLE = {
     },
     # X-XSS-Protection
     'x-xss-protection-enabled-mode-block': {
-        'description': 'X-XSS-Protection header set to "1; mode=block"',
+        'description': 'Deprecated X-XSS-Protection header set to "1; mode=block"',
         'modifier': 0,
     },
     'x-xss-protection-enabled': {
-        'description': 'X-XSS-Protection header set to "1"',
-        'modifier': 0,
-    },
-    'x-xss-protection-not-needed-due-to-csp': {
-        'description': 'X-XSS-Protection header not needed due to strong Content Security Policy (CSP) header',
+        'description': 'Deprecated X-XSS-Protection header set to "1"',
         'modifier': 0,
     },
     'x-xss-protection-disabled': {
-        'description': 'X-XSS-Protection header set to "0" (disabled)',
-        'modifier': -10,
+        'description': 'Deprecated X-XSS-Protection header set to "0" (disabled)',
+        'modifier': 0,
     },
     'x-xss-protection-not-implemented': {
-        'description': 'X-XSS-Protection header not implemented',
-        'modifier': -10,
+        'description': 'Deprecated X-XSS-Protection header not implemented',
+        'modifier': 0,
     },
     'x-xss-protection-header-invalid': {
-        'description': 'X-XSS-Protection header cannot be recognized',
-        'modifier': -10,
+        'description': 'Deprecated X-XSS-Protection header cannot be recognized',
+        'modifier': -5,
     },
     # Generic results
     'html-not-parsable': {
@@ -424,7 +420,7 @@ def get_grade_and_likelihood_for_score(score: int) -> tuple:
 
 
 def get_score_description(result) -> str:
-    return SCORE_TABLE[result]['description']
+    return SCORE_TABLE.get(result, {'description': ''})['description']
 
 
 def get_score_modifier(result) -> int:

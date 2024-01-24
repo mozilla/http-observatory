@@ -147,9 +147,8 @@ x-frame-options-header-invalid | `X-Frame-Options` (XFO) header cannot be recogn
 
 [X-XSS-Protection](https://infosec.mozilla.org/guidelines/web_security#x-xss-protection) | Description | Modifier
 --- | --- | :---:
-x-xss-protection-not-needed-due-to-csp | `X-XSS-Protection` header not needed due to strong Content Security Policy (CSP) header | 0
 x-xss-protection-enabled-mode-block | `X-XSS-Protection` header set to `1; mode=block` | 0
 x-xss-protection-enabled | `X-XSS-Protection` header set to `1` | 0
-x-xss-protection-disabled | `X-XSS-Protection` header set to `0` (disabled) | -10
-x-xss-protection-not-implemented | `X-XSS-Protection` header not implemented | -10
-x-xss-protection-header-invalid | `X-XSS-Protection` header cannot be recognized | -10
+x-xss-protection-disabled | `X-XSS-Protection` header set to `0` (disabled) | 0
+x-xss-protection-not-implemented | `X-XSS-Protection` header not implemented | 0
+x-xss-protection-header-invalid | `X-XSS-Protection` header cannot be recognized | -5

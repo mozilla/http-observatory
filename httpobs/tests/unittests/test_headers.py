@@ -1429,7 +1429,7 @@ class TestXXSSProtection(TestCase):
         result = x_xss_protection(self.reqs)
 
         self.assertEquals('x-xss-protection-not-implemented', result['result'])
-        self.assertFalse(result['pass'])
+        self.assertTrue(result['pass'])
 
     def test_header_invalid(self):
         for value in ('whimsy', '2; mode=block', '1; mode=block; mode=block', '1; mode=block, 1; mode=block'):
@@ -1446,7 +1446,7 @@ class TestXXSSProtection(TestCase):
         result = x_xss_protection(self.reqs)
 
         self.assertEquals('x-xss-protection-disabled', result['result'])
-        self.assertFalse(result['pass'])
+        self.assertTrue(result['pass'])
 
     def test_enabled_noblock(self):
         for value in ('1', '1 '):
@@ -1463,13 +1463,4 @@ class TestXXSSProtection(TestCase):
         result = x_xss_protection(self.reqs)
 
         self.assertEquals('x-xss-protection-enabled-mode-block', result['result'])
-        self.assertTrue(result['pass'])
-
-    def test_enabled_via_csp(self):
-        reqs = empty_requests()
-        set_header(reqs['responses']['auto'], 'Content-Security-Policy', "object-src 'none'; script-src 'none'")
-
-        result = x_xss_protection(reqs)
-
-        self.assertEquals('x-xss-protection-not-needed-due-to-csp', result['result'])
         self.assertTrue(result['pass'])
