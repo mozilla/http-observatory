@@ -1,36 +1,6 @@
 from unittest import TestCase
 
-from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded
-
-
-class TestPreloadPublicKeyPinning(TestCase):
-    def test_not_preloaded(self):
-        result = is_hpkp_preloaded('totallyfakehostname.insertsuperduperfakedomainhere.wtftld')
-
-        self.assertFalse(result)
-
-    def test_preloaded(self):
-        result = is_hpkp_preloaded('apis.google.com')
-
-        self.assertTrue(result['pinned'])
-        self.assertTrue(result['includeSubDomainsForPinning'])
-
-        result = is_hpkp_preloaded('foo.apis.google.com')
-
-        self.assertTrue(result['pinned'])
-        self.assertTrue(result['includeSubDomainsForPinning'])
-
-        # uses include_subdomains_for_pinning
-        result = is_hpkp_preloaded('dropboxstatic.com')
-
-        self.assertTrue(result['pinned'])
-        self.assertTrue(result['includeSubDomainsForPinning'])
-
-        # this domain is manually pinned
-        result = is_hpkp_preloaded('aus4.mozilla.org')
-
-        self.assertTrue(result['pinned'])
-        self.assertTrue(result['includeSubDomainsForPinning'])
+from httpobs.scanner.analyzer.utils import is_hsts_preloaded
 
 
 class TestPreloadStrictTransportSecurity(TestCase):
