@@ -3,7 +3,7 @@ from typing import Dict, Set
 from urllib.parse import urlparse, urlunparse
 
 from httpobs.scanner.analyzer.decorators import scored_test
-from httpobs.scanner.analyzer.utils import is_hpkp_preloaded, is_hsts_preloaded, only_if_worse
+from httpobs.scanner.analyzer.utils import is_hsts_preloaded, only_if_worse
 from httpobs.scanner.retriever import get_duplicate_header_values
 
 # Ignore the CloudFlare __cfduid tracking cookies. They *are* actually bad, but it is out of a site's
@@ -485,92 +485,6 @@ def cookies(reqs: dict, expectation='cookies-secure-with-httponly-sessions') -> 
     if output['result'] in ('cookies-not-found', 'cookies-secure-with-httponly-sessions-and-samesite', expectation):
         output['pass'] = True
 
-    return output
-
-
-@scored_test
-def public_key_pinning(reqs: dict, expectation='hpkp-not-implemented') -> dict:
-    """
-    :param reqs: dictionary containing all the request and response objects
-    :param expectation: test expectation; possible results:
-      hpkp-not-implemented-no-https
-      hpkp-not-implemented
-      hpkp-implemented-max-age-less-than-fifteen-days
-      hpkp-implemented-max-age-at-least-fifteen-days
-      hpkp-preloaded
-      hpkp-header-invalid
-      hpkp-invalid-cert
-    :return: dictionary with:
-      data: the raw HPKP header
-        includesubdomains: whether the includeSubDomains directive is set
-        max-age: what the max
-        num-pins: the number of pins
-      expectation: test expectation
-      pass: whether the site's configuration met its expectation
-      result: short string describing the result of the test
-    """
-    FIFTEEN_DAYS = 1296000
-
-    output = {
-        'data': None,
-        'expectation': expectation,
-        'includeSubDomains': False,
-        'max-age': None,
-        'numPins': None,
-        'pass': True,
-        'preloaded': False,
-        'result': 'hpkp-not-implemented',
-    }
-    response = reqs['responses']['https']
-
-    # If there's no HTTPS, we can't have HPKP
-    if response is None:
-        output['result'] = 'hpkp-not-implemented-no-https'
-
-    # Can't have HPKP without a valid certificate chain
-    elif not response.verified:
-        output['result'] = 'hpkp-invalid-cert'
-
-    elif 'Public-Key-Pins' in response.headers:
-        output['data'] = response.headers['Public-Key-Pins'][0:2048]  # code against malicious headers
-
-        try:
-            pkp = [i.lower().strip() for i in output['data'].split(';')]
-            pins = []
-
-            for parameter in pkp:
-                if parameter.startswith('max-age='):
-                    output['max-age'] = int(parameter[8:128])  # defense
-                elif parameter.startswith('pin-sha256=') and parameter not in pins:
-                    pins.append(parameter)
-                elif parameter == 'includesubdomains':
-                    output['includeSubDomains'] = True
-            output['numPins'] = len(pins)
-
-            # You must set a max-age with HPKP
-            if output['max-age']:
-                if output['max-age'] < FIFTEEN_DAYS:
-                    output['result'] = 'hpkp-implemented-max-age-less-than-fifteen-days'
-                else:
-                    output['result'] = 'hpkp-implemented-max-age-at-least-fifteen-days'
-
-            # You must have at least two pins with HPKP and set max-age
-            if not output['max-age'] or len(pins) < 2:
-                raise ValueError
-
-        except:
-            output['result'] = 'hpkp-header-invalid'
-            output['pass'] = False
-
-    # If they're in the preloaded list, this overrides most anything else
-    if response is not None:
-        preloaded = is_hpkp_preloaded(urlparse(response.url).netloc)
-        if preloaded:
-            output['result'] = 'hpkp-preloaded'
-            output['includeSubDomains'] = preloaded['includeSubDomainsForPinning']
-            output['preloaded'] = True
-
-    # No need to check pass/fail here, the only way to fail is to have an invalid header
     return output
 
 
