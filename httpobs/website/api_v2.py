@@ -28,7 +28,7 @@ def api_post_scan_hostname():
         return {
             "error": "database-down",
             "text": "Unable to connect to database",
-        }, 500
+        }, 503
 
     if site_id is not None:
         hostname = host
@@ -55,9 +55,9 @@ def api_post_scan_hostname():
     if scan and request.method == "POST":
         time_since_scan = datetime.now() - scan["end_time"]
         if time_since_scan < timedelta(seconds=API_COOLDOWN):
-            status_code = 429
+            status_code = 429  # keep going, we'll respond with the most recent scan
         else:
-            scan = None
+            scan = None  # clear the scan, and we'll do another
 
     if scan:
         scan_id = scan["id"]
@@ -72,6 +72,10 @@ def api_post_scan_hostname():
             tests[name] = {**test.pop("output"), **test}
 
     else:
+        # no scan means we're a POST which hasn't been rate limited
+        # or we're a GET for a host which has no scans in the db
+        # either way, we need to perform a scan
+
         hidden = request.form.get("hidden", "false") == "true"
 
         scan = database.insert_scan(site_id, hidden=hidden)
