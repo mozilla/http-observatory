@@ -8,7 +8,7 @@ from httpobs.scanner.retriever import retrieve_all
 from httpobs.scanner.utils import sanitize_headers
 
 # Current algorithm version
-ALGORITHM_VERSION = 2
+ALGORITHM_VERSION = 3
 
 
 def scan(hostname: str, **kwargs):
