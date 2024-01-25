@@ -71,7 +71,7 @@ $ poetry install
          path='/foo/bar',            # don't scan /, instead scan /foo/bar
          cookies={'foo': 'bar'},     # set the "foo" cookie to "bar"
          headers={'X-Foo': 'bar'},   # send an X-Foo: bar HTTP header
-         verify=False)               # treat self-signed certs as valid for tests like HSTS/HPKP
+         verify=False)               # treat self-signed certs as valid for tests like HSTS
 ```
 
 ### The same, but with the local CLI

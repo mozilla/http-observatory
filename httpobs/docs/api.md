@@ -394,21 +394,6 @@ Example:
     "score_description": "Content is not visible via cross-origin resource sharing (CORS) files or headers",
     "score_modifier": 0
   },
-  "public-key-pinning": {
-    "expectation": "hpkp-not-implemented",
-    "name": "public-key-pinning",
-    "output": {
-      "data": null,
-      "includeSubDomains": false,
-      "max-age": null,
-      "numPins": null,
-      "preloaded": false
-    },
-    "pass": true,
-    "result": "hpkp-not-implemented",
-    "score_description": "HTTP Public Key Pinning (HPKP) header not implemented",
-    "score_modifier": 0
-  },
   "redirection": {
     "expectation": "redirection-to-https",
     "name": "redirection",
