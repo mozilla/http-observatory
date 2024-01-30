@@ -15,9 +15,7 @@ def main():
     parser.add_argument('--http-port', default=80, help='port to use for the HTTP scan (instead of 80)', type=int)
     parser.add_argument('--https-port', default=443, help='port to use for the HTTPS scan (instead of 443)', type=int)
     parser.add_argument('--path', default=argparse.SUPPRESS, help='path to scan, instead of /', type=str)
-    parser.add_argument(
-        '--no-verify', action='store_true', help='disable certificate verification in the HSTS/HPKP tests'
-    )
+    parser.add_argument('--no-verify', action='store_true', help='disable certificate verification in the HSTS tests')
     parser.add_argument(
         '--cookies', default=argparse.SUPPRESS, help='cookies to send in scan (json formatted)', type=json.loads
     )

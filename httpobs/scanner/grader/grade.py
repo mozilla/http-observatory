@@ -171,37 +171,6 @@ SCORE_TABLE = {
         'description': 'Content is visible via cross-origin resource sharing (CORS) file or headers',
         'modifier': -50,
     },
-    # Public Key Pinning
-    'hpkp-preloaded': {
-        'description': 'Preloaded via the HTTP Public Key Pinning (HPKP) preloading process',
-        'modifier': 0,
-    },
-    'hpkp-implemented-max-age-at-least-fifteen-days': {
-        'description': 'HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000)',
-        'modifier': 0,
-    },
-    'hpkp-implemented-max-age-less-than-fifteen-days': {
-        'description': 'HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000)',
-        'modifier': 0,
-    },
-    'hpkp-not-implemented': {
-        'description': 'HTTP Public Key Pinning (HPKP) header not implemented',
-        'modifier': 0,
-    },
-    'hpkp-not-implemented-no-https': {
-        'description': 'HTTP Public Key Pinning (HPKP) header can\'t be implemented without HTTPS',
-        'modifier': 0,
-    },
-    'hpkp-invalid-cert': {
-        'description': (
-            'HTTP Public Key Pinning (HPKP) header cannot be set, ' 'as site contains an invalid certificate chain'
-        ),
-        'modifier': 0,
-    },
-    'hpkp-header-invalid': {
-        'description': 'HTTP Public Key Pinning (HPKP) header cannot be recognized',
-        'modifier': -5,
-    },
     # Redirection
     'redirection-all-redirects-preloaded': {
         'description': 'All hosts redirected to are in the HTTP Strict Transport Security (HSTS) preload list',
