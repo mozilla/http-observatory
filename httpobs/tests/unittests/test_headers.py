@@ -1182,7 +1182,7 @@ class TestStrictTransportSecurity(TestCase):
         self.assertTrue(result['pass'])
         self.assertTrue(result['preloaded'])
 
-        # dropboxusercontent.com is preloaded, but only for HPKP, not HSTS
+        # dropboxusercontent.com is not preloaded
         self.reqs['responses']['https'].url = 'https://dropboxusercontent.com/'
 
         result = strict_transport_security(self.reqs)
