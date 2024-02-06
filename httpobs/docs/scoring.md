@@ -27,15 +27,6 @@ Scoring Range | Grade
 
 ## Score Modifiers
 
-[Contribute.json](https://www.contributejson.org/) | Description | Modifier
---- | --- | :---:
-contribute-json-only-required-on-mozilla-properties | Contribute.json isn't required on websites that don't belong to Mozilla | 0
-contribute-json-with-required-keys | Contribute.json implemented with the required contact information | 0
-contribute-json-missing-required-keys | Contribute.json exists, but is missing some of the required keys | -5
-contribute-json-not-implemented | Contribute.json file missing from root of website | -5
-contribute-json-invalid-json | Contribute.json file cannot be parsed | -10
-<br>
-
 [Cookies](https://infosec.mozilla.org/guidelines/web_security#cookies) | Description | Modifier
 --- | --- | :---:
 cookies-secure-with-httponly-sessions-and-samesite | All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin restrictions are in place via the SameSite flag | 5

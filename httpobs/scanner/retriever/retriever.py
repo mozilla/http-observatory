@@ -142,7 +142,7 @@ def retrieve_all(hostname, **kwargs):
     }
 
     # The list of resources to get
-    resources = ('/clientaccesspolicy.xml', '/contribute.json', '/crossdomain.xml', '/robots.txt')
+    resources = ('/clientaccesspolicy.xml', '/crossdomain.xml', '/robots.txt')
 
     # Create some reusable sessions, one for HTTP and one for HTTPS
     http_session = __create_session('http://' + hostname + kwargs['http_port'] + kwargs['path'], **kwargs)

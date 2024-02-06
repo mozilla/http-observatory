@@ -27,7 +27,6 @@ class TestRetriever(TestCase):
 
         # Various things we know about developer.mozilla.org
         self.assertIsNotNone(reqs['resources']['__path__'])
-        self.assertIsNotNone(reqs['resources']['/contribute.json'])
         self.assertIsNotNone(reqs['resources']['/robots.txt'])
         self.assertIsNone(reqs['resources']['/clientaccesspolicy.xml'])
         self.assertIsNone(reqs['resources']['/crossdomain.xml'])
