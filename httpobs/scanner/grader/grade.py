@@ -34,27 +34,6 @@ MINIMUM_SCORE_FOR_EXTRA_CREDIT = 90
 GRADES = set(GRADE_CHART.values())
 
 SCORE_TABLE = {
-    # contribute.json
-    'contribute-json-with-required-keys': {
-        'description': 'Contribute.json implemented with the required contact information',
-        'modifier': 0,
-    },
-    'contribute-json-only-required-on-mozilla-properties': {
-        'description': 'Contribute.json isn\'t required on websites that don\'t belong to Mozilla',
-        'modifier': 0,
-    },
-    'contribute-json-missing-required-keys': {
-        'description': 'Contribute.json exists, but is missing some of the required keys',
-        'modifier': -5,
-    },
-    'contribute-json-not-implemented': {
-        'description': 'Contribute.json file missing from root of website',
-        'modifier': -5,
-    },
-    'contribute-json-invalid-json': {
-        'description': 'Contribute.json file cannot be parsed',
-        'modifier': -10,
-    },
     # CSP
     'csp-implemented-with-no-unsafe-default-src-none': {
         'description': 'Content Security Policy (CSP) implemented with default-src \'none\' and no \'unsafe\'',

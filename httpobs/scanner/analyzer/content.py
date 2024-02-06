@@ -4,7 +4,6 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup as bs
 from publicsuffixlist import PublicSuffixList
 
-from httpobs.conf import SCANNER_MOZILLA_DOMAINS
 from httpobs.scanner.analyzer.decorators import scored_test
 from httpobs.scanner.analyzer.utils import only_if_worse
 from httpobs.scanner.retriever.retriever import HTML_TYPES
@@ -12,80 +11,6 @@ from httpobs.scanner.retriever.retriever import HTML_TYPES
 # Compat between Python 3.4 and Python 3.5 (see: https://github.com/mozilla/http-observatory-website/issues/14)
 if not hasattr(json, 'JSONDecodeError'):  # pragma: no cover
     json.JSONDecodeError = ValueError
-
-
-@scored_test
-def contribute(reqs: dict, expectation='contribute-json-with-required-keys') -> dict:
-    """
-    :param reqs: dictionary containing all the request and response objects
-    :param expectation: test expectation
-        contribute-json-with-required-keys: contribute.json exists, with all the required_keys [default]
-        contribute-json-missing-required-keys: contribute.json exists, but missing some of the required_keys (A-)
-        contribute-json-only-required-on-mozilla-properties: contribute.json isn't required,
-          since it's not a Mozilla domain
-        contribute-json-not-implemented: contribute.json file missing (B+)
-    :return: dictionary with:
-        data: the parsed contribute.json file
-        expectation: test expectation
-        pass: whether the site's configuration met its expectation (null for non-Mozilla sites)
-        result: short string describing the result of the test
-    """
-    # TODO: allow a bonus if you have a contribute.json on a non-Mozilla website
-
-    output = {
-        'data': None,
-        'expectation': expectation,
-        'pass': False,
-        'result': None,
-    }
-
-    # The keys that are required to be in contribute.json
-    required_keys = ('name', 'description', 'participate', 'bugs', 'urls')
-
-    response = reqs['responses']['auto']
-
-    # This finds the SLD ('mozilla' out of 'mozilla.org') if it exists
-    if '.' in urlparse(response.url).netloc:
-        second_level_domain = urlparse(response.url).netloc.split('.')[-2]
-    else:
-        second_level_domain = ''
-
-    if second_level_domain not in SCANNER_MOZILLA_DOMAINS:
-        output['expectation'] = output['result'] = 'contribute-json-only-required-on-mozilla-properties'
-
-    # If there's a contribute.json file
-    elif reqs['resources']['/contribute.json']:
-        try:
-            contrib = json.loads(reqs['resources']['/contribute.json'])
-
-            if all(key in contrib for key in required_keys):
-                output['result'] = 'contribute-json-with-required-keys'
-            else:
-                output['result'] = 'contribute-json-missing-required-keys'
-        except (json.JSONDecodeError, TypeError):
-            contrib = {}
-            output['result'] = 'contribute-json-invalid-json'
-
-        # Store the contribute.json file
-        if any(key in contrib for key in required_keys):
-            contrib = {key: contrib.get(key) for key in required_keys if key in contrib}
-
-            # Store contribute.json in the database if it's under a certain size
-            if len(str(contrib)) < 32768:
-                output['data'] = contrib
-            else:
-                output['data'] = {}
-
-    else:
-        output['result'] = 'contribute-json-not-implemented'
-
-    # Check to see if the test passed or failed
-    if expectation == output['result']:
-        output['pass'] = True
-    elif output['result'] == 'contribute-json-only-required-on-mozilla-properties':
-        output['pass'] = True
-
-    return output
 
 
 @scored_test
