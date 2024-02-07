@@ -332,7 +332,7 @@ def select_scan_most_recent_scan(site_id: int) -> dict | None:
     with get_cursor() as cur:
         cur.execute(
             """SELECT * FROM scans
-                         WHERE site_id = %s
+                         WHERE site_id = %s AND end_time IS NOT NULL
                          ORDER BY start_time DESC
                          LIMIT 1""",
             (site_id,),
@@ -416,6 +416,18 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
                              WHERE id = %s
                              RETURNING *""",
                 (state, error, scan_id),
+            )
+
+            row = dict(cur.fetchone())
+
+    elif state == STATE_FAILED:
+        with get_cursor() as cur:
+            cur.execute(
+                """UPDATE scans
+                             SET (state, end_time) = (%s, NOW())
+                             WHERE id = %s
+                             RETURNING *""",
+                (state, scan_id),
             )
 
             row = dict(cur.fetchone())

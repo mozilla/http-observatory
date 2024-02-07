@@ -87,8 +87,6 @@ def api_post_scan_hostname():
 
         try:
             result = scanner.scan(hostname)
-            scan = result["scan"]
-            tests = result["tests"]
 
             if "error" in result:
                 scan = database.update_scan_state(scan_id, STATE_FAILED, error=result["error"])
@@ -98,6 +96,7 @@ def api_post_scan_hostname():
                     scan_id,
                     result,
                 )
+                tests = result["tests"]
         except:
             # If we are unsuccessful, close out the scan in the database
             scan = database.update_scan_state(scan_id, STATE_FAILED)
