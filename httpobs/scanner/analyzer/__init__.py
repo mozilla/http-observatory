@@ -1,4 +1,4 @@
-from .content import contribute, subresource_integrity
+from .content import subresource_integrity
 from .headers import (
     content_security_policy,
     cookies,
@@ -15,7 +15,6 @@ __all__ = ['NUM_TESTS', 'tests', 'TEST_NAMES']
 tests = (
     content_security_policy,
     cookies,
-    contribute,
     cross_origin_resource_sharing,
     redirection,
     referrer_policy,

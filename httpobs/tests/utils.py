@@ -17,7 +17,6 @@ def empty_requests(http_equiv_file=None) -> dict:
             '__path__': None,
             '/': None,
             '/clientaccesspolicy.xml': None,
-            '/contribute.json': None,
             '/crossdomain.xml': None,
             '/robots.txt': None,
         },
