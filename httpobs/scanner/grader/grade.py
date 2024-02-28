@@ -92,12 +92,12 @@ SCORE_TABLE = {
         ),
         'modifier': 5,
     },
-    'cookies-secure-with-httponly-sessions': {
-        'description': 'All cookies use the Secure flag and all session cookies use the HttpOnly flag',
-        'modifier': 0,
-    },
     'cookies-not-found': {
         'description': 'No cookies detected',
+        'modifier': 5,
+    },
+    'cookies-secure-with-httponly-sessions': {
+        'description': 'All cookies use the Secure flag and all session cookies use the HttpOnly flag',
         'modifier': 0,
     },
     'cookies-without-secure-flag-but-protected-by-hsts': {
@@ -254,7 +254,7 @@ SCORE_TABLE = {
     },
     'sri-not-implemented-but-no-scripts-loaded': {
         'description': 'Subresource Integrity (SRI) is not needed since site contains no script tags',
-        'modifier': 0,
+        'modifier': 5,
     },
     'sri-not-implemented-but-all-scripts-loaded-from-secure-origin': {
         'description': 'Subresource Integrity (SRI) not implemented, but all scripts are loaded from a similar origin',
