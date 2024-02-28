@@ -98,6 +98,10 @@ def subresource_integrity(reqs: dict, expectation='sri-implemented-and-external-
                         # Relative protocol (src="//host/path")
                         relativeorigin = False
                         relativeprotocol = True
+                elif src.scheme == 'data':
+                    # Data URI is essentially the same as inline script, treat is as local path for simplicity
+                    relativeorigin = True
+                    relativeprotocol = True
                 else:
                     relativeorigin = False
                     relativeprotocol = False
