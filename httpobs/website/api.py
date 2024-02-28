@@ -19,6 +19,12 @@ api = Blueprint('api', __name__)
 # TODO: Implement API to write public and private headers to the database
 
 
+@api.route('/')
+@add_response_headers()
+def main() -> str:
+    return 'Welcome to the HTTP Observatory!'
+
+
 @api.route('/api/v1/analyze', methods=['GET', 'OPTIONS', 'POST'])
 @add_response_headers(cors=True)
 @sanitized_api_response

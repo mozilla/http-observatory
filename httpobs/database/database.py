@@ -109,6 +109,7 @@ def insert_scan(site_id: int, hidden: bool = False) -> dict:
 def insert_test_results(site_id: int, scan_id: int, data: dict) -> dict:
     with get_cursor() as cur:
         for name, test in data["tests"].items():
+            test = test.copy()  # don't mutate argument
             expectation = test.pop('expectation')
             passed = test.pop('pass')
             result = test.pop('result')
@@ -327,6 +328,20 @@ def select_scan_recent_scan(site_id: int, recent_in_seconds=API_CACHED_RESULT_TI
     return {}
 
 
+def select_scan_most_recent_scan(site_id: int) -> dict | None:
+    with get_cursor() as cur:
+        cur.execute(
+            """SELECT * FROM scans
+                         WHERE site_id = %s AND end_time IS NOT NULL
+                         ORDER BY start_time DESC
+                         LIMIT 1""",
+            (site_id,),
+        )
+
+        if cur.rowcount > 0:
+            return dict(cur.fetchone())
+
+
 def select_site_headers(hostname: str) -> dict:
     # Return the site's headers
     with get_cursor() as cur:
@@ -351,7 +366,7 @@ def select_site_headers(hostname: str) -> dict:
             return {}
 
 
-def select_site_id(hostname: str) -> int:
+def select_site_id(hostname: str, create=True) -> int | None:
     # See if the site exists already
     with get_cursor() as cur:
         cur.execute(
@@ -366,15 +381,16 @@ def select_site_id(hostname: str) -> int:
             return cur.fetchone()['id']
 
     # If not, let's create the site
-    with get_cursor() as cur:
-        cur.execute(
-            """INSERT INTO sites (domain, creation_time)
-                         VALUES (%s, NOW())
-                         RETURNING id""",
-            (hostname,),
-        )
+    if create:
+        with get_cursor() as cur:
+            cur.execute(
+                """INSERT INTO sites (domain, creation_time)
+                            VALUES (%s, NOW())
+                            RETURNING id""",
+                (hostname,),
+            )
 
-        return cur.fetchone()['id']
+            return cur.fetchone()['id']
 
 
 def select_test_results(scan_id: int) -> dict:
@@ -400,6 +416,18 @@ def update_scan_state(scan_id, state: str, error=None) -> dict:
                              WHERE id = %s
                              RETURNING *""",
                 (state, error, scan_id),
+            )
+
+            row = dict(cur.fetchone())
+
+    elif state == STATE_FAILED:
+        with get_cursor() as cur:
+            cur.execute(
+                """UPDATE scans
+                             SET (state, end_time) = (%s, NOW())
+                             WHERE id = %s
+                             RETURNING *""",
+                (state, scan_id),
             )
 
             row = dict(cur.fetchone())
