@@ -14,13 +14,18 @@ httpobs-regen-hsts-preload = "httpobs.scanner.utils:retrieve_store_hsts_preload_
 [tool.poetry.dependencies]
 python = "^3.11"
 beautifulsoup4 = "^4.12.2"
-flake8 = "^6.1.0"
-pep8 = "^1.7.1"
-psycopg2 = "^2.9.9"
+psycopg2 = { version = "^2.9.9", optional = true }
 publicsuffixlist = "^0.10.0.20231002"
 requests = "^2.31.0"
-Flask = "^3.0.0"
-uWSGI = "^2.0.22"
+Flask = { version = "^3.0.0", optional = true }
+uWSGI = { version = "^2.0.22", optional = true }
+
+[tool.poetry.extras]
+website = ["psycopg2", "Flask", "uWSGI"]
+
+[tool.poetry.group.dev.dependencies]
+pep8 = "^1.7.1"
+flake8 = "^6.1.0"
 pre-commit = "^3.6.0"
 black = "^23.12.1"
 isort = "^5.13.2"
