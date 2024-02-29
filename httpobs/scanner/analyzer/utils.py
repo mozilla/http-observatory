@@ -9,25 +9,6 @@ with open(__filename, 'r') as f:
     hsts = json.load(f)
 
 
-def is_hpkp_preloaded(hostname):
-    # Just see if the hostname is in the HSTS list and pinned
-    if hsts.get(hostname, {}).get('pinned'):
-        return hsts[hostname]
-
-    # Either the hostname is in the list *or* one of its subdomains is
-    host = hostname.split('.')
-    levels = len(host)
-
-    # If hostname is foo.bar.baz.mozilla.org, check bar.baz.mozilla.org, baz.mozilla.org, mozilla.org, and .org
-    for i in range(1, levels):
-        domain = '.'.join(host[i:levels])
-
-        if hsts.get(domain, {}).get('pinned') is True and hsts.get(domain, {}).get('includeSubDomainsForPinning'):
-            return hsts[domain]
-
-    return False
-
-
 def is_hsts_preloaded(hostname):
     # Just see if the hostname is the HSTS list with the right mode -- no need to check includeSubDomains
     if hsts.get(hostname, {}).get('mode') == 'force-https':

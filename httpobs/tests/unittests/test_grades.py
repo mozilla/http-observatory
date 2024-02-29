@@ -6,9 +6,9 @@ from httpobs.scanner.grader import get_score_description, get_score_modifier
 class TestGrader(TestCase):
     def test_get_score_description(self):
         self.assertEquals(
-            'Preloaded via the HTTP Public Key Pinning (HPKP) preloading process',
-            get_score_description('hpkp-preloaded'),
+            'Content Security Policy (CSP) header not implemented',
+            get_score_description('csp-not-implemented'),
         )
 
     def test_get_score_modifier(self):
-        self.assertEquals(0, get_score_modifier('hpkp-preloaded'))
+        self.assertEquals(-25, get_score_modifier('csp-not-implemented'))

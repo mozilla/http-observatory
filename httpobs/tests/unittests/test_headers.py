@@ -4,7 +4,6 @@ from unittest import TestCase
 from httpobs.scanner.analyzer.headers import (
     content_security_policy,
     cookies,
-    public_key_pinning,
     referrer_policy,
     strict_transport_security,
     x_content_type_options,
@@ -987,141 +986,6 @@ class TestCookies(TestCase):
         self.assertFalse(result['sameSite'])
 
 
-class TestPublicKeyPinning(TestCase):
-    def setUp(self):
-        self.reqs = empty_requests()
-
-    def tearDown(self):
-        self.reqs = None
-
-    def test_missing(self):
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-not-implemented', result['result'])
-        self.assertTrue(result['pass'])
-
-    def test_header_invalid(self):
-        # No pins
-        self.reqs['responses']['https'].headers['Public-Key-Pins'] = 'max-age=15768000; includeSubDomains; preload'
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-header-invalid', result['result'])
-        self.assertEquals(0, result['numPins'])
-        self.assertFalse(result['pass'])
-
-        # No max-age
-        self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
-            'pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="; '
-            'pin-sha256="LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="; '
-            'report-uri="http://example.com/pkp-report"'
-        )
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-header-invalid', result['result'])
-        self.assertEquals(None, result['max-age'])
-        self.assertEquals(2, result['numPins'])
-        self.assertFalse(result['pass'])
-
-        # Not enough pins
-        self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
-            'max-age=15768000; '
-            'pin-sha256="LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="; '
-            'report-uri="http://example.com/pkp-report"'
-        )
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-header-invalid', result['result'])
-        self.assertEquals(15768000, result['max-age'])
-        self.assertEquals(1, result['numPins'])
-        self.assertFalse(result['pass'])
-
-    def test_no_https(self):
-        self.reqs['responses']['auto'].headers['Public-Key-Pins'] = 'max-age=15768000'
-        self.reqs['responses']['http'].headers['Public-Key-Pins'] = 'max-age=15768000'
-        self.reqs['responses']['https'] = None
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-not-implemented-no-https', result['result'])
-        self.assertTrue(result['pass'])
-
-    def test_invalid_cert(self):
-        self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
-            'max-age=15768000; '
-            'includeSubDomains; '
-            'pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="; '
-            'pin-sha256="LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="; '
-            'report-uri="http://example.com/pkp-report"'
-        )
-        self.reqs['responses']['https'].verified = False
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-invalid-cert', result['result'])
-        self.assertTrue(result['pass'])
-
-    def test_max_age_too_low(self):
-        self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
-            'max-age=86400; '
-            'pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="; '
-            'pin-sha256="LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="; '
-            'report-uri="http://example.com/pkp-report"'
-        )
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-implemented-max-age-less-than-fifteen-days', result['result'])
-        self.assertTrue(result['pass'])
-
-    def test_implemented(self):
-        self.reqs['responses']['https'].headers['Public-Key-Pins'] = (
-            'max-age=15768000; '
-            'includeSubDomains; '
-            'pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="; '
-            'pin-sha256="LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="; '
-            'report-uri="http://example.com/pkp-report"'
-        )
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-implemented-max-age-at-least-fifteen-days', result['result'])
-        self.assertEquals(15768000, result['max-age'])
-        self.assertEquals(15768000, result['max-age'])
-        self.assertTrue(result['includeSubDomains'])
-        self.assertTrue(result['pass'])
-
-    def test_preloaded(self):
-        # apis.google.com has regular includeSubDomains
-        self.reqs['responses']['https'].url = 'https://apis.google.com/'
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-preloaded', result['result'])
-        self.assertTrue(result['includeSubDomains'])
-        self.assertTrue(result['pass'])
-        self.assertTrue(result['preloaded'])
-        self.reqs['responses']['https'].url = 'https://foo.apis.google.com'
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-preloaded', result['result'])
-        self.assertTrue(result['includeSubDomains'])
-        self.assertTrue(result['pass'])
-        self.assertTrue(result['preloaded'])
-
-        # Dropbox Static uses include_subdomains_for_pinning
-        self.reqs['responses']['https'].url = 'https://foo.dropboxstatic.com/'
-
-        result = public_key_pinning(self.reqs)
-
-        self.assertEquals('hpkp-preloaded', result['result'])
-        self.assertTrue(result['includeSubDomains'])
-        self.assertTrue(result['pass'])
-        self.assertTrue(result['preloaded'])
-
-
 class TestReferrerPolicy(TestCase):
     def setUp(self):
         self.reqs = empty_requests()
@@ -1318,7 +1182,7 @@ class TestStrictTransportSecurity(TestCase):
         self.assertTrue(result['pass'])
         self.assertTrue(result['preloaded'])
 
-        # dropboxusercontent.com is preloaded, but only for HPKP, not HSTS
+        # dropboxusercontent.com is not preloaded
         self.reqs['responses']['https'].url = 'https://dropboxusercontent.com/'
 
         result = strict_transport_security(self.reqs)
@@ -1429,7 +1293,7 @@ class TestXXSSProtection(TestCase):
         result = x_xss_protection(self.reqs)
 
         self.assertEquals('x-xss-protection-not-implemented', result['result'])
-        self.assertFalse(result['pass'])
+        self.assertTrue(result['pass'])
 
     def test_header_invalid(self):
         for value in ('whimsy', '2; mode=block', '1; mode=block; mode=block', '1; mode=block, 1; mode=block'):
@@ -1446,7 +1310,7 @@ class TestXXSSProtection(TestCase):
         result = x_xss_protection(self.reqs)
 
         self.assertEquals('x-xss-protection-disabled', result['result'])
-        self.assertFalse(result['pass'])
+        self.assertTrue(result['pass'])
 
     def test_enabled_noblock(self):
         for value in ('1', '1 '):
@@ -1463,13 +1327,4 @@ class TestXXSSProtection(TestCase):
         result = x_xss_protection(self.reqs)
 
         self.assertEquals('x-xss-protection-enabled-mode-block', result['result'])
-        self.assertTrue(result['pass'])
-
-    def test_enabled_via_csp(self):
-        reqs = empty_requests()
-        set_header(reqs['responses']['auto'], 'Content-Security-Policy', "object-src 'none'; script-src 'none'")
-
-        result = x_xss_protection(reqs)
-
-        self.assertEquals('x-xss-protection-not-needed-due-to-csp', result['result'])
         self.assertTrue(result['pass'])

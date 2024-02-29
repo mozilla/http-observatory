@@ -34,27 +34,6 @@ MINIMUM_SCORE_FOR_EXTRA_CREDIT = 90
 GRADES = set(GRADE_CHART.values())
 
 SCORE_TABLE = {
-    # contribute.json
-    'contribute-json-with-required-keys': {
-        'description': 'Contribute.json implemented with the required contact information',
-        'modifier': 0,
-    },
-    'contribute-json-only-required-on-mozilla-properties': {
-        'description': 'Contribute.json isn\'t required on websites that don\'t belong to Mozilla',
-        'modifier': 0,
-    },
-    'contribute-json-missing-required-keys': {
-        'description': 'Contribute.json exists, but is missing some of the required keys',
-        'modifier': -5,
-    },
-    'contribute-json-not-implemented': {
-        'description': 'Contribute.json file missing from root of website',
-        'modifier': -5,
-    },
-    'contribute-json-invalid-json': {
-        'description': 'Contribute.json file cannot be parsed',
-        'modifier': -10,
-    },
     # CSP
     'csp-implemented-with-no-unsafe-default-src-none': {
         'description': 'Content Security Policy (CSP) implemented with default-src \'none\' and no \'unsafe\'',
@@ -170,37 +149,6 @@ SCORE_TABLE = {
     'cross-origin-resource-sharing-implemented-with-universal-access': {
         'description': 'Content is visible via cross-origin resource sharing (CORS) file or headers',
         'modifier': -50,
-    },
-    # Public Key Pinning
-    'hpkp-preloaded': {
-        'description': 'Preloaded via the HTTP Public Key Pinning (HPKP) preloading process',
-        'modifier': 0,
-    },
-    'hpkp-implemented-max-age-at-least-fifteen-days': {
-        'description': 'HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000)',
-        'modifier': 0,
-    },
-    'hpkp-implemented-max-age-less-than-fifteen-days': {
-        'description': 'HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000)',
-        'modifier': 0,
-    },
-    'hpkp-not-implemented': {
-        'description': 'HTTP Public Key Pinning (HPKP) header not implemented',
-        'modifier': 0,
-    },
-    'hpkp-not-implemented-no-https': {
-        'description': 'HTTP Public Key Pinning (HPKP) header can\'t be implemented without HTTPS',
-        'modifier': 0,
-    },
-    'hpkp-invalid-cert': {
-        'description': (
-            'HTTP Public Key Pinning (HPKP) header cannot be set, ' 'as site contains an invalid certificate chain'
-        ),
-        'modifier': 0,
-    },
-    'hpkp-header-invalid': {
-        'description': 'HTTP Public Key Pinning (HPKP) header cannot be recognized',
-        'modifier': -5,
     },
     # Redirection
     'redirection-all-redirects-preloaded': {
@@ -366,28 +314,24 @@ SCORE_TABLE = {
     },
     # X-XSS-Protection
     'x-xss-protection-enabled-mode-block': {
-        'description': 'X-XSS-Protection header set to "1; mode=block"',
+        'description': 'Deprecated X-XSS-Protection header set to "1; mode=block"',
         'modifier': 0,
     },
     'x-xss-protection-enabled': {
-        'description': 'X-XSS-Protection header set to "1"',
-        'modifier': 0,
-    },
-    'x-xss-protection-not-needed-due-to-csp': {
-        'description': 'X-XSS-Protection header not needed due to strong Content Security Policy (CSP) header',
+        'description': 'Deprecated X-XSS-Protection header set to "1"',
         'modifier': 0,
     },
     'x-xss-protection-disabled': {
-        'description': 'X-XSS-Protection header set to "0" (disabled)',
-        'modifier': -10,
+        'description': 'Deprecated X-XSS-Protection header set to "0" (disabled)',
+        'modifier': 0,
     },
     'x-xss-protection-not-implemented': {
-        'description': 'X-XSS-Protection header not implemented',
-        'modifier': -10,
+        'description': 'Deprecated X-XSS-Protection header not implemented',
+        'modifier': 0,
     },
     'x-xss-protection-header-invalid': {
-        'description': 'X-XSS-Protection header cannot be recognized',
-        'modifier': -10,
+        'description': 'Deprecated X-XSS-Protection header cannot be recognized',
+        'modifier': -5,
     },
     # Generic results
     'html-not-parsable': {
@@ -424,7 +368,7 @@ def get_grade_and_likelihood_for_score(score: int) -> tuple:
 
 
 def get_score_description(result) -> str:
-    return SCORE_TABLE[result]['description']
+    return SCORE_TABLE.get(result, {'description': ''})['description']
 
 
 def get_score_modifier(result) -> int:

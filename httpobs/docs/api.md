@@ -321,43 +321,6 @@ Example:
     "score_description": "Content Security Policy (CSP) implemented with unsafe-inline inside style-src directive",
     "score_modifier": -5
   },
-  "contribute": {
-    "expectation": "contribute-json-with-required-keys",
-    "name": "contribute",
-    "output": {
-      "data": {
-        "bugs": {
-          "list": "https://github.com/mozilla/addons-server/issues",
-          "report": "https://github.com/mozilla/addons-server/issues/new"
-        },
-        "description": "Mozilla's official site for add-ons to Mozilla software, such as Firefox, Thunderbird, and SeaMonkey.",
-        "name": "Olympia",
-        "participate": {
-          "docs": "http://addons-server.readthedocs.org/",
-          "home": "https://wiki.mozilla.org/Add-ons/Contribute/AMO/Code",
-          "irc": "irc://irc.mozilla.org/#amo",
-          "irc-contacts": [
-            "andym",
-            "cgrebs",
-            "kumar",
-            "magopian",
-            "mstriemer",
-            "muffinresearch",
-            "tofumatt"
-          ]
-        },
-        "urls": {
-          "dev": "https://addons-dev.allizom.org/",
-          "prod": "https://addons.mozilla.org/",
-          "stage": "https://addons.allizom.org/"
-        }
-      }
-    },
-    "pass": true,
-    "result": "contribute-json-with-required-keys",
-    "score_description": "Contribute.json implemented with the required contact information",
-    "score_modifier": 0
-  },
   "cookies": {
     "expectation": "cookies-secure-with-httponly-sessions",
     "name": "cookies",
@@ -392,21 +355,6 @@ Example:
     "pass": true,
     "result": "cross-origin-resource-sharing-not-implemented",
     "score_description": "Content is not visible via cross-origin resource sharing (CORS) files or headers",
-    "score_modifier": 0
-  },
-  "public-key-pinning": {
-    "expectation": "hpkp-not-implemented",
-    "name": "public-key-pinning",
-    "output": {
-      "data": null,
-      "includeSubDomains": false,
-      "max-age": null,
-      "numPins": null,
-      "preloaded": false
-    },
-    "pass": true,
-    "result": "hpkp-not-implemented",
-    "score_description": "HTTP Public Key Pinning (HPKP) header not implemented",
     "score_modifier": 0
   },
   "redirection": {
@@ -485,7 +433,7 @@ Example:
     "score_modifier": 0
   },
   "x-xss-protection": {
-    "expectation": "x-xss-protection-1-mode-block",
+    "expectation": "x-xss-protection-disabled",
     "name": "x-xss-protection",
     "output": {
       "data": "1; mode=block"

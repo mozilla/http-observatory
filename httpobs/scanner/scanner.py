@@ -8,7 +8,7 @@ from httpobs.scanner.retriever import retrieve_all
 from httpobs.scanner.utils import sanitize_headers
 
 # Current algorithm version
-ALGORITHM_VERSION = 2
+ALGORITHM_VERSION = 3
 
 
 def scan(hostname: str, **kwargs):
@@ -24,7 +24,7 @@ def scan(hostname: str, **kwargs):
         path (str): path to scan, instead of "/"
         verify (bool): whether to enable or disable certificate verification,
             enabled by default. This can allow tested sites to pass the HSTS
-            and HPKP tests, even with self-signed certificates.
+            tests, even with self-signed certificates.
 
         cookies (dict): Cookies sent to the system being scanned. Matches the
             requests cookie dict.

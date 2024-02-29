@@ -1,6 +1,6 @@
 # HTTP Observatory Scoring Methodology
 
-**Last Updated:** 2018-01-18 april@mozilla.com<br>
+**Last Updated:** 2024-02-27 leo@mozilla.com
 **Author:** april@mozilla.com
 
 All websites start with a baseline score of 100, and receive penalties or bonuses from there. The minimum score is 0, but there is no maximum score. Bonus points are only awarded if the site's score without them is 90 (A) or greater. Currently, the highest possible score in the HTTP Observatory is 135.
@@ -26,15 +26,6 @@ Scoring Range | Grade
 0-24 | &nbsp;F&nbsp;
 
 ## Score Modifiers
-
-[Contribute.json](https://www.contributejson.org/) | Description | Modifier
---- | --- | :---:
-contribute-json-only-required-on-mozilla-properties | Contribute.json isn't required on websites that don't belong to Mozilla | 0
-contribute-json-with-required-keys | Contribute.json implemented with the required contact information | 0
-contribute-json-missing-required-keys | Contribute.json exists, but is missing some of the required keys | -5
-contribute-json-not-implemented | Contribute.json file missing from root of website | -5
-contribute-json-invalid-json | Contribute.json file cannot be parsed | -10
-<br>
 
 [Cookies](https://infosec.mozilla.org/guidelines/web_security#cookies) | Description | Modifier
 --- | --- | :---:
@@ -70,17 +61,6 @@ csp-implemented-with-insecure-scheme | Content Security Policy (CSP) implemented
 csp-implemented-with-unsafe-inline | Content Security Policy (CSP) implemented unsafely. This includes `\'unsafe-inline\'` or `data:` inside script-src, overly broad sources such as `https:` inside `object-src` or `script-src`, or not restricting the sources for `object-src` or `script-src`. | -20
 csp-not-implemented | Content Security Policy (CSP) header not implemented | -25
 csp-header-invalid | Content Security Policy (CSP) header cannot be parsed successfully | -25
-<br>
-
-[HTTP Public Key Pinning](https://infosec.mozilla.org/guidelines/web_security#http-public-key-pinning) | Description | Modifier
---- | --- | :---:
-hpkp-preloaded | Preloaded via the HTTP Public Key Pinning (HPKP) preloading process | 0
-hpkp-implemented-<br>max-age-at-least-fifteen-days | HTTP Public Key Pinning (HPKP) header set to a minimum of 15 days (1296000) | 0
-hpkp-implemented-<br>max-age-less-than-fifteen-days | HTTP Public Key Pinning (HPKP) header set to less than 15 days (1296000) | 0
-hpkp-not-implemented | HTTP Public Key Pinning (HPKP) header not implemented | 0
-hpkp-invalid-cert | HTTP Public Key Pinning (HPKP) header cannot be set, as site contains an invalid certificate chain | 0
-hpkp-not-implemented-no-https | HTTP Public Key Pinning (HPKP) header can't be implemented without https | 0
-hpkp-header-invalid | HTTP Public Key Pinning (HPKP) header cannot be recognized | -5
 <br>
 
 [HTTP Strict Transport Security](https://infosec.mozilla.org/guidelines/web_security#http-strict-transport-security) | Description | Modifier
@@ -147,9 +127,8 @@ x-frame-options-header-invalid | `X-Frame-Options` (XFO) header cannot be recogn
 
 [X-XSS-Protection](https://infosec.mozilla.org/guidelines/web_security#x-xss-protection) | Description | Modifier
 --- | --- | :---:
-x-xss-protection-not-needed-due-to-csp | `X-XSS-Protection` header not needed due to strong Content Security Policy (CSP) header | 0
 x-xss-protection-enabled-mode-block | `X-XSS-Protection` header set to `1; mode=block` | 0
 x-xss-protection-enabled | `X-XSS-Protection` header set to `1` | 0
-x-xss-protection-disabled | `X-XSS-Protection` header set to `0` (disabled) | -10
-x-xss-protection-not-implemented | `X-XSS-Protection` header not implemented | -10
-x-xss-protection-header-invalid | `X-XSS-Protection` header cannot be recognized | -10
+x-xss-protection-disabled | `X-XSS-Protection` header set to `0` (disabled) | 0
+x-xss-protection-not-implemented | `X-XSS-Protection` header not implemented | 0
+x-xss-protection-header-invalid | `X-XSS-Protection` header cannot be recognized | -5

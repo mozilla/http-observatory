@@ -186,7 +186,7 @@ def api_get_recent_scans():
 @api.route('/api/v1/getScannerStates', methods=['GET', 'OPTIONS'])
 @add_response_headers(cors=True)
 def api_get_scanner_states():
-    stats = database.select_scan_scanner_statistics(verbose=True)
+    stats = database.select_scan_scanner_statistics(verbose=False)
 
     return jsonify({state: stats['states'].get(state, 0) for state in STATES})
 
@@ -195,7 +195,7 @@ def api_get_scanner_states():
 @add_response_headers(cors=True)
 def api_get_scanner_stats():
     pretty = True if request.args.get('pretty', '').lower() == 'true' else False
-    verbose = True if request.args.get('verbose', '').lower() == 'true' else False
+    verbose = False
 
     # Disallow verbose stat requests from the public if this setting is set
     if verbose and not API_ALLOW_VERBOSE_STATS_FROM_PUBLIC:
