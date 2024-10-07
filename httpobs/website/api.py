@@ -10,7 +10,12 @@ from httpobs import STATE_FAILED, STATE_RUNNING, STATES
 from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN, DEVELOPMENT_MODE
 from httpobs.scanner import scan
 from httpobs.scanner.grader import GRADES, get_score_description
-from httpobs.website import add_response_headers, sanitized_api_response, add_sunset_headers, check_for_deprecation_override_header
+from httpobs.website import (
+    add_response_headers,
+    add_sunset_headers,
+    check_for_deprecation_override_header,
+    sanitized_api_response,
+)
 from httpobs.website.utils import valid_hostname
 
 api = Blueprint('api', __name__)
