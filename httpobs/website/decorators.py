@@ -20,13 +20,13 @@ def add_sunset_headers():
 
 def check_for_deprecation_override_header(fn):
     """
-    Checks for the "Deprecation-Override" header and sets the response accordingly:
+    Checks for the "X-Deprecation-Override" header and sets the response accordingly:
     - If the header is set to "yes", it will return the response as normal
     - If the header is set to anything else, it will return a 410 Gone response
     """
     @wraps(fn)
     def wrapper(*args, **kwargs):
-        if request.headers.get('Deprecation-Override', 'no').lower() == 'yes':
+        if request.headers.get('X-Deprecation-Override', 'no').lower() == 'yes':
             return fn(*args, **kwargs)
         else:
             return make_response("""
@@ -38,7 +38,7 @@ https://github.com/mdn/mdn-http-observatory/blob/main/README.md#post-apiv2scan.
 If you really want to continue with this endpoint for now, 
 please add a header to your request in the form of 
                                 
-Deprecation-Override: yes
+X-Deprecation-Override: yes
 
 Be aware that this API will go away without further warning on Oct 31, 2024.
     """, 410)
