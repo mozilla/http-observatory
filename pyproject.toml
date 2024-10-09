@@ -22,7 +22,7 @@ requests = "^2.31.0"
 Flask = "^3.0.0"
 uWSGI = "^2.0.22"
 pre-commit = "^3.6.0"
-black = "^23.12.1"
+black = "^24.3.0"
 isort = "^5.13.2"
 
 [tool.poetry.group.test.dependencies]
