@@ -3,6 +3,55 @@ from functools import wraps
 from flask import jsonify, make_response, request
 
 
+def add_sunset_headers():
+    """
+    Adds a "Sunset" header to the response
+    """
+
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            resp = make_response(fn(*args, **kwargs))
+            resp.headers['Sunset'] = 'Thu, 31 Oct 2024 23:59:59 GMT'
+            return resp
+
+        return wrapper
+
+    return decorator
+
+
+def check_for_deprecation_override_header(fn):
+    """
+    Checks for the "X-Deprecation-Override" header and sets the response accordingly:
+    - If the header is set to "yes", it will return the response as normal
+    - If the header is set to anything else, it will return a 410 Gone response
+    """
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if request.headers.get('X-Deprecation-Override', 'no').lower() == 'yes':
+            return fn(*args, **kwargs)
+        else:
+            return make_response(
+                """
+This API has been deprecated and is no longer available.
+Please use https://observatory-api.mdn.mozilla.net/.
+For details about the new endpint, see
+https://github.com/mdn/mdn-http-observatory/blob/main/README.md#post-apiv2scan.
+
+If you really want to continue with this endpoint for now,
+please add a header to your request in the form of
+
+X-Deprecation-Override: yes
+
+Be aware that this API will go away without further warning on Oct 31, 2024.
+    """,
+                410,
+            )
+
+    return wrapper
+
+
 def add_response_headers(headers=None, default_headers=None, cors=False):
     """
     Adds a bunch of headers to the Flask responses
