@@ -13,7 +13,6 @@ from httpobs.scanner.grader import GRADES, get_score_description
 from httpobs.website import (
     add_response_headers,
     add_sunset_headers,
-    check_for_deprecation_override_header,
     sanitized_api_response,
 )
 from httpobs.website.utils import valid_hostname
