@@ -92,7 +92,6 @@ def add_response_headers(headers=None, default_headers=None, cors=False):
                         'Access-Control-Allow-Methods': ', '.join(request.url_rule.methods),
                         'Access-Control-Max-Age': '86400',
                         'Access-Control-Allow-Headers': 'X-Deprecation-Override'
-
                     }
                 )
 
