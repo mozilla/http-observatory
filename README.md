@@ -6,8 +6,8 @@ This code repository is now deprecated There is a [Node/Javascript based rewrite
 
 ### 🛠️ What This Means
 
-* No Further Updates: We will no longer be providing updates, bug fixes, or new features for this repository. 
-* Limited Support: Official support will be discontinued. 
+* No Further Updates: We will no longer be providing updates, bug fixes, or new features for this repository.
+* Limited Support: Official support will be discontinued.
 * Archival: The repository will be archived soon, making it read-only.
 
 🔍 Alternatives and Recommendations
@@ -39,6 +39,7 @@ Sites can be scanned using:
 ## Development
 
 ### Prerequisites
+
 * Python 3.11
 * Git
 * pip
@@ -69,10 +70,11 @@ $ httpobs-server
 ### Running tests
 
 ```bash
-$ nosetests httpobs/tests --with-coverage --cover-package=httpobs
+nosetests httpobs/tests --with-coverage --cover-package=httpobs
 ```
 
 ## Running a scan from the local codebase, without DB, for continuous integration
+
 ```bash
 # Install the HTTP Observatory
 $ git clone https://github.com/mozilla/http-observatory.git
@@ -82,6 +84,7 @@ $ poetry install
 ```
 
 ### Using the scanner function calls
+
 ```python
 >>> from httpobs.scanner import scan
 >>> scan('observatory.mozilla.org')  # a scan with default options
@@ -95,6 +98,7 @@ $ poetry install
 ```
 
 ### The same, but with the local CLI
+
 ```bash
 $ poetry shell
 $ httpobs-local-scan --http-port 8080 --https-port 8443 --path '/foo/bar' \
