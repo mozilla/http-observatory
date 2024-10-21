@@ -1,3 +1,25 @@
+> [!IMPORTANT]
+>
+> ## ⚠️ Deprecation Announcement for Mozilla HTTP Observatory
+>
+> Dear Mozilla Observatory Users,
+>
+> This code repository is now deprecated. There is a [Node/Javascript based replacement available](https://github.com/mdn/mdn-http-observatory/), that has updated scoring and backs the [HTTP Observatory service on MDN](https://developer.mozilla.org/en-US/observatory).
+>
+> ### 🛠️ What This Means
+>
+> * No Further Updates: We will no longer be providing updates, bug fixes, or new features for this repository.
+> * Limited Support: Official support will be discontinued.
+> * Archival: The repository will be archived soon, making it read-only.
+>
+> 🔍 Alternatives and Recommendations
+>
+> We recommend transitioning to [HTTP Observatory](https://github.com/mdn/mdn-http-observatory/), maintained by [MDN](https://developer.mozilla.org).
+>
+> 📦 Migration Guide
+>
+> To assist you in transitioning, we have prepared a [Migration Guide](https://github.com/mdn/mdn-http-observatory/blob/main/README.md#migrating-from-the-public-v1-api-to-the-v2-api) that covers steps to migrate your existing setup to the alternative.
+
 # Mozilla HTTP Observatory
 
 The Mozilla HTTP Observatory is a set of tools to analyze your website and inform you if you are utilizing the many available methods to secure it.
@@ -19,6 +41,7 @@ Sites can be scanned using:
 ## Development
 
 ### Prerequisites
+
 * Python 3.11
 * Git
 * pip
@@ -49,10 +72,11 @@ $ httpobs-server
 ### Running tests
 
 ```bash
-$ nosetests httpobs/tests --with-coverage --cover-package=httpobs
+nosetests httpobs/tests --with-coverage --cover-package=httpobs
 ```
 
 ## Running a scan from the local codebase, without DB, for continuous integration
+
 ```bash
 # Install the HTTP Observatory
 $ git clone https://github.com/mozilla/http-observatory.git
@@ -62,6 +86,7 @@ $ poetry install
 ```
 
 ### Using the scanner function calls
+
 ```python
 >>> from httpobs.scanner import scan
 >>> scan('observatory.mozilla.org')  # a scan with default options
@@ -75,6 +100,7 @@ $ poetry install
 ```
 
 ### The same, but with the local CLI
+
 ```bash
 $ poetry shell
 $ httpobs-local-scan --http-port 8080 --https-port 8443 --path '/foo/bar' \
