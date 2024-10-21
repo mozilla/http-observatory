@@ -1,22 +1,24 @@
-## ⚠️ Deprecation Announcement for Mozilla HTTP Observatory
-
-Dear Mozilla Observatory Users,
-
-This code repository is now deprecated. There is a [Node/Javascript based replacement available](https://github.com/mdn/mdn-http-observatory/), that has updated scoring and backs the [HTTP Observatory service on MDN](https://developer.mozilla.org/en-US/observatory).
-
-### 🛠️ What This Means
-
-* No Further Updates: We will no longer be providing updates, bug fixes, or new features for this repository.
-* Limited Support: Official support will be discontinued.
-* Archival: The repository will be archived soon, making it read-only.
-
-🔍 Alternatives and Recommendations
-
-We recommend transitioning to [HTTP Observatory](https://github.com/mdn/mdn-http-observatory/), maintained by [MDN](https://developer.mozilla.org).
-
-📦 Migration Guide
-
-To assist you in transitioning, we have prepared a [Migration Guide](https://github.com/mdn/mdn-http-observatory/blob/main/README.md#migrating-from-the-public-v1-api-to-the-v2-api) that covers steps to migrate your existing setup to the alternative.
+> [!IMPORTANT]
+>
+> ## ⚠️ Deprecation Announcement for Mozilla HTTP Observatory
+>
+> Dear Mozilla Observatory Users,
+>
+> This code repository is now deprecated. There is a [Node/Javascript based replacement available](https://github.com/mdn/mdn-http-observatory/), that has updated scoring and backs the [HTTP Observatory service on MDN](https://developer.mozilla.org/en-US/observatory).
+>
+> ### 🛠️ What This Means
+>
+> * No Further Updates: We will no longer be providing updates, bug fixes, or new features for this repository.
+> * Limited Support: Official support will be discontinued.
+> * Archival: The repository will be archived soon, making it read-only.
+>
+> 🔍 Alternatives and Recommendations
+>
+> We recommend transitioning to [HTTP Observatory](https://github.com/mdn/mdn-http-observatory/), maintained by [MDN](https://developer.mozilla.org).
+>
+> 📦 Migration Guide
+>
+> To assist you in transitioning, we have prepared a [Migration Guide](https://github.com/mdn/mdn-http-observatory/blob/main/README.md#migrating-from-the-public-v1-api-to-the-v2-api) that covers steps to migrate your existing setup to the alternative.
 
 # Mozilla HTTP Observatory
 
