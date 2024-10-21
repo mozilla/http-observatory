@@ -2,7 +2,7 @@
 
 Dear Mozilla Observatory Users,
 
-This code repository is now deprecated There is a [Node/Javascript based rewrite available](https://github.com/mdn/mdn-http-observatory/), that has updated scoring and backs the [public HTTP Observatory service on MDN](https://developer.mozilla.org/en-US/observatory).
+This code repository is now deprecated. There is a [Node/Javascript based replacement available](https://github.com/mdn/mdn-http-observatory/), that has updated scoring and backs the [HTTP Observatory service on MDN](https://developer.mozilla.org/en-US/observatory).
 
 ### 🛠️ What This Means
 
