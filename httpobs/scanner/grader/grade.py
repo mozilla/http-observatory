@@ -92,12 +92,12 @@ SCORE_TABLE = {
         ),
         'modifier': 5,
     },
-    'cookies-secure-with-httponly-sessions': {
-        'description': 'All cookies use the Secure flag and all session cookies use the HttpOnly flag',
-        'modifier': 0,
-    },
     'cookies-not-found': {
         'description': 'No cookies detected',
+        'modifier': 5,
+    },
+    'cookies-secure-with-httponly-sessions': {
+        'description': 'All cookies use the Secure flag and all session cookies use the HttpOnly flag',
         'modifier': 0,
     },
     'cookies-without-secure-flag-but-protected-by-hsts': {
