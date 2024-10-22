@@ -10,7 +10,12 @@ from httpobs import STATE_FAILED, STATE_RUNNING, STATES
 from httpobs.conf import API_ALLOW_VERBOSE_STATS_FROM_PUBLIC, API_COOLDOWN, DEVELOPMENT_MODE
 from httpobs.scanner import scan
 from httpobs.scanner.grader import GRADES, get_score_description
-from httpobs.website import add_response_headers, add_sunset_headers, sanitized_api_response
+from httpobs.website import (
+    add_response_headers,
+    add_sunset_headers,
+    check_for_deprecation_override_header,
+    sanitized_api_response,
+)
 from httpobs.website.utils import valid_hostname
 
 api = Blueprint('api', __name__)
@@ -22,7 +27,7 @@ api = Blueprint('api', __name__)
 @api.route('/api/v1/analyze', methods=['GET', 'OPTIONS', 'POST'])
 @add_sunset_headers()
 @add_response_headers(cors=True)
-# @check_for_deprecation_override_header
+@check_for_deprecation_override_header
 @sanitized_api_response
 def api_post_scan_hostname():
     # TODO: Allow people to accidentally use https://mozilla.org and convert to mozilla.org
@@ -123,7 +128,7 @@ def api_post_scan_hostname():
 @api.route('/api/v1/getGradeDistribution', methods=['GET', 'OPTIONS'])
 @add_sunset_headers()
 @add_response_headers(cors=True)
-# @check_for_deprecation_override_header
+@check_for_deprecation_override_header
 def api_get_grade_totals():
     totals = database.select_star_from('grade_distribution')
 
@@ -136,7 +141,7 @@ def api_get_grade_totals():
 @api.route('/api/v1/getHostHistory', methods=['GET', 'OPTIONS'])
 @add_sunset_headers()
 @add_response_headers(cors=True)
-# @check_for_deprecation_override_header
+@check_for_deprecation_override_header
 def api_get_host_history():
     # Get the hostname
     hostname = request.args.get('host', '').lower()
@@ -171,7 +176,7 @@ def api_get_host_history():
 @api.route('/api/v1/getRecentScans', methods=['GET', 'OPTIONS'])
 @add_sunset_headers()
 @add_response_headers(cors=True)
-# @check_for_deprecation_override_header
+@check_for_deprecation_override_header
 def api_get_recent_scans():
     try:
         # Get the min and max scores, if they're there
@@ -194,7 +199,7 @@ def api_get_recent_scans():
 @api.route('/api/v1/getScannerStates', methods=['GET', 'OPTIONS'])
 @add_sunset_headers()
 @add_response_headers(cors=True)
-# @check_for_deprecation_override_header
+@check_for_deprecation_override_header
 def api_get_scanner_states():
     stats = database.select_scan_scanner_statistics(verbose=False)
 
@@ -204,7 +209,7 @@ def api_get_scanner_states():
 @api.route('/api/v1/__stats__', methods=['GET', 'OPTIONS'])
 @add_sunset_headers()
 @add_response_headers(cors=True)
-# @check_for_deprecation_override_header
+@check_for_deprecation_override_header
 def api_get_scanner_stats():
     pretty = True if request.args.get('pretty', '').lower() == 'true' else False
     verbose = False
@@ -273,7 +278,7 @@ def api_get_scanner_stats():
 @api.route('/api/v1/getScanResults', methods=['GET', 'OPTIONS'])
 @add_sunset_headers()
 @add_response_headers(cors=True)
-# @check_for_deprecation_override_header
+@check_for_deprecation_override_header
 @sanitized_api_response
 def api_get_scan_results():
     scan_id = request.args.get('scan')
@@ -304,7 +309,7 @@ def api_get_scan_results():
 @api.route('/contribute.json', methods=['GET'])
 @add_sunset_headers()
 @add_response_headers()
-# @check_for_deprecation_override_header
+@check_for_deprecation_override_header
 def contribute_json():
     __dirname = os.path.abspath(os.path.dirname(__file__))
     __filename = os.path.join(__dirname, '..', 'docs', 'contribute.json')

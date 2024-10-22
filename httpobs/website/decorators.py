@@ -35,9 +35,13 @@ def check_for_deprecation_override_header(fn):
             return make_response(
                 """
 This API has been deprecated and is no longer available.
-Please use https://observatory-api.mdn.mozilla.net/.
-For details about the new endpint, see
-https://github.com/mdn/mdn-http-observatory/blob/main/README.md#post-apiv2scan.
+
+You can find all about the new HTTP Observatory at https://developer.mozilla.org/en-US/observatory
+
+For the API, please migrate to https://observatory-api.mdn.mozilla.net/.
+
+For details about this new endpint, see
+https://github.com/mdn/mdn-http-observatory/blob/main/README.md#migrating-from-the-public-v1-api-to-the-v2-api.
 
 If you really want to continue with this endpoint for now,
 please add a header to your request in the form of
