@@ -75,6 +75,15 @@ class TestSubResourceIntegrity(TestCase):
         self.assertEquals('sri-not-implemented-but-all-scripts-loaded-from-secure-origin', result['result'])
         self.assertTrue(result['pass'])
 
+    def test_data_uri(self):
+        # load from a remote site
+        self.reqs = empty_requests('test_content_sri_data_uri.html')
+
+        result = subresource_integrity(self.reqs)
+
+        self.assertEquals('sri-not-implemented-but-all-scripts-loaded-from-secure-origin', result['result'])
+        self.assertTrue(result['pass'])
+
     def test_implemented_external_scripts_https(self):
         # load from a remote site
         self.reqs = empty_requests('test_content_sri_impl_external_https1.html')
