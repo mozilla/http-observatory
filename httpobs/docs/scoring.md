@@ -30,7 +30,7 @@ Scoring Range | Grade
 [Cookies](https://infosec.mozilla.org/guidelines/web_security#cookies) | Description | Modifier
 --- | --- | :---:
 cookies-secure-with-httponly-sessions-and-samesite | All cookies use the Secure flag, session cookies use the HttpOnly flag, and cross-origin restrictions are in place via the SameSite flag | 5
-cookies-not-found | No cookies detected | 0
+cookies-not-found | No cookies detected | 5
 cookies-secure-with-httponly-sessions | All cookies use the `Secure` flag and all session cookies use the `HttpOnly` flag | 0
 cookies-without-secure-flag-<br>but-protected-by-hsts | Cookies set without using the `Secure` flag, but transmission over HTTP prevented by HSTS | -5
 cookies-session-without-secure-flag-<br>but-protected-by-hsts | Session cookie set without the `Secure` flag, but transmission over HTTP prevented by HSTS | -10
@@ -100,7 +100,7 @@ referrer-policy-header-invalid | `Referrer-Policy` header cannot be recognized |
 sri-implemented-<br>and-all-scripts-loaded-securely | Subresource Integrity (SRI) is implemented and all scripts are loaded from a similar origin | 5
 sri-implemented-<br>and-external-scripts-loaded-securely | Subresource Integrity (SRI) is implemented and all scripts are loaded securely | 5
 sri-not-implemented-<br>but-all-scripts-loaded-from-secure-origin | Subresource Integrity (SRI) not implemented as all scripts are loaded from a similar origin | 0
-sri-not-implemented-<br>but-no-scripts-loaded | Subresource Integrity (SRI) is not needed since site contains no script tags | 0
+sri-not-implemented-<br>but-no-scripts-loaded | Subresource Integrity (SRI) is not needed since site contains no script tags | 5
 sri-not-implemented-<br>response-not-html | Subresource Integrity (SRI) is only needed for html resources | 0
 sri-not-implemented-<br>but-external-scripts-loaded-securely | Subresource Integrity (SRI) not implemented, but all external scripts are loaded over https | -5
 request-did-not-return-status-code-200 | Site did not return a status code of 200 (deprecated) | -5
